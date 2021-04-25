@@ -1,0 +1,58 @@
+[
+    {
+      "userId": "b1ed7d78-aacb-40dc-9437-a0f80fb921b7",
+      "isAdmin": true,
+      "name": "Ramirez Wheeler",
+      "email": "ramirezwheeler@zerology.com",
+      "registeredAt": "2018-06-04T12:52:41 -03:00"
+    },
+    {
+      "userId": "51c2ac78-3304-4db1-9755-065f2b78180f",
+      "isAdmin": true,
+      "name": "Loretta Welch",
+      "email": "lorettawelch@zerology.com",
+      "registeredAt": "2014-06-12T12:47:11 -03:00"
+    },
+    {
+      "userId": "18e9bd16-fcee-41ad-84bf-c61334ee298a",
+      "isAdmin": true,
+      "name": "Stephenson Charles",
+      "email": "stephensoncharles@zerology.com",
+      "registeredAt": "2019-04-04T10:19:40 -03:00"
+    },
+    {
+      "userId": "986a4dd5-859d-475a-950a-6b526561fb0c",
+      "isAdmin": true,
+      "name": "Larson Gomez",
+      "email": "larsongomez@zerology.com",
+      "registeredAt": "2016-04-15T04:34:33 -03:00"
+    },
+    {
+      "userId": "4cdb6bb9-5ded-4384-9f96-d9a695a7ce27",
+      "isAdmin": true,
+      "name": "Burks Kramer",
+      "email": "burkskramer@zerology.com",
+      "registeredAt": "2017-05-18T06:46:38 -03:00"
+    },
+    {
+      "userId": "ddaa5206-f2fa-4bc3-9c30-391c18a02a19",
+      "isAdmin": false,
+      "name": "Booth England",
+      "email": "boothengland@zerology.com",
+      "registeredAt": "2017-05-17T05:02:21 -03:00"
+    },
+    {
+      "userId": "642a9e60-1f7a-438b-b06c-096ad48033a9",
+      "isAdmin": true,
+      "name": "June House",
+      "email": "junehouse@zerology.com",
+      "registeredAt": "2017-07-04T05:57:14 -03:00"
+    },
+    {
+      "userId": "54a075be-aadf-49ac-b383-2c6e5c65a531",
+      "isAdmin": true,
+      "name": "Candy Moon",
+      "email": "candymoon@zerology.com",
+      "registeredAt": "2014-02-03T10:25:00 -02:00"
+    }
+  ]
