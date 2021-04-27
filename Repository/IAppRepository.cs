@@ -8,18 +8,7 @@ namespace IMK_web.Repository
     public interface IAppRepository
     {
 
-        void AddUser(User user);
-
-        void AddSite(Site site);
-
-        void AddOperator(Operator op);
-
-        void AddAspCompany(AspCompany asp);
-
-        void AddSiteVisit(SiteVisit visit);
-
-        void AddLogs(Log logs);
-
+	void Add<T>(T entity) where T: class;
         Task<Site> GetSite(string sitename);
         Task<User> GetUser(string userId);
 

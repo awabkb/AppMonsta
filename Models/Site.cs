@@ -7,7 +7,7 @@ namespace IMK_web.Models
     public class Site
     {
         [Key]
-        public string SiteId { get; set; }
+        public int SiteId { get; set; }
         public string Name { get; set; }
         public string Latitude { get; set; }
         public string longitude { get; set; }

@@ -9,46 +9,42 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMK_web.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210324120006_finalmigration")]
-    partial class finalmigration
+    [Migration("20210427092419_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.3");
+                .HasAnnotation("Relational:MaxIdentifierLength", 64)
+                .HasAnnotation("ProductVersion", "5.0.5");
 
             modelBuilder.Entity("IMK_web.Models.AspCompany", b =>
                 {
                     b.Property<int>("AspId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ApsMentorUserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("int");
 
                     b.Property<string>("CountryCode")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("AspId");
 
-                    b.HasIndex("ApsMentorUserId");
-
                     b.HasIndex("CountryCode");
 
-                    b.ToTable("AspCompany");
+                    b.ToTable("AspCompanies");
                 });
 
             modelBuilder.Entity("IMK_web.Models.Country", b =>
                 {
                     b.Property<string>("Code")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("Code");
 
@@ -59,40 +55,40 @@ namespace IMK_web.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("Alarms")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("CPRI")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("FRU")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("IPInterfaces")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("IPROUT")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RETAntenna")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
-                    b.Property<int>("RSSIFDD")
-                        .HasColumnType("INTEGER");
+                    b.Property<int>("RSSILTE")
+                        .HasColumnType("int");
 
                     b.Property<int>("RSSINR")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RSSIUMTS")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RetSerial")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("VSWR")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -103,16 +99,16 @@ namespace IMK_web.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
-                    b.Property<int>("AppVersion")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("AppVersion")
+                        .HasColumnType("double");
 
                     b.Property<DateTime>("DateOfRelease")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
-                    b.Property<int>("RPIVersion")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("RPIVersion")
+                        .HasColumnType("double");
 
                     b.HasKey("Id");
 
@@ -121,14 +117,24 @@ namespace IMK_web.Migrations
 
             modelBuilder.Entity("IMK_web.Models.Log", b =>
                 {
-                    b.Property<string>("LogId")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Property<string>("Action")
+                    b.Property<string>("Command")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double");
+
+                    b.Property<string>("Result")
                         .HasColumnType("json");
 
                     b.Property<int?>("SiteVisitVisitId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("LogId");
 
@@ -141,13 +147,13 @@ namespace IMK_web.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("CountryCode")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("Id");
 
@@ -158,26 +164,27 @@ namespace IMK_web.Migrations
 
             modelBuilder.Entity("IMK_web.Models.Site", b =>
                 {
-                    b.Property<string>("SiteId")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("SiteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
                     b.Property<int?>("AspCompanyAspId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Country")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("Latitude")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<int?>("OperatorId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("longitude")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("SiteId");
 
@@ -192,22 +199,22 @@ namespace IMK_web.Migrations
                 {
                     b.Property<int>("VisitId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("IMK_FunctionsId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("ImkVersionId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
-                    b.Property<string>("SiteId")
-                        .HasColumnType("TEXT");
+                    b.Property<int?>("SiteId")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
 
                     b.Property<DateTime>("VistedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("VisitId");
 
@@ -225,22 +232,25 @@ namespace IMK_web.Migrations
             modelBuilder.Entity("IMK_web.Models.User", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
 
                     b.Property<int?>("AspCompanyAspId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<bool>("IsAdmin")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<DateTime>("RegisteredAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("UserId");
 
@@ -251,15 +261,9 @@ namespace IMK_web.Migrations
 
             modelBuilder.Entity("IMK_web.Models.AspCompany", b =>
                 {
-                    b.HasOne("IMK_web.Models.User", "ApsMentor")
-                        .WithMany()
-                        .HasForeignKey("ApsMentorUserId");
-
                     b.HasOne("IMK_web.Models.Country", null)
                         .WithMany("AspCompanies")
                         .HasForeignKey("CountryCode");
-
-                    b.Navigation("ApsMentor");
                 });
 
             modelBuilder.Entity("IMK_web.Models.Log", b =>
@@ -278,13 +282,17 @@ namespace IMK_web.Migrations
 
             modelBuilder.Entity("IMK_web.Models.Site", b =>
                 {
-                    b.HasOne("IMK_web.Models.AspCompany", null)
+                    b.HasOne("IMK_web.Models.AspCompany", "AspCompany")
                         .WithMany("Sites")
                         .HasForeignKey("AspCompanyAspId");
 
-                    b.HasOne("IMK_web.Models.Operator", null)
+                    b.HasOne("IMK_web.Models.Operator", "Operator")
                         .WithMany("Sites")
                         .HasForeignKey("OperatorId");
+
+                    b.Navigation("AspCompany");
+
+                    b.Navigation("Operator");
                 });
 
             modelBuilder.Entity("IMK_web.Models.SiteVisit", b =>
@@ -316,9 +324,11 @@ namespace IMK_web.Migrations
 
             modelBuilder.Entity("IMK_web.Models.User", b =>
                 {
-                    b.HasOne("IMK_web.Models.AspCompany", null)
+                    b.HasOne("IMK_web.Models.AspCompany", "AspCompany")
                         .WithMany("Workers")
                         .HasForeignKey("AspCompanyAspId");
+
+                    b.Navigation("AspCompany");
                 });
 
             modelBuilder.Entity("IMK_web.Models.AspCompany", b =>

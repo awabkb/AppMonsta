@@ -70,7 +70,7 @@ namespace IMK_web.Repository
                 foreach (var s in v)
                 {
                     date = s.VistedAt.ToString("yyyy-MM-dd");
-                    ids.Add(int.Parse(s.Site.SiteId));
+                    ids.Add(s.Site.SiteId);
                 }
                 countrySites[date] = ids.Distinct().Count();
             }

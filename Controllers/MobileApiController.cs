@@ -13,6 +13,7 @@ using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json;
 
 namespace IMK_web.Controllers
 {
@@ -42,10 +43,10 @@ namespace IMK_web.Controllers
                 user= new User();
                 user.UserId = userId;
                 user.Name =  User.Claims.Where(x =>x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() +" "+ User.Claims.Where(x =>x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
-                //user.Phone = userDto.Phone;
+                user.Phone = userDto.Phone;
                 user.Email = userDto.Email==null?User.Claims.Where(x =>x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault():userDto.Email;
                 //user.AspCompany = userDto.AspCompany;
-                _appRepository.AddUser(user);
+                _appRepository.Add(user);
 
                 await _appRepository.SaveChanges();
                 return Ok(user);
@@ -63,7 +64,7 @@ namespace IMK_web.Controllers
             User user = await _appRepository.GetUser(userId);
             
             if(user==null){
-                return BadRequest();
+                return BadRequest("User not found " + userId);
             }
 
             SiteVisit siteVisit = new SiteVisit();
@@ -78,13 +79,22 @@ namespace IMK_web.Controllers
                 site.Latitude = siteVisitDto.Latitude.ToString();
                 site.longitude = siteVisitDto.Longitude.ToString();
                 
-                _appRepository.AddSite(site);
+                _appRepository.Add(site);
             }
             
             siteVisit.Site = site;
 
             siteVisit.VistedAt = siteVisitDto.UploadedAt;
-            IEnumerable<Log> logs = siteVisitDto.Actions;
+            ICollection<Log> logs = new List<Log>();
+            foreach(LogDTO logDto in siteVisitDto.Actions){
+                logs.Add(new Log(){
+                    LogId=logDto.LogId,
+                    Command = logDto.Command,
+                    Longitude=logDto.Longitude,
+                    Latitude= logDto.Latitude,
+                    Result = JsonConvert.SerializeObject(logDto.Result)
+                });
+            }
             siteVisit.Logs = logs;
             
 
@@ -117,21 +127,20 @@ namespace IMK_web.Controllers
             }
             
             IMK_Functions iMK_Functions= new IMK_Functions();
-            iMK_Functions.VSWR = imkFunctionsDic["vswr"];
-            iMK_Functions.FRU = imkFunctionsDic["fru"];
-            iMK_Functions.CPRI = imkFunctionsDic["cpri"];
-            iMK_Functions.IPROUT = imkFunctionsDic["transport_routes"];
-            iMK_Functions.IPInterfaces = imkFunctionsDic["transport_interfaces"];
-            iMK_Functions.Alarms = imkFunctionsDic["alarm"];
-            iMK_Functions.RetSerial = imkFunctionsDic["ret_serial"];
-            iMK_Functions.RETAntenna = imkFunctionsDic["ret_antenna"];
-            iMK_Functions.RSSIUMTS = imkFunctionsDic["rssi_umts"];
-            iMK_Functions.RSSILTE = imkFunctionsDic["rssi-lte"];
-            iMK_Functions.RSSINR = imkFunctionsDic["rssi-nr"];
-            
+            iMK_Functions.VSWR = imkFunctionsDic.GetValueOrDefault("vswr");
+            iMK_Functions.FRU = imkFunctionsDic.GetValueOrDefault("fru");
+            iMK_Functions.CPRI = imkFunctionsDic.GetValueOrDefault("cpri");
+            iMK_Functions.IPROUT = imkFunctionsDic.GetValueOrDefault("transport_routes");
+            iMK_Functions.IPInterfaces = imkFunctionsDic.GetValueOrDefault("transport_interfaces");
+            iMK_Functions.Alarms = imkFunctionsDic.GetValueOrDefault("alarm");
+            iMK_Functions.RetSerial = imkFunctionsDic.GetValueOrDefault("ret_serial");
+            iMK_Functions.RETAntenna = imkFunctionsDic.GetValueOrDefault("ret_antenna");
+            iMK_Functions.RSSIUMTS = imkFunctionsDic.GetValueOrDefault("rssi_umts");
+            iMK_Functions.RSSILTE = imkFunctionsDic.GetValueOrDefault("rssi-lte");
+            iMK_Functions.RSSINR = imkFunctionsDic.GetValueOrDefault("rssi-nr");            
             siteVisit.IMK_Functions = iMK_Functions;
             
-            _appRepository.AddSiteVisit(siteVisit);
+            _appRepository.Add(siteVisit);
 
 
             await _appRepository.SaveChanges();
@@ -142,8 +151,19 @@ namespace IMK_web.Controllers
         [HttpGet("countries")]
         public async Task<IActionResult> getCountries()
         {
-            var countries = await _appRepository.GetCountries();
-            return Ok(countries);
+            IEnumerable<Country> countries = await _appRepository.GetCountries();
+            ICollection<CountryToReturn> countriesToReturn = new List<CountryToReturn>();  
+            foreach(Country country in countries){
+                CountryToReturn countryToReturn = new CountryToReturn(){
+                    Code = country.Code,
+                    Name = country.Name,
+                    Operators = country.Operators.Select(x =>x.Name).ToArray(),
+                    AspCompanies = country.AspCompanies.Select(x =>x.Name).ToArray()
+                };
+                countriesToReturn.Add(countryToReturn);
+            }
+
+            return Ok(countriesToReturn);
         }
 
         // [AllowAnonymous]

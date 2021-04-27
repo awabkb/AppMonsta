@@ -20,52 +20,10 @@ namespace IMK_web.Repository
 
         }
 
-        //////////////// Create User //////////////////
-        public async void AddUser(User user)
+	
+        public void Add<T>(T entity) where T : class
         {
-            _context.Add(user);
-            await _context.SaveChangesAsync();
-
-        }
-
-        //////////////// Create Site //////////////////
-        public async void AddSite(Site site)
-        {
-            _context.Add(site);
-            await _context.SaveChangesAsync();
-
-        }
-
-        //////////////// Create Operator //////////////////
-        public async void AddOperator(Operator op)
-        {
-            _context.Add(op);
-            await _context.SaveChangesAsync();
-
-        }
-
-        //////////////// Create Company //////////////////
-        public async void AddAspCompany(AspCompany asp)
-        {
-            _context.Add(asp);
-            await _context.SaveChangesAsync();
-
-        }
-
-        //////////////// Create SiteVisit //////////////////
-        public async void AddSiteVisit(SiteVisit visit)
-        {
-            _context.Add(visit);
-            await _context.SaveChangesAsync();
-
-        }
-
-        //////////////// Create User //////////////////
-        public async void AddLogs(Log logs)
-        {
-            _context.Add(logs);
-            await _context.SaveChangesAsync();
-
+            _context.Add(entity);
         }
 
         public async Task<Site> GetSite(string sitename)

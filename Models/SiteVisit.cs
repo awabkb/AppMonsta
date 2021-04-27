@@ -19,7 +19,7 @@ namespace IMK_web.Models
         public IMK_Functions IMK_Functions { get; set; }
         public DateTime VistedAt { get; set; }
         public ImkVersion ImkVersion { get; set; }
-        public IEnumerable<Log> Logs { get; set; }
+        public ICollection<Log> Logs { get; set; }
        
     }
     

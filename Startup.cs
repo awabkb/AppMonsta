@@ -18,7 +18,6 @@ using IMK_web.Data;
 using IMK_web.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using MySql.Data.EntityFrameworkCore.Extensions; 
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 
 namespace IMK_web
@@ -37,7 +36,7 @@ namespace IMK_web
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<DataContext>(x=>x.UseMySQL(Configuration.GetConnectionString("IMKContext")) );
+            services.AddDbContext<DataContext>(x=> { x.UseMySql(Configuration.GetConnectionString("default"), new MySqlServerVersion(new Version(14,14)));});
             services.AddMvc().AddNewtonsoftJson(opt=>{
             opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
@@ -69,7 +68,7 @@ namespace IMK_web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Seed seeder)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

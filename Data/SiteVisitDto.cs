@@ -8,7 +8,7 @@ using IMK_web.Models;
 namespace Data{
     public class SiteVisitDto{
         public DateTime UploadedAt { get; set; }
-        public IEnumerable<Log> Actions { get; set; }
+        public LogDTO[] Actions { get; set; }
         public string SiteName { get; set; }
         public double Longitude { get; set; }
         public double Latitude { get; set; }
