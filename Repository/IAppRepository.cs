@@ -8,7 +8,8 @@ namespace IMK_web.Repository
     public interface IAppRepository
     {
 
-	void Add<T>(T entity) where T: class;
+	    void Add<T>(T entity) where T: class;
+        void Update<T>(T entity) where T: class;
         Task<Site> GetSite(string sitename);
         Task<User> GetUser(string userId);
 
@@ -17,6 +18,8 @@ namespace IMK_web.Repository
 
         Task<AspCompany> GetAspCompany(int aspId);
         Task<IEnumerable<Country>> GetCountries();
+        Task<ImkVersion> GetLatestImkVersion();
+
 
     }
 }

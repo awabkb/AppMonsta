@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace IMK_web.Controllers
 {
-    [Authorize(AuthenticationSchemes =JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]")]
     [ApiController]
     public class MobileApiController : Controller
@@ -28,23 +28,23 @@ namespace IMK_web.Controllers
         {
             _appRepository = appRepository;
         }
-        
+
 
 
         ////////////////////////// Create User ////////////////////////////
         [HttpPost("user")]
         public async Task<IActionResult> CreateUser(UserDto userDto)
         {
-            var userId = User.Claims.Where(x =>x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
+            var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
 
             User user = await _appRepository.GetUser(userId);
-            if (user==null)
+            if (user == null)
             {
-                user= new User();
+                user = new User();
                 user.UserId = userId;
-                user.Name =  User.Claims.Where(x =>x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() +" "+ User.Claims.Where(x =>x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
+                user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
                 user.Phone = userDto.Phone;
-                user.Email = userDto.Email==null?User.Claims.Where(x =>x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault():userDto.Email;
+                user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
                 //user.AspCompany = userDto.AspCompany;
                 _appRepository.Add(user);
 
@@ -53,17 +53,18 @@ namespace IMK_web.Controllers
             }
             else
                 return BadRequest("User already exists");
-            
+
         }
 
-        //[AllowAnonymous]
+        ////////////////////////// New Site Visit ////////////////////////////
         [HttpPost("sitevisit")]
         public async Task<IActionResult> CreateSiteVisit(SiteVisitDto siteVisitDto)
         {
-            var userId = User.Claims.Where(x =>x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
+            var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
             User user = await _appRepository.GetUser(userId);
-            
-            if(user==null){
+
+            if (user == null)
+            {
                 return BadRequest("User not found " + userId);
             }
 
@@ -78,55 +79,64 @@ namespace IMK_web.Controllers
                 site.Country = siteVisitDto.Country;
                 site.Latitude = siteVisitDto.Latitude.ToString();
                 site.longitude = siteVisitDto.Longitude.ToString();
-                
+
                 _appRepository.Add(site);
             }
-            
+
             siteVisit.Site = site;
 
             siteVisit.VistedAt = siteVisitDto.UploadedAt;
             ICollection<Log> logs = new List<Log>();
-            foreach(LogDTO logDto in siteVisitDto.Actions){
-                logs.Add(new Log(){
-                    LogId=logDto.LogId,
+            foreach (LogDTO logDto in siteVisitDto.Actions)
+            {
+                logs.Add(new Log()
+                {
+                    LogId = logDto.LogId,
                     Command = logDto.Command,
-                    Longitude=logDto.Longitude,
-                    Latitude= logDto.Latitude,
+                    Longitude = logDto.Longitude,
+                    Latitude = logDto.Latitude,
                     Result = JsonConvert.SerializeObject(logDto.Result)
                 });
             }
             siteVisit.Logs = logs;
-            
 
 
-            siteVisit.ImkVersion = await _appRepository.GetImkVersion(siteVisitDto.RpiVersion,siteVisitDto.AppVersion);
 
-            Dictionary<string,int> imkFunctionsDic = new Dictionary<string, int>();
+            siteVisit.ImkVersion = await _appRepository.GetImkVersion(siteVisitDto.RpiVersion, siteVisitDto.AppVersion);
 
-            foreach(Log log in logs){
-                
+            Dictionary<string, int> imkFunctionsDic = new Dictionary<string, int>();
+
+            foreach (Log log in logs)
+            {
+
                 string key = null;
-                if(log.Command.StartsWith("fru")){
-                     key= "fru";
+                if (log.Command.StartsWith("fru"))
+                {
+                    key = "fru";
                 }
-                else if(log.Command.StartsWith("alarm")){
+                else if (log.Command.StartsWith("alarm"))
+                {
                     key = "alarm";
                 }
-                else if(log.Command.StartsWith("rssi-lte")){
-                     key= "rssi-lte";
+                else if (log.Command.StartsWith("rssi-lte"))
+                {
+                    key = "rssi-lte";
                 }
-                else{
-                     key=log.Command;
+                else
+                {
+                    key = log.Command;
                 }
-               if(imkFunctionsDic.ContainsKey(key)){
-                   imkFunctionsDic[key]++;
-               }
-               else{
-                   imkFunctionsDic.Add(key,1);
-               }
+                if (imkFunctionsDic.ContainsKey(key))
+                {
+                    imkFunctionsDic[key]++;
+                }
+                else
+                {
+                    imkFunctionsDic.Add(key, 1);
+                }
             }
-            
-            IMK_Functions iMK_Functions= new IMK_Functions();
+
+            IMK_Functions iMK_Functions = new IMK_Functions();
             iMK_Functions.VSWR = imkFunctionsDic.GetValueOrDefault("vswr");
             iMK_Functions.FRU = imkFunctionsDic.GetValueOrDefault("fru");
             iMK_Functions.CPRI = imkFunctionsDic.GetValueOrDefault("cpri");
@@ -137,9 +147,9 @@ namespace IMK_web.Controllers
             iMK_Functions.RETAntenna = imkFunctionsDic.GetValueOrDefault("ret_antenna");
             iMK_Functions.RSSIUMTS = imkFunctionsDic.GetValueOrDefault("rssi_umts");
             iMK_Functions.RSSILTE = imkFunctionsDic.GetValueOrDefault("rssi-lte");
-            iMK_Functions.RSSINR = imkFunctionsDic.GetValueOrDefault("rssi-nr");            
+            iMK_Functions.RSSINR = imkFunctionsDic.GetValueOrDefault("rssi-nr");
             siteVisit.IMK_Functions = iMK_Functions;
-            
+
             _appRepository.Add(siteVisit);
 
 
@@ -147,18 +157,22 @@ namespace IMK_web.Controllers
             return Ok("Created");
 
         }
-        [AllowAnonymous]
+
+
+        ////////////////////////// Get Countries ////////////////////////////
         [HttpGet("countries")]
         public async Task<IActionResult> getCountries()
         {
             IEnumerable<Country> countries = await _appRepository.GetCountries();
-            ICollection<CountryToReturn> countriesToReturn = new List<CountryToReturn>();  
-            foreach(Country country in countries){
-                CountryToReturn countryToReturn = new CountryToReturn(){
+            ICollection<CountryToReturn> countriesToReturn = new List<CountryToReturn>();
+            foreach (Country country in countries)
+            {
+                CountryToReturn countryToReturn = new CountryToReturn()
+                {
                     Code = country.Code,
                     Name = country.Name,
-                    Operators = country.Operators.Select(x =>x.Name).ToArray(),
-                    AspCompanies = country.AspCompanies.Select(x =>x.Name).ToArray()
+                    Operators = country.Operators.Select(x => x.Name).ToArray(),
+                    AspCompanies = country.AspCompanies.Select(x => x.Name).ToArray()
                 };
                 countriesToReturn.Add(countryToReturn);
             }
@@ -166,37 +180,50 @@ namespace IMK_web.Controllers
             return Ok(countriesToReturn);
         }
 
-        // [AllowAnonymous]
-        // [HttpPost("user")]
-        // public async Task<IActionResult> createUser(UserDto userToCreate){
-        //     User user =await _appRepository.GetUser(userToCreate.UserId);
 
-        //    if( user==null){
-        //        user = new User();
-        //         user.Email = userToCreate.Email;
-        //         user.UserId = userToCreate.UserId;
-        //    }
-        //     return Ok(user);
-
-        // }
-
+        ////////////////////////// Get User ////////////////////////////
         [HttpGet("User")]
-        public async Task<IActionResult> getUser(string userId){
-            User user =await _appRepository.GetUser(userId);
+        public async Task<IActionResult> getUser(string userId)
+        {
+            User user = await _appRepository.GetUser(userId);
             return Ok(user);
 
         }
 
+        ////////////////////////// Update User Info ////////////////////////////
+        [HttpPut("user")]
+        public async Task<IActionResult> updateUser(UserDto userDto)
+        {
 
-        //////////////////////////// Create Site /////////////////////////////////
+            var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
+            User user = await _appRepository.GetUser(userId);
+            if (user != null)
+            {
+                user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
+                user.Phone = userDto.Phone;
+                user.Email = userDto.Email;
+                //user.AspCompany = userDto.AspCompany;
+                _appRepository.Update(user);
 
-        //////////////////////////// Create Operator /////////////////////////////
+                await _appRepository.SaveChanges();
+                return Ok(user);
+            }
+            else
+                return BadRequest("User has no profile");
 
-        //////////////////////////// Create Company //////////////////////////////
+        }
 
-        //////////////////////////// Create SiteVisit ////////////////////////////
 
-        //////////////////////////// Create Logs /////////////////////////////////
+        ////////////////////////// Get Latest IMK Version ////////////////////////////
+        [HttpGet("version")]
+        public async Task<IActionResult> getLatestVersion()
+        {
+
+            var version = await _appRepository.GetLatestImkVersion();
+            return Ok(version);
+        }
+
+
 
     }
 }
