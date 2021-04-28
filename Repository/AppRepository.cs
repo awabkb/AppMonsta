@@ -26,6 +26,11 @@ namespace IMK_web.Repository
             _context.Add(entity);
         }
 
+        public void Update<T>(T entity) where T : class
+        {
+            _context.Update(entity);
+        }
+
         public async Task<Site> GetSite(string sitename)
         {
             return await _context.Sites.Include(x =>x.SiteVisits).FirstOrDefaultAsync(x => x.Name.Equals(sitename));
@@ -54,6 +59,11 @@ namespace IMK_web.Repository
         public async Task<IEnumerable<Country>> GetCountries()
         {
             return await _context.Countries.Include(x =>x.AspCompanies).Include(x =>x.Operators).ToListAsync();
-         }
+        }
+
+        public async Task<ImkVersion> GetLatestImkVersion()
+        {
+            return await _context.ImkVersions.OrderBy(x => x.DateOfRelease).LastAsync();
+        }
     }
 }

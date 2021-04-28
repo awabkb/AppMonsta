@@ -8,7 +8,6 @@ namespace IMK_web.Models
         [Key]
         public int Id { get; set; }
         public DateTime DateOfRelease { get; set; }
-
         public double AppVersion { get; set; }
         public double RPIVersion { get; set; }
         
