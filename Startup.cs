@@ -36,7 +36,8 @@ namespace IMK_web
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<DataContext>(x=> { x.UseMySql(Configuration.GetConnectionString("default"), new MySqlServerVersion(new Version(14,14)));});
+            // services.AddDbContext<DataContext>(x=> { x.UseMySql(Configuration.GetConnectionString("default"), new MySqlServerVersion(new Version(14,14)));});
+            services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("default")));
             services.AddMvc().AddNewtonsoftJson(opt=>{
             opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });

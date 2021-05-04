@@ -58,9 +58,31 @@ namespace IMK_web.Repository
 
 
         //get site visits in date range (start -> end) of unique sites
-        public async Task<ActionResult> GetSiteVisits(string start, string end)
+        public async Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators)
         {
-            var visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include("Site").ToListAsync();
+            List<SiteVisit> visits = null;
+            if (countries == "[]" || countries == null)
+            {
+                visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).ToListAsync();
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                }
+                else
+                {
+
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Include(x => x.Site.Operator)
+                        .Where(c => arrCountries.Contains(c.Site.Country))
+                        .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                }
+            }
+
             var res = visits.GroupBy(x => x.VistedAt);
             Dictionary<string, int> countrySites = new Dictionary<string, int>();
             foreach (var v in res)
@@ -77,9 +99,18 @@ namespace IMK_web.Repository
             return new JsonResult(countrySites);
         }
 
-        public async Task<ActionResult> GetSitesByCountry(string start, string end)
+        public async Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators)
         {
-            var visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include("Site").ToListAsync();
+            List<SiteVisit> visits = null;
+            if (countries == "[]"|| countries == null)
+            {
+                visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).ToListAsync();
+            }
+            else
+            {
+                string[] arrCountries = countries.Split(",");
+                visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+            }
             var res = visits.GroupBy(x => x.VistedAt);
             Dictionary<string, Dictionary<string, int>> countryVisits = new Dictionary<string, Dictionary<string, int>>();
 
@@ -109,10 +140,31 @@ namespace IMK_web.Repository
 
 
         // get IMK functions used
-        public async Task<ActionResult> GetIMKFunctions(string start, string end)
+        public async Task<ActionResult> GetIMKFunctions(string start, string end, string countries, string operators)
         {
-            var sfunctions = await _context.SiteVisits.Include("IMK_Functions").Select(s => s.IMK_Functions.Id).ToListAsync();
+            List<int> sfunctions = null;
+            if (countries == "[]" || countries == null)
+            {
+                sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Select(s => s.IMK_Functions.Id).ToListAsync();
+            }
+            else
+            {
+                if (operators == null)
+                {
 
+                    string[] arrCountries = countries.Split(",");
+                    sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Where(c => arrCountries.Contains(c.Site.Country)).Select(s => s.IMK_Functions.Id).ToListAsync();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Include(x => x.Site.Operator)
+                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name)).Select(s => s.IMK_Functions.Id).ToListAsync();
+
+                }
+            }
             var functions = _context.IMK_Functions.Where(x => sfunctions.Contains(x.Id)).GroupBy(x => true).Select(x => new
             {
                 VSWR = x.Sum(y => y.VSWR),
@@ -131,9 +183,32 @@ namespace IMK_web.Repository
         }
 
         // get top 10 engineers
-        public async Task<ActionResult> GetTopEngineers(string start, string end)
+        public async Task<ActionResult> GetTopEngineers(string start, string end, string countries, string operators)
         {
-            var allVisits = await _context.SiteVisits.Include("Site").Include("User").ToListAsync();
+            List<SiteVisit> allVisits = null;
+            if (countries == "[]" || countries == null)
+            {
+                allVisits = await _context.SiteVisits.Include("Site").Include("User").ToListAsync();
+
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.Site.Operator)
+                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                }
+
+            }
+
             var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new { name = y.Key, sites = y.Select(i => i.Site.SiteId).Distinct().Count() });
             var topasp = asp.OrderByDescending(s => s.sites).Take(10);
 
@@ -142,9 +217,36 @@ namespace IMK_web.Repository
 
         //get IMKVersion (AppVersion %)
 
-        public async Task<ActionResult> GetAppVersion(string start, string end)
+        public async Task<ActionResult> GetAppVersion(string start, string end, string countries, string operators)
         {
-            var allVisits = await _context.SiteVisits.Include("ImkVersion").ToListAsync();
+
+            List<SiteVisit> allVisits = null;
+            if (countries == "[]" || countries == null)
+            {
+                allVisits = await _context.SiteVisits.Include("ImkVersion").ToListAsync();
+
+            }
+            else
+            {
+                if (operators == null)
+                {
+
+                    string[] arrCountries = countries.Split(",");
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                }
+                else
+                {
+
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
+                    .Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+
+                }
+            }
             var versions = allVisits.GroupBy(x => new { x.ImkVersion.AppVersion }).Select(y => new
             {
                 AppVersion = y.Key.AppVersion,
@@ -157,9 +259,32 @@ namespace IMK_web.Repository
 
         //get IMKVersion (RPIVersion %)
 
-        public async Task<ActionResult> GetRPIVersion(string start, string end)
+        public async Task<ActionResult> GetRPIVersion(string start, string end, string countries, string operators)
         {
-            var allVisits = await _context.SiteVisits.Include("ImkVersion").ToListAsync();
+            List<SiteVisit> allVisits = null;
+            if (countries == "[]" || countries == null)
+            {
+                allVisits = await _context.SiteVisits.Include("ImkVersion").ToListAsync();
+
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                }
+                else
+                {
+
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
+                    .Where(c => arrCountries.Contains(c.Site.Country))
+                   .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                }
+            }
+
             var versions = allVisits.GroupBy(x => new { x.ImkVersion.RPIVersion }).Select(y => new
             {
                 RPIVersion = y.Key.RPIVersion,
@@ -169,23 +294,118 @@ namespace IMK_web.Repository
             return new JsonResult(versions);
         }
 
-        
+
         // get all site visit details
-        public async Task<ActionResult> GetSiteVisitDetails(string start, string end) 
+        public async Task<ActionResult> GetSiteVisitDetails(string start, string end, string countries, string operators)
         {
-            var allVisits =  _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x =>x.Site.Operator);
-            var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new {
-                siteName = x.Site.Name,
-                country = x.Site.Country,
-                user = x.User.Name,
-                op = x.Site.Operator.Name,
-                androidVersion = x.ImkVersion.AppVersion,
-                rpVersion = x.ImkVersion.RPIVersion,
-                asp = x.Site.AspCompany.Name,
-                date = x.VistedAt.ToString("yyyy-MM-dd"),
-                //contact = x.Site.AspCompany.ApsMentor.Email
-            }).ToListAsync();
-            return new JsonResult(visitDetails);
+
+            if (countries == "[]"|| countries == null)
+            {
+                var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x => x.Site.Operator);
+                var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
+                {
+                    siteName = x.Site.Name,
+                    country = x.Site.Country,
+                    user = x.User.Name,
+                    op = x.Site.Operator.Name,
+                    androidVersion = x.ImkVersion.AppVersion,
+                    rpVersion = x.ImkVersion.RPIVersion,
+                    asp = x.Site.AspCompany.Name,
+                    date = x.VistedAt.ToString("yyyy-MM-dd"),
+                    //contact = x.Site.AspCompany.ApsMentor.Email
+                }).ToListAsync();
+                return new JsonResult(visitDetails);
+
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country));
+                    var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
+                    {
+                        siteName = x.Site.Name,
+                        country = x.Site.Country,
+                        user = x.User.Name,
+                        op = x.Site.Operator.Name,
+                        androidVersion = x.ImkVersion.AppVersion,
+                        rpVersion = x.ImkVersion.RPIVersion,
+                        asp = x.Site.AspCompany.Name,
+                        date = x.VistedAt.ToString("yyyy-MM-dd"),
+                        //contact = x.Site.AspCompany.ApsMentor.Email
+                    }).ToListAsync();
+                    return new JsonResult(visitDetails);
+
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x => x.Site.Operator)
+                        .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name));
+
+                    var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
+                    {
+                        siteName = x.Site.Name,
+                        country = x.Site.Country,
+                        user = x.User.Name,
+                        op = x.Site.Operator.Name,
+                        androidVersion = x.ImkVersion.AppVersion,
+                        rpVersion = x.ImkVersion.RPIVersion,
+                        asp = x.Site.AspCompany.Name,
+                        date = x.VistedAt.ToString("yyyy-MM-dd"),
+                        //contact = x.Site.AspCompany.ApsMentor.Email
+                    }).ToListAsync();
+                    return new JsonResult(visitDetails);
+                }
+            }
+
+
+
+        }
+
+        /////////////////////////////////////////////////////
+        // get # of sites usage (num of site visits by country)
+        public async Task<ActionResult> GetSiteUsage(string start, string end)
+        {
+            var visits = await _context.SiteVisits.Include("Site").ToListAsync();
+            var all_usage = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
+            {
+                country = y.Key.Country,
+                usage = ((float)y.Select(i => i.VisitId).Count() / (float)visits.Count()) * 100
+
+            });
+            return new JsonResult(all_usage);
+        }
+
+        // get active users by country (users accompanied with site visits)
+        public async Task<ActionResult> GetActiveUsers(string start, string end)
+        {
+            var visits = await _context.SiteVisits.Include("User").Include("Site").ToListAsync();
+            var site_users = await _context.SiteVisits.Include("User").Select(x => x.User.UserId).Distinct().ToListAsync();
+            var active_users = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
+            {
+                country = y.Key.Country,
+                users = ((float)y.Select(i => i.User.UserId).Distinct().Count() / (float)site_users.Count()) * 100
+
+            });
+            return new JsonResult(active_users);
+        }
+
+        // get number of new user profiles created
+        public async Task<ActionResult> GetNewProfiles(string start, string end)
+        {
+            var allusers = await _context.AspCompanies.Include(x => x.Workers).ToListAsync(); //TODO condition user isactive & isapproved
+
+            // var newusers = allusers.GroupBy( x=> new {x.Country.Name}).Select( y => new 
+            // {
+            //     country = y.Key.Name,
+            //     //users = y.Where(i =>i.RegisteredAt >= DateTime.Parse(start) && i.RegisteredAt <= DateTime.Parse(end)).Select(j => j.UserId)
+            //     u = y.Select(i => i.Sites.)
+            // });
+            return new JsonResult(allusers);
         }
     }
 }
