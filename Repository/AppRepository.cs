@@ -19,8 +19,7 @@ namespace IMK_web.Repository
             this._context = dataContext;
 
         }
-
-	
+        
         public void Add<T>(T entity) where T : class
         {
             _context.Add(entity);

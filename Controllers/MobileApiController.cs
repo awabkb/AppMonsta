@@ -32,7 +32,8 @@ namespace IMK_web.Controllers
 
 
         ////////////////////////// Create User ////////////////////////////
-        [HttpPost("user")]
+        [AllowAnonymous]
+        [HttpPost("adduser")]
         public async Task<IActionResult> CreateUser(UserDto userDto)
         {
             var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
@@ -160,6 +161,7 @@ namespace IMK_web.Controllers
 
 
         ////////////////////////// Get Countries ////////////////////////////
+        [AllowAnonymous]
         [HttpGet("countries")]
         public async Task<IActionResult> getCountries()
         {
@@ -215,6 +217,7 @@ namespace IMK_web.Controllers
 
 
         ////////////////////////// Get Latest IMK Version ////////////////////////////
+        [AllowAnonymous]
         [HttpGet("version")]
         public async Task<IActionResult> getLatestVersion()
         {
@@ -222,8 +225,6 @@ namespace IMK_web.Controllers
             var version = await _appRepository.GetLatestImkVersion();
             return Ok(version);
         }
-
-
 
     }
 }

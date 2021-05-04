@@ -133,8 +133,9 @@ function filter() {
 function filterDone() {
     document.getElementById('filterDiv').setAttribute('style', 'visibility:hidden');
     showFilter = true;
-    var arrStr = encodeURIComponent(JSON.stringify(filterCountryList));
-    var arrStrOpertator = encodeURIComponent(JSON.stringify(filterOperatorList));
+    var arrStr = encodeURIComponent(filterCountryList);
+    var arrStrOpertator = encodeURIComponent(filterOperatorList);
+    
     localStorage['CQ'] = '&filetedcountries=' + arrStr + '&filetedoperators=' + arrStrOpertator;
     getdata(localStorage['PQ'] + '&filetedcountries=' + arrStr + '&filetedoperators=' + arrStrOpertator)
 }
@@ -226,12 +227,15 @@ function getAllCountries() {
 
 function getdata(query) {
     topquery = query;
+    var countries = decodeURIComponent(query);
+
     $.ajax({
         url: "api/dashboardapi/unique_sites",
         type: "GET",
-        data: query,
+        data: countries,
         success: function (res) {
             if ($('#site_count').length) {
+                console.log(query)
                 var rows = ['sites'];
                 var rowsdate = ['x'];
                 var datevalues = [];
@@ -325,6 +329,7 @@ function getdata(query) {
         url: "api/dashboardapi/countryview",
         type: "GET",
         data: query,
+   
         success: function (res) {
             if ($('#countries_view').length) {
                 var dataperdate = [];
@@ -441,7 +446,7 @@ function getdata(query) {
     $.ajax({
         url: "api/dashboardapi/appversion",
         type: "GET",
-        data: "query",
+        data: query,
         success: function (res) {
             if ($('#ANDROIDchart_donut').length) {
                 var imkVdata = [];

@@ -9,6 +9,7 @@ namespace IMK_web.Models
         public int AspId { get; set; }
         public string Name { get; set; }
         //public User ApsMentor { get; set; }
+        public Country Country { get; set; }
         public IEnumerable<User> Workers { get; set; }
         public IEnumerable<Site> Sites { get; set; }
     }
