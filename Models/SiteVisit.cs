@@ -17,7 +17,7 @@ namespace IMK_web.Models
         public User User { get; set; }
         public Site Site{get;set;}
         public IMK_Functions IMK_Functions { get; set; }
-        public DateTime VistedAt { get; set; }
+        // public DateTime VistedAt { get; set; }
         public ImkVersion ImkVersion { get; set; }
         public ICollection<Log> Logs { get; set; }
         public DateTime StartTime { get; set; }
