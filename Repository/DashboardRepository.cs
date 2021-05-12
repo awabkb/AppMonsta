@@ -69,33 +69,33 @@ namespace IMK_web.Repository
             List<SiteVisit> visits = null;
             if (countries == "[]" || countries == null)
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).ToListAsync();
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
                 }
                 else
                 {
 
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Include(x => x.Site.Operator)
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country))
                         .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
                 }
             }
 
 
-            var res = visits.GroupBy(x => x.VistedAt);
+            var res = visits.GroupBy(x => x.StartTime);
             Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
             var date = "";
             foreach (var v in res)
             {
-                date = v.First().VistedAt.ToString("yyyy-MM-dd");
+                date = v.First().StartTime.ToString("yyyy-MM-dd");
 
                 Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
@@ -120,32 +120,32 @@ namespace IMK_web.Repository
             List<SiteVisit> visits = null;
             if (countries == "[]" || countries == null)
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).ToListAsync();
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
                 }
                 else
                 {
 
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Include(x => x.Site.Operator)
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country))
                         .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
                 }
             }
 
-            var res = visits.GroupBy(x => x.VistedAt);
+            var res = visits.GroupBy(x => x.StartTime);
             Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
             var date = "";
             foreach (var v in res)
             {
-                date = v.First().VistedAt.ToString("yyyy-MM-dd");
+                date = v.First().StartTime.ToString("yyyy-MM-dd");
 
                 Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
@@ -385,7 +385,7 @@ namespace IMK_web.Repository
             if (countries == "[]" || countries == null)
             {
                 var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator);
-                var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
+                var visitDetails = await allVisits.OrderByDescending(y => y.StartTime).Select(x => new
                 {
                     siteName = x.Site.Name,
                     country = x.Site.Country,
@@ -393,7 +393,7 @@ namespace IMK_web.Repository
                     op = x.Site.Operator.Name,
                     androidVersion = x.ImkVersion.AppVersion,
                     rpVersion = x.ImkVersion.RPIVersion,
-                    date = x.VistedAt.ToString("yyyy-MM-dd"),
+                    date = x.StartTime.ToString("yyyy-MM-dd"),
                     //contact = x.Site.AspCompany.ApsMentor.Email
                 }).ToListAsync();
                 return new JsonResult(visitDetails);
@@ -405,7 +405,7 @@ namespace IMK_web.Repository
                 {
                     string[] arrCountries = countries.Split(",");
                     var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country));
-                    var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
+                    var visitDetails = await allVisits.OrderByDescending(y => y.StartTime).Select(x => new
                     {
                         siteName = x.Site.Name,
                         country = x.Site.Country,
@@ -414,7 +414,7 @@ namespace IMK_web.Repository
                         androidVersion = x.ImkVersion.AppVersion,
                         rpVersion = x.ImkVersion.RPIVersion,
                         // asp = x.Site.AspCompany.Name,
-                        date = x.VistedAt.ToString("yyyy-MM-dd"),
+                        date = x.StartTime.ToString("yyyy-MM-dd"),
                         //contact = x.Site.AspCompany.ApsMentor.Email
                     }).ToListAsync();
                     return new JsonResult(visitDetails);
@@ -428,7 +428,7 @@ namespace IMK_web.Repository
                     var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name));
 
-                    var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
+                    var visitDetails = await allVisits.OrderByDescending(y => y.StartTime).Select(x => new
                     {
                         siteName = x.Site.Name,
                         country = x.Site.Country,
@@ -437,7 +437,7 @@ namespace IMK_web.Repository
                         androidVersion = x.ImkVersion.AppVersion,
                         rpVersion = x.ImkVersion.RPIVersion,
                         //asp = x.Site.AspCompany.Name,
-                        date = x.VistedAt.ToString("yyyy-MM-dd"),
+                        date = x.StartTime.ToString("yyyy-MM-dd"),
                         //contact = x.Site.AspCompany.ApsMentor.Email
                     }).ToListAsync();
                     return new JsonResult(visitDetails);

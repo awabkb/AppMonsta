@@ -7,7 +7,7 @@ using IMK_web.Models;
 
 namespace Data{
     public class SiteVisitDto{
-        public DateTime UploadedAt { get; set; }
+        // public DateTime UploadedAt { get; set; }
         public LogDTO[] Actions { get; set; }
         public string SiteName { get; set; }
         public double Longitude { get; set; }
@@ -18,9 +18,9 @@ namespace Data{
         public DateTime StartTime { get; set; }
         public DateTime FinishTime { get; set; }
 
-        public SiteVisitDto()
-        {
-            UploadedAt= DateTime.Now;
-        }
+        // public SiteVisitDto()
+        // {
+        //     UploadedAt= DateTime.Now;
+        // }
     }
 }

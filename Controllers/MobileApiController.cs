@@ -33,7 +33,7 @@ namespace IMK_web.Controllers
 
 
         ////////////////////////// Create User ////////////////////////////
-        [HttpPost("adduser")]
+        [HttpPost("user")]
         public async Task<IActionResult> CreateUser(UserDto userDto)
         {
             var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
@@ -88,7 +88,7 @@ namespace IMK_web.Controllers
             siteVisit.Site = site;
             siteVisit.StartTime = siteVisitDto.StartTime;
             siteVisit.FinishTime = siteVisitDto.FinishTime;
-            siteVisit.VistedAt = siteVisitDto.UploadedAt;
+            // siteVisit.VistedAt = siteVisitDto.UploadedAt;
             ICollection<Log> logs = new List<Log>();
             foreach (LogDTO logDto in siteVisitDto.Actions)
             {
