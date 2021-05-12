@@ -13,5 +13,6 @@ namespace IMK_web.Models
         public double Latitude { get; set; }
 	//[Column(TypeName = "json")]
         public string Result { get; set; }
+        public SiteVisit SiteVisit { get; set; }
     }
 }

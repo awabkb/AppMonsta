@@ -13,6 +13,7 @@ using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using System.Net.Mail;
 using Newtonsoft.Json;
 
 namespace IMK_web.Controllers
@@ -32,7 +33,6 @@ namespace IMK_web.Controllers
 
 
         ////////////////////////// Create User ////////////////////////////
-        [AllowAnonymous]
         [HttpPost("adduser")]
         public async Task<IActionResult> CreateUser(UserDto userDto)
         {
@@ -46,10 +46,11 @@ namespace IMK_web.Controllers
                 user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
                 user.Phone = userDto.Phone;
                 user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
-                //user.AspCompany = userDto.AspCompany;
+                user.AspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
                 _appRepository.Add(user);
 
                 await _appRepository.SaveChanges();
+                await this.sendAccessRequest(userDto);
                 return Ok(user);
             }
             else
@@ -85,7 +86,8 @@ namespace IMK_web.Controllers
             }
 
             siteVisit.Site = site;
-
+            siteVisit.StartTime = siteVisitDto.StartTime;
+            siteVisit.FinishTime = siteVisitDto.FinishTime;
             siteVisit.VistedAt = siteVisitDto.UploadedAt;
             ICollection<Log> logs = new List<Log>();
             foreach (LogDTO logDto in siteVisitDto.Actions)
@@ -179,17 +181,19 @@ namespace IMK_web.Controllers
                 countriesToReturn.Add(countryToReturn);
             }
 
-            return Ok(countriesToReturn);
+            return Ok(countriesToReturn.OrderBy(o =>o.Name).ToList());
         }
 
 
         ////////////////////////// Get User ////////////////////////////
         [HttpGet("User")]
-        public async Task<IActionResult> getUser(string userId)
+        public async Task<IActionResult> getUser()
         {
+            var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
             User user = await _appRepository.GetUser(userId);
-            return Ok(user);
-
+            if (user != null)
+                return Ok(user);
+            else return BadRequest("User doesn't exist");
         }
 
         ////////////////////////// Update User Info ////////////////////////////
@@ -225,6 +229,68 @@ namespace IMK_web.Controllers
             var version = await _appRepository.GetLatestImkVersion();
             return Ok(version);
         }
+
+        
+        ////////////////////////// Send IMK User approval to admins ////////////////////////////
+
+        [AllowAnonymous]
+        [HttpPost("request")]
+        public async Task<IActionResult> sendAccessRequest(UserDto userDto)
+        {
+            var aspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
+            var aspManager = await _appRepository.GetAspManager(aspCompany.AspId);
+            var url = "https://localhost:5001/api/mobileapi/activate";
+            SmtpClient client = new SmtpClient();
+            client.Host = "smtp.office365.com";
+            client.Port = 587;
+            client.EnableSsl = true;
+            System.Net.NetworkCredential ntcd = new System.Net.NetworkCredential("sara.shoujaa@lau.edu","L@ucs1357ms");
+            ntcd.UserName = "sara.shoujaa@lau.edu";
+            ntcd.Password = "L@ucs1357ms";
+            client.Credentials = ntcd;
+
+            MailAddress from = new MailAddress("sara.shoujaa@lau.edu", "IMK Tool");
+            MailAddress to = new MailAddress(aspManager.Email);
+            MailMessage msg = new MailMessage(from,to);
+
+            msg.IsBodyHtml = true;
+            string htmlString = @"<html>
+                      <body>
+                      <p>A new user started using IMK app</p>
+                      <p> Email: "+ userDto.Email +
+                         "<br>Phone: "+ userDto.Phone+
+                         "<br>AspCompany: " + userDto.AspCompany + @"
+                        </p>
+                        <a href=" + url + "?email="+ userDto.Email + @">Click here to activate user</a>
+                      </body>
+                      </html>
+                     ";   
+
+            
+            msg.Body = htmlString;
+            msg.Subject = "IMK Access - Req";
+            client.SendAsync(msg, "msg");
+
+            return Ok("sent");
+        }
+
+        [AllowAnonymous]
+        [HttpGet("activate")]
+        public async Task<IActionResult> activateUser(string email)
+        {
+            User user = await _appRepository.GetUserByEmail(email);
+
+            if(user.IsActive == false) {
+                user.IsActive = true;
+                _appRepository.Update(user);
+                await _appRepository.SaveChanges();
+                return Ok("User is activated");
+            }
+            else{
+                return Ok("user is already active");
+            }
+        }
+
 
     }
 }

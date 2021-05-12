@@ -13,7 +13,6 @@ namespace IMK_web.Models
         public string longitude { get; set; }
         public string Country { get; set; }
         public Operator Operator { get; set; }
-        public AspCompany AspCompany { get; set; }
         public IEnumerable<SiteVisit> SiteVisits { get; set; }
     }
 }

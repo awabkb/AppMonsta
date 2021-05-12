@@ -17,8 +17,15 @@ namespace IMK_web.Repository
         Task<bool> SaveChanges();
 
         Task<AspCompany> GetAspCompany(int aspId);
+        Task<AspCompany> GetAspCompany(string aspName);
         Task<IEnumerable<Country>> GetCountries();
         Task<ImkVersion> GetLatestImkVersion();
+        Task<AspManager> GetAspManager(int asp);
+        Task<User> GetUserByEmail(string email);
+        Task<IEnumerable<User>> GetAllUsers();
+        Task<IEnumerable<Log>> GetLogs();
+
+
 
 
     }
