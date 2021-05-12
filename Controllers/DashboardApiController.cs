@@ -46,7 +46,7 @@ namespace IMK_web.Controllers
         ////////////
 
 
-
+        [AllowAnonymous]
         ////// get unique site per day
         [HttpGet("unique_sites")]
         public async Task<ActionResult> getUniqueSiteVisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
@@ -55,7 +55,7 @@ namespace IMK_web.Controllers
             return sites;
         }
         
-
+        [AllowAnonymous]
         ////// get # sites per country
         [HttpGet("countryview")]
         public async Task<ActionResult> getSiteByCountry([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
@@ -65,8 +65,17 @@ namespace IMK_web.Controllers
         }
 
 
-        ////// get IMK functions count 
+        [AllowAnonymous]
+        ////// get # site revisits
+        [HttpGet("revisits")]
+        public async Task<ActionResult> getSiteRevisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        {
+            var revisits = await _dashRepository.GetSiteRevisits(start, end, filetedcountries,filetedoperators);
+            return revisits;
+        }
 
+        ////// get IMK functions count 
+        [AllowAnonymous]
         [HttpGet("imkfunctions")]
         public async Task<ActionResult> getIMKFunctions([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
         {
@@ -74,7 +83,7 @@ namespace IMK_web.Controllers
             return visits;
         }
 
-
+        [AllowAnonymous]
         ////// get top 10 field engineers
         [HttpGet("topasp")]
         public async Task<ActionResult> getTopEngineers([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)

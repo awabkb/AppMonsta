@@ -235,7 +235,79 @@ function getdata(query) {
         data: countries,
         success: function (res) {
             if ($('#site_count').length) {
-                console.log(query)
+                var dataperdate = [];
+                var countries = [];
+                for (var i in res) {
+                    var obj = res[i];
+                    for (var key in obj) {
+                        if (dataperdate[i] == null) {
+                            dataperdate[i] = [];
+                        }
+                        try {
+                            dataperdate[i][key] == null ? dataperdate[i][key] = parseInt(obj[key]) : dataperdate[i][key] += parseInt(obj[key]);
+                            countries[key] = [];
+                            countries[key].push(key);
+                        }
+                        catch (err) {
+                        }
+                    }
+                    var i = 1;
+                    var datesvaluecountries = ['x'];
+                    for (var x in dataperdate) {
+                        datesvaluecountries.push(x);
+                        for (var y in dataperdate[x]) {
+                            countries[y].push(dataperdate[x][y]);
+                        }
+                        for (var n in countries) {
+                            if (countries[n][i] == null) {
+                                countries[n].push(0);
+                            }
+                        }
+                        i++;
+
+                    }
+                    var data = [];
+                    var dataheader = [];
+
+                    for (var x in countries) {
+                        dataheader.push(countries[x][0]);
+                        data.push(countries[x]);
+                    }
+                    data.push(datesvaluecountries);
+
+                    var chart = c3.generate({
+                        bindto: "#site_count",
+                        data: {
+                            x: 'x',
+                            columns: data,
+                            type: 'bar',
+                            groups: [
+                                dataheader
+                            ]
+                        },
+
+                        zoom: {
+                            enabled: true
+                        },
+                        axis: {
+                            y: {
+                                show: true,
+                            },
+                            x: {
+                                show: false,
+                                type: 'timeseries',
+                                tick: {
+                                    format: '%Y-%m-%d',
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        /*
+        success: function (res) {
+            if ($('#site_count').length) {
                 var rows = ['sites'];
                 var rowsdate = ['x'];
                 var datevalues = [];
@@ -289,6 +361,84 @@ function getdata(query) {
                         }
                     }
                 });
+            }
+        } */
+    });
+
+    $.ajax({
+        url: "api/dashboardapi/revisits",
+        type: "GET",
+        data: countries,
+        success: function (res) {
+            if ($('#revisits_view').length) {
+                var dataperdate = [];
+                var countries = [];
+                for (var i in res) {
+                    var obj = res[i];
+                    for (var key in obj) {
+                        if (dataperdate[i] == null) {
+                            dataperdate[i] = [];
+                        }
+                        try {
+                            dataperdate[i][key] == null ? dataperdate[i][key] = parseInt(obj[key]) : dataperdate[i][key] += parseInt(obj[key]);
+                            countries[key] = [];
+                            countries[key].push(key);
+                        }
+                        catch (err) {
+                        }
+                    }
+                    var i = 1;
+                    var datesvaluecountries = ['x'];
+                    for (var x in dataperdate) {
+                        datesvaluecountries.push(x);
+                        for (var y in dataperdate[x]) {
+                            countries[y].push(dataperdate[x][y]);
+                        }
+                        for (var n in countries) {
+                            if (countries[n][i] == null) {
+                                countries[n].push(0);
+                            }
+                        }
+                        i++;
+
+                    }
+                    var data = [];
+                    var dataheader = [];
+
+                    for (var x in countries) {
+                        dataheader.push(countries[x][0]);
+                        data.push(countries[x]);
+                    }
+                    data.push(datesvaluecountries);
+
+                    var chart = c3.generate({
+                        bindto: "#revisits_view",
+                        data: {
+                            x: 'x',
+                            columns: data,
+                            type: 'bar',
+                            groups: [
+                                dataheader
+                            ]
+                        },
+
+                        zoom: {
+                            enabled: true
+                        },
+                        axis: {
+                            y: {
+                                show: true,
+                            },
+                            x: {
+                                show: false,
+                                type: 'timeseries',
+                                tick: {
+                                    format: '%Y-%m-%d',
+                                }
+                            }
+                        }
+                    });
+                }
             }
         }
     });

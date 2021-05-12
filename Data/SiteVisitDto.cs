@@ -15,6 +15,8 @@ namespace Data{
         public string Country { get; set; }
         public double RpiVersion { get; set; }
         public double AppVersion { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime FinishTime { get; set; }
 
         public SiteVisitDto()
         {

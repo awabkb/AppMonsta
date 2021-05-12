@@ -39,6 +39,10 @@ namespace IMK_web.Repository
         {
             return await _context.Users.FirstOrDefaultAsync(x =>x.UserId.Equals(userId));
         }
+        public async Task<User> GetUserByEmail(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x =>x.Email.Equals(email));
+        }
 
         public async Task<ImkVersion> GetImkVersion(double rpi, double app)
         {
@@ -55,6 +59,11 @@ namespace IMK_web.Repository
             return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.AspId==aspId);
         }
 
+        public async Task<AspCompany> GetAspCompany(string aspName)
+        {
+            return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.Name==aspName);
+        }
+
         public async Task<IEnumerable<Country>> GetCountries()
         {
             return await _context.Countries.Include(x =>x.AspCompanies).Include(x =>x.Operators).ToListAsync();
@@ -63,6 +72,22 @@ namespace IMK_web.Repository
         public async Task<ImkVersion> GetLatestImkVersion()
         {
             return await _context.ImkVersions.OrderBy(x => x.DateOfRelease).LastAsync();
+        }
+
+        public async Task<AspManager> GetAspManager(int aspId)
+        {
+            return await _context.AspManagers.Include(x =>x.AspCompany).FirstOrDefaultAsync(x=>x.AspCompany.AspId==aspId);
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsers()
+        {
+            return await _context.Users.Include(x =>x.AspCompany).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Log>> GetLogs()
+        {
+            return await _context.Logs.Include(x =>x.SiteVisit).Include(x=>x.SiteVisit.Site).Include(x=>x.SiteVisit.IMK_Functions).ToListAsync();
+            
         }
     }
 }

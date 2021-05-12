@@ -13,6 +13,7 @@ namespace IMK_web.Models
         public string Phone { get; set; }
         public AspCompany AspCompany {get;set;}
         public Boolean IsAdmin { get; set; }
+        public Boolean IsActive { get; set; }
         public DateTime RegisteredAt { get; set; }
         public IEnumerable<SiteVisit> SiteVisits { get; set; }
         

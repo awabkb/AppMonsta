@@ -20,6 +20,8 @@ namespace IMK_web.Models
         public DateTime VistedAt { get; set; }
         public ImkVersion ImkVersion { get; set; }
         public ICollection<Log> Logs { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime FinishTime { get; set; }
        
     }
     

@@ -6,6 +6,8 @@ using IMK_web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using RestSharp;
+using Newtonsoft.Json;
 using System.Globalization;
 
 namespace IMK_web.Repository
@@ -57,7 +59,11 @@ namespace IMK_web.Repository
         }
 
 
-        //get site visits in date range (start -> end) of unique sites
+        ////////////////////////////////////////////            ///////////////////////////////////////////
+        ///////////////////////////////////////////   GRAPHS   ///////////////////////////////////////////
+        //////////////////////////////////////////            ///////////////////////////////////////////
+
+        //get unique site visits by physical location of sites (grouped by country)
         public async Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators)
         {
             List<SiteVisit> visits = null;
@@ -83,61 +89,134 @@ namespace IMK_web.Repository
                 }
             }
 
+
             var res = visits.GroupBy(x => x.VistedAt);
-            Dictionary<string, int> countrySites = new Dictionary<string, int>();
+            Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
+            var date = "";
             foreach (var v in res)
             {
-                List<int> ids = new List<int>();
-                var date = "";
-                foreach (var s in v)
+                date = v.First().VistedAt.ToString("yyyy-MM-dd");
+
+                Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
-                    date = s.VistedAt.ToString("yyyy-MM-dd");
-                    ids.Add(s.Site.SiteId);
-                }
-                countrySites[date] = ids.Distinct().Count();
+                    country = y.Key.Country,
+                    sites = y.Select(i => new
+                    {
+                        lat = (String.Format("{0:n4}", Convert.ToDouble(i.Site.Latitude))),
+                        lon = (String.Format("{0:n4}", Convert.ToDouble(i.Site.longitude)))
+                    }).Distinct().Count()
+                }).ToDictionary(g => g.country, g => g.sites);
+
+                cc.Add(date, data);
             }
-            return new JsonResult(countrySites);
+
+
+            return new JsonResult(cc);
         }
 
+        //get unique site visits by site id (grouped by country)
         public async Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators)
         {
             List<SiteVisit> visits = null;
-            if (countries == "[]"|| countries == null)
+            if (countries == "[]" || countries == null)
             {
                 visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).ToListAsync();
             }
             else
             {
-                string[] arrCountries = countries.Split(",");
-                visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
-            }
-            var res = visits.GroupBy(x => x.VistedAt);
-            Dictionary<string, Dictionary<string, int>> countryVisits = new Dictionary<string, Dictionary<string, int>>();
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                }
+                else
+                {
 
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+                    visits = await _context.SiteVisits.OrderBy(s => s.VistedAt).Include(x => x.Site).Include(x => x.Site.Operator)
+                        .Where(c => arrCountries.Contains(c.Site.Country))
+                        .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                }
+            }
+
+            var res = visits.GroupBy(x => x.VistedAt);
+            Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
+            var date = "";
             foreach (var v in res)
             {
-                Dictionary<string, int> cc = new Dictionary<string, int>();
-                var date = "";
-                foreach (var s in v)
+                date = v.First().VistedAt.ToString("yyyy-MM-dd");
+
+                Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
-                    date = s.VistedAt.ToString("yyyy-MM-dd");
-                    var count = 1;
-                    if (cc.ContainsKey(s.Site.Country))
-                    {
-                        count++;
-                        cc[s.Site.Country] = count;
-                    }
-                    else
-                    {
-                        cc.Add(s.Site.Country, count);
-                    }
-                }
-                countryVisits[date] = cc;
+                    country = y.Key.Country,
+                    sites = y.Select(i => i.Site.SiteId).Distinct().Count()
+                }).ToDictionary(g => g.country, g => g.sites);
+                cc.Add(date, data);
             }
 
-            return new JsonResult(countryVisits);
+            return new JsonResult(cc);
         }
 
+
+        // get site revisits during T = 12 hrs 
+        public async Task<ActionResult> GetSiteRevisits(string start, string end, string countries, string operators)
+        {
+
+            List<Site> sites = null;
+            if (countries == "[]" || countries == null)
+            {
+                sites = await _context.Sites.Include(x => x.SiteVisits).ToListAsync();
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    sites = await _context.Sites.Include(x => x.SiteVisits).Where(c => arrCountries.Contains(c.Country)).ToListAsync();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+                    sites = await _context.Sites.Include(x => x.SiteVisits)
+                        .Where(c => arrCountries.Contains(c.Country))
+                        .Where(c => arrOps.Contains(c.Operator.Name)).ToListAsync();
+                }
+            }
+            var res = sites.GroupBy(x => x.Country);
+            Dictionary<string, Dictionary<int,int>> dict = new Dictionary<string, Dictionary<int,int>>();
+            var country = "";
+            foreach (var site in res)
+            {
+                Dictionary<int,int> d2 = new Dictionary<int, int>();
+                country = site.First().Country;
+                foreach (var s in site)
+                {
+                    var visits = s.SiteVisits.OrderBy(x => x.StartTime).ToList();
+
+                    if (visits.Count() > 1)
+                    {
+                        var T = visits.FirstOrDefault().StartTime;
+                        int revisits = 0;
+
+                        for (int i = 1; i < visits.Count(); i++)
+                        {
+                            if (visits[i].StartTime >= T.AddHours(12))
+                            {
+                                T = visits[i].StartTime;
+                                revisits++;
+                            }
+                        }
+
+                        d2[s.SiteId] = revisits;
+                    }
+                }
+                dict.Add(country,d2);
+            }
+            return new JsonResult(dict);
+
+        }
 
         // get IMK functions used
         public async Task<ActionResult> GetIMKFunctions(string start, string end, string countries, string operators)
@@ -209,7 +288,11 @@ namespace IMK_web.Repository
 
             }
 
-            var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new { name = y.Key, sites = y.Select(i => i.Site.SiteId).Distinct().Count() });
+            var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new 
+            { 
+                name = y.Key, 
+                sites = y.Select(i => i.Site.SiteId).Distinct().Count() 
+            });
             var topasp = asp.OrderByDescending(s => s.sites).Take(10);
 
             return new JsonResult(topasp);
@@ -299,9 +382,9 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetSiteVisitDetails(string start, string end, string countries, string operators)
         {
 
-            if (countries == "[]"|| countries == null)
+            if (countries == "[]" || countries == null)
             {
-                var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x => x.Site.Operator);
+                var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator);
                 var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
                 {
                     siteName = x.Site.Name,
@@ -310,7 +393,6 @@ namespace IMK_web.Repository
                     op = x.Site.Operator.Name,
                     androidVersion = x.ImkVersion.AppVersion,
                     rpVersion = x.ImkVersion.RPIVersion,
-                    asp = x.Site.AspCompany.Name,
                     date = x.VistedAt.ToString("yyyy-MM-dd"),
                     //contact = x.Site.AspCompany.ApsMentor.Email
                 }).ToListAsync();
@@ -322,7 +404,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country));
+                    var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country));
                     var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
                     {
                         siteName = x.Site.Name,
@@ -331,7 +413,7 @@ namespace IMK_web.Repository
                         op = x.Site.Operator.Name,
                         androidVersion = x.ImkVersion.AppVersion,
                         rpVersion = x.ImkVersion.RPIVersion,
-                        asp = x.Site.AspCompany.Name,
+                        // asp = x.Site.AspCompany.Name,
                         date = x.VistedAt.ToString("yyyy-MM-dd"),
                         //contact = x.Site.AspCompany.ApsMentor.Email
                     }).ToListAsync();
@@ -343,7 +425,7 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.AspCompany).Include(x => x.Site.Operator)
+                    var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name));
 
                     var visitDetails = await allVisits.OrderByDescending(y => y.VistedAt).Select(x => new
@@ -354,7 +436,7 @@ namespace IMK_web.Repository
                         op = x.Site.Operator.Name,
                         androidVersion = x.ImkVersion.AppVersion,
                         rpVersion = x.ImkVersion.RPIVersion,
-                        asp = x.Site.AspCompany.Name,
+                        //asp = x.Site.AspCompany.Name,
                         date = x.VistedAt.ToString("yyyy-MM-dd"),
                         //contact = x.Site.AspCompany.ApsMentor.Email
                     }).ToListAsync();
@@ -407,5 +489,29 @@ namespace IMK_web.Repository
             // });
             return new JsonResult(allusers);
         }
+
+
+
+
+    //////////////////////////////////////////////////////// CMS //////////////////////////////////////////
+    
+        public void Add<T>(T entity) where T : class
+        {
+            _context.Add(entity);
+        }
+
+        public void Update<T>(T entity) where T : class
+        {
+            _context.Update(entity);
+        }
+
+        public async Task<bool> SaveChanges()
+        {
+            return await _context.SaveChangesAsync()>0;
+        }
+
+        
+
+
     }
 }

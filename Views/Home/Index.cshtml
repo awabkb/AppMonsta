@@ -522,7 +522,6 @@ function getCountryName (countryCode) {
 }
         function initMap(){
             httpGetAsyncHtml("https://ericssonquiz.com/dashboard-backend/get.php?type=newusersMap&", function (resp) {
-                
                 var mapdata=[];
                 const json = resp;
                 const obj = JSON.parse(json);

@@ -7,10 +7,14 @@ namespace IMK_web.Repository
 {
     public interface IDashboardRepository
     {
+        void Add<T>(T entity) where T: class;
+        void Update<T>(T entity) where T: class;
+        Task<bool> SaveChanges();
         Task<IEnumerable<Site>> GetIMKCountries();
         Task<IEnumerable<Country>> GetOperatorsByCountry(string countries);
         Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators);
+        Task<ActionResult> GetSiteRevisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetIMKFunctions(string start, string end, string countries, string operators);
         Task<ActionResult> GetTopEngineers(string start, string end, string countries, string operators);
         Task<ActionResult> GetAppVersion(string start, string end, string countries, string operators);
