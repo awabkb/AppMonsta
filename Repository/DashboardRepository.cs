@@ -46,10 +46,18 @@ namespace IMK_web.Repository
         // Filter
 
         //get list of countries that are using IMK from site visits
+
         public async Task<IEnumerable<Site>> GetIMKCountries()
         {
             return await _context.Sites.OrderBy(s => s.Country).ToListAsync();
         }
+        
+        // public async Task<IEnumerable<Site>> GetIMKCountriesByMA(string MAs)
+        // {
+        //     string[] marketAreas = MAs.Split(",");
+        //     string [] countries = await _context.Countries.Where(c => marketAreas.Contains(c.MA)).Select(x => x.Name).ToArrayAsync();
+        //     return await _context.Sites.Where(x => countries.Contains(x.Country)).OrderBy(s => s.Country).ToListAsync();
+        // }
 
         //get operators for countries
         public async Task<IEnumerable<Country>> GetOperatorsByCountry(string countries)
@@ -69,33 +77,33 @@ namespace IMK_web.Repository
             List<SiteVisit> visits = null;
             if (countries == "[]" || countries == null)
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).ToListAsync();
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
                 }
                 else
                 {
 
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Include(x => x.Site.Operator)
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country))
                         .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
                 }
             }
 
 
-            var res = visits.GroupBy(x => x.StartTime);
+            var res = visits.GroupBy(x => x.StartTime.Date);
             Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
             var date = "";
             foreach (var v in res)
             {
-                date = v.First().StartTime.ToString("yyyy-MM-dd");
+                date = v.First().StartTime.Date.ToString("yyyy-MM-dd");
 
                 Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {

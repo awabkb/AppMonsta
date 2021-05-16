@@ -18,6 +18,7 @@ namespace IMK_web.Repository
 
         Task<AspCompany> GetAspCompany(int aspId);
         Task<AspCompany> GetAspCompany(string aspName);
+        Task<Country> GetOperatorByCountry(string country);
         Task<IEnumerable<Country>> GetCountries();
         Task<ImkVersion> GetLatestImkVersion();
         Task<AspManager> GetAspManager(int asp);

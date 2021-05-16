@@ -64,6 +64,11 @@ namespace IMK_web.Repository
             return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.Name==aspName);
         }
 
+        public async Task<Country> GetOperatorByCountry(string country)
+        {
+            return await _context.Countries.Include(x =>x.Operators).FirstOrDefaultAsync(x =>x.Name.Equals(country));
+        }
+
         public async Task<IEnumerable<Country>> GetCountries()
         {
             return await _context.Countries.Include(x =>x.AspCompanies).Include(x =>x.Operators).ToListAsync();
@@ -89,5 +94,6 @@ namespace IMK_web.Repository
             return await _context.Logs.Include(x =>x.SiteVisit).Include(x=>x.SiteVisit.Site).Include(x=>x.SiteVisit.IMK_Functions).ToListAsync();
             
         }
+
     }
 }

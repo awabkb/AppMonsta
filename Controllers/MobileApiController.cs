@@ -45,6 +45,7 @@ namespace IMK_web.Controllers
                 user.UserId = userId;
                 user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
                 user.Phone = userDto.Phone;
+                user.RegisteredAt = DateTime.Now;
                 user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
                 user.AspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
                 _appRepository.Add(user);
@@ -75,12 +76,25 @@ namespace IMK_web.Controllers
             siteVisit.User = await _appRepository.GetUser(userId);
 
             Site site = await _appRepository.GetSite(siteVisitDto.SiteName);
+
+            Operator op = new Operator();
+            var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.Country);
+            if (ops.Operators.Count() > 1)
+            {
+                var opname = this.GetOperatorBySite(siteVisitDto.SiteName,siteVisitDto.Country);
+                op = ops.Operators.FirstOrDefault(x=>x.Name.Equals(opname));
+            }
+            else 
+                op = ops.Operators.FirstOrDefault();
+
             if (site == null)
             {
                 site = new Site();
                 site.Country = siteVisitDto.Country;
                 site.Latitude = siteVisitDto.Latitude.ToString();
                 site.longitude = siteVisitDto.Longitude.ToString();
+                site.Name = siteVisitDto.SiteName;
+                site.Operator = op;
 
                 _appRepository.Add(site);
             }
@@ -88,7 +102,6 @@ namespace IMK_web.Controllers
             siteVisit.Site = site;
             siteVisit.StartTime = siteVisitDto.StartTime;
             siteVisit.FinishTime = siteVisitDto.FinishTime;
-            // siteVisit.VistedAt = siteVisitDto.UploadedAt;
             ICollection<Log> logs = new List<Log>();
             foreach (LogDTO logDto in siteVisitDto.Actions)
             {
@@ -181,7 +194,7 @@ namespace IMK_web.Controllers
                 countriesToReturn.Add(countryToReturn);
             }
 
-            return Ok(countriesToReturn.OrderBy(o =>o.Name).ToList());
+            return Ok(countriesToReturn.OrderBy(o => o.Name).ToList());
         }
 
 
@@ -208,7 +221,7 @@ namespace IMK_web.Controllers
                 user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
                 user.Phone = userDto.Phone;
                 user.Email = userDto.Email;
-                //user.AspCompany = userDto.AspCompany;
+                user.AspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
                 _appRepository.Update(user);
 
                 await _appRepository.SaveChanges();
@@ -230,7 +243,7 @@ namespace IMK_web.Controllers
             return Ok(version);
         }
 
-        
+
         ////////////////////////// Send IMK User approval to admins ////////////////////////////
 
         [AllowAnonymous]
@@ -244,29 +257,29 @@ namespace IMK_web.Controllers
             client.Host = "smtp.office365.com";
             client.Port = 587;
             client.EnableSsl = true;
-            System.Net.NetworkCredential ntcd = new System.Net.NetworkCredential("sara.shoujaa@lau.edu","L@ucs1357ms");
+            System.Net.NetworkCredential ntcd = new System.Net.NetworkCredential("sara.shoujaa@lau.edu", "L@ucs1357ms");
             ntcd.UserName = "sara.shoujaa@lau.edu";
             ntcd.Password = "L@ucs1357ms";
             client.Credentials = ntcd;
 
             MailAddress from = new MailAddress("sara.shoujaa@lau.edu", "IMK Tool");
             MailAddress to = new MailAddress(aspManager.Email);
-            MailMessage msg = new MailMessage(from,to);
+            MailMessage msg = new MailMessage(from, to);
 
             msg.IsBodyHtml = true;
             string htmlString = @"<html>
                       <body>
                       <p>A new user started using IMK app</p>
-                      <p> Email: "+ userDto.Email +
-                         "<br>Phone: "+ userDto.Phone+
+                      <p> Email: " + userDto.Email +
+                         "<br>Phone: " + userDto.Phone +
                          "<br>AspCompany: " + userDto.AspCompany + @"
                         </p>
-                        <a href=" + url + "?email="+ userDto.Email + @">Click here to activate user</a>
+                        <a href=" + url + "?email=" + userDto.Email + @">Click here to activate user</a>
                       </body>
                       </html>
-                     ";   
+                     ";
 
-            
+
             msg.Body = htmlString;
             msg.Subject = "IMK Access - Req";
             client.SendAsync(msg, "msg");
@@ -280,15 +293,47 @@ namespace IMK_web.Controllers
         {
             User user = await _appRepository.GetUserByEmail(email);
 
-            if(user.IsActive == false) {
+            if (user.IsActive == false)
+            {
                 user.IsActive = true;
                 _appRepository.Update(user);
                 await _appRepository.SaveChanges();
                 return Ok("User is activated");
             }
-            else{
+            else
+            {
                 return Ok("user is already active");
             }
+        }
+
+        ////////////////////////// Get operator by site name rule for multioperator countries  ////////////////////////////
+        public String GetOperatorBySite(string sitename, string country)
+        {
+            string op = "";
+            if (country.Equals("Saudi Arabia"))
+            {
+                if (sitename.StartsWith("A") || sitename.StartsWith("E") || sitename.StartsWith("H") || sitename.StartsWith("T") || sitename.StartsWith("Z"))
+                    op = "Saudi Telecom Company (STC)";
+                else
+                    op = "Mobily";
+            }
+
+            if(country.Equals("Bahrain"))
+            {
+                if (sitename.StartsWith("0") || sitename.StartsWith("1") || sitename.StartsWith("2") || sitename.StartsWith("3") || sitename.StartsWith("4") || sitename.StartsWith("5") || sitename.StartsWith("6") || sitename.StartsWith("7") || sitename.StartsWith("8") || sitename.StartsWith("9"))
+                    op = "Zain";
+                else
+                    op = "Batelco";
+            }
+
+            if(country.Equals("Morocco"))
+            {
+                if (sitename.Contains("BB"))
+                    op = "INWI";
+                else
+                    op = "MarocTel";
+            }
+            return op;              
         }
 
 
