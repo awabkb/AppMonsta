@@ -17,4 +17,8 @@ Version.h
 Version.cpp
 Startup.cs
 appsettings.json
+Migrations/
 IMK.db-shm
+IMK.db-wal
+IMK.db
+
