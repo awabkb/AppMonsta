@@ -8,6 +8,7 @@ namespace IMK_web.Repository
     public interface IDashboardRepository
     {
         Task<IEnumerable<Site>> GetIMKCountries();
+        Task<IEnumerable<Site>> GetIMKCountriesByMA(string MA);
         Task<IEnumerable<Country>> GetOperatorsByCountry(string countries);
         Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators);
@@ -17,9 +18,9 @@ namespace IMK_web.Repository
         Task<ActionResult> GetAppVersion(string start, string end, string countries, string operators);
         Task<ActionResult> GetRPIVersion(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteVisitDetails(string start, string end, string countries, string operators);
-        Task<ActionResult> GetSiteUsage(string start, string end);
-        Task<ActionResult> GetActiveUsers(string start, string end);
-        Task<ActionResult> GetNewProfiles(string start, string end);
+        Task<ActionResult> GetSiteUsage(string start, string end, string marketArea);
+        Task<ActionResult> GetActiveUsers(string start, string end, string marketArea);
+        Task<ActionResult> GetNewProfiles(string start, string end, string marketArea);
 
 
 
