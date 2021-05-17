@@ -11,6 +11,5 @@ namespace IMK_web.Models
         //public User ApsMentor { get; set; }
         public Country Country { get; set; }
         public IEnumerable<User> Workers { get; set; }
-        public IEnumerable<Site> Sites { get; set; }
     }
 }

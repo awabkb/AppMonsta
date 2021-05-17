@@ -51,7 +51,7 @@ namespace IMK_web.Repository
         {
             return await _context.Sites.OrderBy(s => s.Country).ToListAsync();
         }
-        
+
         // public async Task<IEnumerable<Site>> GetIMKCountriesByMA(string MAs)
         // {
         //     string[] marketAreas = MAs.Split(",");
@@ -148,7 +148,7 @@ namespace IMK_web.Repository
                 }
             }
 
-            var res = visits.GroupBy(x => x.StartTime);
+            var res = visits.GroupBy(x => x.StartTime.Date);
             Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
             var date = "";
             foreach (var v in res)
@@ -193,12 +193,17 @@ namespace IMK_web.Repository
                 }
             }
             var res = sites.GroupBy(x => x.Country);
-            Dictionary<string, Dictionary<int,int>> dict = new Dictionary<string, Dictionary<int,int>>();
+            Dictionary<string, Dictionary<string, int>> dict = new Dictionary<string, Dictionary<string, int>>();
             var country = "";
+
             foreach (var site in res)
             {
-                Dictionary<int,int> d2 = new Dictionary<int, int>();
                 country = site.First().Country;
+                // List<Dictionary<string,int>> list = new List<Dictionary<string, int>>();
+                Dictionary<string, int> siterevisit = new Dictionary<string, int>();
+                int revisits = 1;
+
+
                 foreach (var s in site)
                 {
                     var visits = s.SiteVisits.OrderBy(x => x.StartTime).ToList();
@@ -206,23 +211,58 @@ namespace IMK_web.Repository
                     if (visits.Count() > 1)
                     {
                         var T = visits.FirstOrDefault().StartTime;
-                        int revisits = 0;
 
                         for (int i = 1; i < visits.Count(); i++)
                         {
+                            var revisitedOn = "";
                             if (visits[i].StartTime >= T.AddHours(12))
                             {
-                                T = visits[i].StartTime;
-                                revisits++;
+                                revisitedOn = visits[i].StartTime.Date.ToString("yyyy-MM-dd");
+                                if (siterevisit.ContainsKey(revisitedOn))
+                                    siterevisit[revisitedOn] = revisits++;
+
+                                else
+                                    siterevisit.Add(revisitedOn, revisits);
+
                             }
+                            T = visits[i].StartTime;
+
                         }
 
-                        d2[s.SiteId] = revisits;
                     }
                 }
-                dict.Add(country,d2);
+                dict.Add(country, siterevisit);
             }
-            return new JsonResult(dict);
+
+            Dictionary<string, Dictionary<string, int>> bydate = new Dictionary<string, Dictionary<string, int>>();
+
+            var dates = dict.Values.SelectMany(v => v.Keys).Distinct();
+
+            foreach (var date in dates)
+            {
+                Dictionary<string, int> bycountry = new Dictionary<string, int>();
+
+                foreach (var data in dict.ToList())
+                {
+                    foreach (var c in data.Value)
+                    {
+                        if (date.Equals(c.Key))
+                        {
+                            if (bycountry.ContainsKey(data.Key))
+                                bycountry[data.Key] = c.Value;
+                            else
+                                bycountry.Add(data.Key, c.Value);
+                        }
+                    }
+                }
+                if (bydate.ContainsKey(date))
+                    bydate[date] = bycountry;
+                else
+                    bydate.Add(date, bycountry);
+            }
+
+
+            return new JsonResult(bydate);
 
         }
 
@@ -296,10 +336,10 @@ namespace IMK_web.Repository
 
             }
 
-            var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new 
-            { 
-                name = y.Key, 
-                sites = y.Select(i => i.Site.SiteId).Distinct().Count() 
+            var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new
+            {
+                name = y.Key,
+                sites = y.Select(i => i.Site.SiteId).Distinct().Count()
             });
             var topasp = asp.OrderByDescending(s => s.sites).Take(10);
 
@@ -498,27 +538,6 @@ namespace IMK_web.Repository
             return new JsonResult(allusers);
         }
 
-
-
-
-    //////////////////////////////////////////////////////// CMS //////////////////////////////////////////
-    
-        public void Add<T>(T entity) where T : class
-        {
-            _context.Add(entity);
-        }
-
-        public void Update<T>(T entity) where T : class
-        {
-            _context.Update(entity);
-        }
-
-        public async Task<bool> SaveChanges()
-        {
-            return await _context.SaveChangesAsync()>0;
-        }
-
-        
 
 
     }
