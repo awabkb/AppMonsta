@@ -73,6 +73,7 @@ var htmlFilterContent = '';
 
 function init() {
     //getAllCountries()
+    localStorage["MQ"]="marketArea=MMEA";
     getMA()
     var start = moment().subtract(29, 'days');
     var end = moment();
@@ -161,9 +162,9 @@ function oncheck(country) {
             document.getElementById("SelectAllCountries").setAttribute("checked", "checked");
         }
     } else {
-        filterCountryList = [];
+        //filterCountryList = [];
         //getAllCountries()
-        getMA();
+        getMA()
 
     }
 
@@ -234,12 +235,12 @@ radios.forEach(radio => radio.addEventListener('change', () =>  {
 }));
 
 function getMA() {
-    
     $.ajax({
         url: 'api/dashboardapi/countries2',
         type: 'GET',
         data: localStorage['MQ'],
         success: function (res) {
+            filterCountryList = res;
             htmlFilterContent = '<h2>Countries</h2><form>';
             htmlFilterContent += '<label class="custom-control custom-checkbox custom-control-inline">' +
                 '<input type="checkbox" id="SelectAllCountries" checked="" class="custom-control-input"  onclick=\'oncheck("SelectALL");\'><span class="custom-control-label">Select All</span></label><br>'
