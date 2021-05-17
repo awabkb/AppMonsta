@@ -119,28 +119,28 @@
                                     <div class="card">
                                         <h4 class="custom-control-inline">Market Area: </h4>
                                         <form>
-                                            <label class="custom-control custom-checkbox custom-control-inline">
-                                                <input type="checkbox" value="" class="custom-control-input">
+                                            <label class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="MA" value="MANA" class="custom-control-input">
                                                 <span class="custom-control-label">MANA</span>
                                             </label>
-                                            <label class="custom-control custom-checkbox custom-control-inline">
-                                                <input type="checkbox" value="" class="custom-control-input">
+                                            <label class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="MA" value="MELA" class="custom-control-input">
                                                 <span class="custom-control-label">MELA</span>
                                             </label>
-                                            <label class="custom-control custom-checkbox custom-control-inline">
-                                                <input type="checkbox" value="" class="custom-control-input">
+                                            <label class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="MA" value="MMEA" class="custom-control-input">
                                                 <span class="custom-control-label">MMEA</span>
                                             </label>
-                                            <label class="custom-control custom-checkbox custom-control-inline">
-                                                <input type="checkbox" value="" class="custom-control-input">
+                                            <label class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="MA" value="MNEA" class="custom-control-input">
                                                 <span class="custom-control-label">MNEA</span>
                                             </label>
-                                            <label class="custom-control custom-checkbox custom-control-inline">
-                                                <input type="checkbox" value="" class="custom-control-input">
+                                            <label class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="MA" value="MOAI" class="custom-control-input">
                                                 <span class="custom-control-label">MOAI</span>
                                             </label>
-                                            <label class="custom-control custom-checkbox custom-control-inline">
-                                                <input type="checkbox" value="" class="custom-control-input">
+                                            <label class="custom-control custom-radio custom-control-inline">
+                                                <input type="radio" name="MA" value="MXOT" class="custom-control-input">
                                                 <span class="custom-control-label">MXOT</span>
                                             </label>                                                                                                                                    
                                         </form>
@@ -707,6 +707,7 @@
                 $.ajax({
                 url: "api/dashboardapi/usage",
                 type: "GET",
+                data: localStorage['MQ'],
                 success: function (res) {
                     var mapdata=[];
                     for(var i=0; i<res.length; i++) {

@@ -36,6 +36,13 @@ namespace IMK_web.Controllers
             return countries.Select(c => c.Country).Distinct().ToList();
         }
 
+        [HttpGet("countries2")]
+        public async Task<List<string>> getIMKCountriesByMA([FromQuery] string marketArea)
+        {
+            var countries = await _dashRepository.GetIMKCountriesByMA(marketArea);
+            return countries.Select(c => c.Country).Distinct().ToList();
+        }
+
         [HttpGet("operators")]
         public async Task<ActionResult<IEnumerable<Country>>> getOperatorsByCountry([FromQuery] string countries)
         {
@@ -123,25 +130,25 @@ namespace IMK_web.Controllers
         //////////////////////////////////////////////////////////////////////////////////////////////
         //get # of site usage 
         [HttpGet("usage")]
-        public async Task<ActionResult> getSiteUsage([FromQuery] string start, [FromQuery] string end)
+        public async Task<ActionResult> getSiteUsage([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
         {
-            var data = await _dashRepository.GetSiteUsage(start, end);
+            var data = await _dashRepository.GetSiteUsage(start, end, marketArea);
             return data;
         }
         
         //get # of active users 
         [HttpGet("active_users")]
-        public async Task<ActionResult> getActiveUsers([FromQuery] string start, [FromQuery] string end)
+        public async Task<ActionResult> getActiveUsers([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
         {
-            var data = await _dashRepository.GetActiveUsers(start, end);
+            var data = await _dashRepository.GetActiveUsers(start, end, marketArea);
             return data;
         }
 
         //get # of new users 
         [HttpGet("new_users")]
-        public async Task<ActionResult> getNewProfiles([FromQuery] string start, [FromQuery] string end)
+        public async Task<ActionResult> getNewProfiles([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
         {
-            var data = await _dashRepository.GetNewProfiles(start, end);
+            var data = await _dashRepository.GetNewProfiles(start, end, marketArea);
             return data;
         }
 

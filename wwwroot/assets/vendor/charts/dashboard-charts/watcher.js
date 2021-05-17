@@ -72,7 +72,8 @@ async function httpPostAsync(siteEng) {
 var htmlFilterContent = '';
 
 function init() {
-    getAllCountries()
+    //getAllCountries()
+    getMA()
     var start = moment().subtract(29, 'days');
     var end = moment();
 
@@ -161,7 +162,8 @@ function oncheck(country) {
         }
     } else {
         filterCountryList = [];
-        getAllCountries()
+        //getAllCountries()
+        getMA();
 
     }
 
@@ -222,7 +224,38 @@ function getAllCountries() {
             document.getElementById('filterBody').innerHTML = htmlFilterContent;
         }
     });
+}
 
+
+var radios = document.querySelectorAll('input[type=radio][name="MA"]');
+radios.forEach(radio => radio.addEventListener('change', () =>  {
+    localStorage['MQ']='marketArea='+radio.value.toString();
+    getMA()
+}));
+
+function getMA() {
+    
+    $.ajax({
+        url: 'api/dashboardapi/countries2',
+        type: 'GET',
+        data: localStorage['MQ'],
+        success: function (res) {
+            htmlFilterContent = '<h2>Countries</h2><form>';
+            htmlFilterContent += '<label class="custom-control custom-checkbox custom-control-inline">' +
+                '<input type="checkbox" id="SelectAllCountries" checked="" class="custom-control-input"  onclick=\'oncheck("SelectALL");\'><span class="custom-control-label">Select All</span></label><br>'
+            for (var i = 0; i < res.length; i++) {
+                var checked = '';
+                if (res[i] != "LocationNotOn" && res[i] != "NoInternetConnection") {
+                    htmlFilterContent += '<label class="custom-control custom-checkbox custom-control-inline">' +
+                        '<input type="checkbox" ' + checked + ' class="custom-control-input"  onclick=\'oncheck("' + res[i] + '");\'><span class="custom-control-label">'
+                        + res[i]
+                        + '</span></label>';
+                }
+            }
+            htmlFilterContent += '</form>' + '<div id=\'operators\'></div><div class="input-group-append"><button type="button" onclick=\'filterDone()\' class="btn btn-primary">Done</button></div>'
+            document.getElementById('filterBody').innerHTML = htmlFilterContent;
+        }
+    });
 }
 
 function getdata(query) {
@@ -658,11 +691,11 @@ function getdata(query) {
         type: "GET",
         data: query,
         success: function (res) {
-            var dataTableContent = '<div><button type="button" onclick="downloadCSV()" class="btn btn-primary">Download CSV</button></div><div class="table-responsive"><table  style="font-size: 10px !important" id="example" class="table table-striped table-bordered second  table-dark" style="width:100%"><thead><tr><th>Site Name</th><th>Country</th><th>Field Engineer</th><th>Operator</th><th>Android Versions</th><th>IMK Versions</th><th>ASP</th><th>Date</th><th>Contact Info</th></tr></thead><tbody>';
+            var dataTableContent = '<div><button type="button" onclick="downloadCSV()" class="btn btn-primary">Download CSV</button></div><div class="table-responsive"><table  style="font-size: 10px !important" id="example" class="table table-striped table-bordered second  table-dark" style="width:100%"><thead><tr><th>Site Name</th><th>Country</th><th>Field Engineer</th><th>Android Versions</th><th>IMK Versions</th><th>ASP</th><th>Date</th><th>Contact Info</th></tr></thead><tbody>';
             for (var i = 0; i < res.length; i++) {
-                dataTableContent += '<tr><td>' + res[i]["siteName"] + '</td><td>' + res[i]["country"] + '</td><td>' + res[i]["user"] + '</td><td>' + res[i]["op"] + '</td><td>' + res[i]["androidVersion"] + '</td><td>' + res[i]["rpVersion"] + '</td><td>' + res[i]["asp"] + '</td><td>' + res[i]["date"] + '</td><td> <div onclick=\'httpPostAsync("' + res[i]["contact"] + '")\' ><i class="fas fa-address-card"></i> Click to get Email </div></td></tr></div>'
+                dataTableContent += '<tr><td>' + res[i]["siteName"] + '</td><td>' + res[i]["country"] + '</td><td>' + res[i]["user"] + '</td><td>' + res[i]["androidVersion"] + '</td><td>' + res[i]["rpVersion"] + '</td><td>' + res[i]["asp"] + '</td><td>' + res[i]["date"] + '</td><td> <div onclick=\'httpPostAsync("' + res[i]["contact"] + '")\' ><i class="fas fa-address-card"></i> Click to get Email </div></td></tr></div>'
             }
-            dataTableContent += '</tbody><tfoot><tr><th>Site Name</th><th>Country</th><th>Field Engineer</th><th>Operator</th><th>Android Versions</th><th>IMK Versions</th><th>ASP</th><th>Date</th><th>Contact Info</th></tr></tfoot></table><div class="pagination" id="nav"></div>'
+            dataTableContent += '</tbody><tfoot><tr><th>Site Name</th><th>Country</th><th>Field Engineer</th><th>Android Versions</th><th>IMK Versions</th><th>ASP</th><th>Date</th><th>Contact Info</th></tr></tfoot></table><div class="pagination" id="nav"></div>'
             document.getElementById('dataTable').innerHTML = dataTableContent;
             setTimeout(paginator({
                 table: document.getElementById("example"),

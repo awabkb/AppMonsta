@@ -52,12 +52,11 @@ namespace IMK_web.Repository
             return await _context.Sites.OrderBy(s => s.Country).ToListAsync();
         }
 
-        // public async Task<IEnumerable<Site>> GetIMKCountriesByMA(string MAs)
-        // {
-        //     string[] marketAreas = MAs.Split(",");
-        //     string [] countries = await _context.Countries.Where(c => marketAreas.Contains(c.MA)).Select(x => x.Name).ToArrayAsync();
-        //     return await _context.Sites.Where(x => countries.Contains(x.Country)).OrderBy(s => s.Country).ToListAsync();
-        // }
+        public async Task<IEnumerable<Site>> GetIMKCountriesByMA(string MA)
+        {
+            string [] countries = await _context.Countries.Where(c => c.MA.Equals(MA)).Select(x => x.Name).ToArrayAsync();
+            return await _context.Sites.Where(x => countries.Contains(x.Country)).OrderBy(s => s.Country).ToListAsync();
+        }
 
         //get operators for countries
         public async Task<IEnumerable<Country>> GetOperatorsByCountry(string countries)
@@ -432,15 +431,16 @@ namespace IMK_web.Repository
 
             if (countries == "[]" || countries == null)
             {
-                var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator);
+                var allVisits = _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User");
                 var visitDetails = await allVisits.OrderByDescending(y => y.StartTime).Select(x => new
                 {
                     siteName = x.Site.Name,
                     country = x.Site.Country,
                     user = x.User.Name,
-                    op = x.Site.Operator.Name,
+                    //op = x.Site.Operator.Name,
                     androidVersion = x.ImkVersion.AppVersion,
                     rpVersion = x.ImkVersion.RPIVersion,
+                    asp = x.User.AspCompany.Name,
                     date = x.StartTime.ToString("yyyy-MM-dd"),
                     //contact = x.Site.AspCompany.ApsMentor.Email
                 }).ToListAsync();
@@ -461,7 +461,7 @@ namespace IMK_web.Repository
                         op = x.Site.Operator.Name,
                         androidVersion = x.ImkVersion.AppVersion,
                         rpVersion = x.ImkVersion.RPIVersion,
-                        // asp = x.Site.AspCompany.Name,
+                        asp = x.User.AspCompany.Name,
                         date = x.StartTime.ToString("yyyy-MM-dd"),
                         //contact = x.Site.AspCompany.ApsMentor.Email
                     }).ToListAsync();
@@ -484,7 +484,7 @@ namespace IMK_web.Repository
                         op = x.Site.Operator.Name,
                         androidVersion = x.ImkVersion.AppVersion,
                         rpVersion = x.ImkVersion.RPIVersion,
-                        //asp = x.Site.AspCompany.Name,
+                        asp = x.User.AspCompany.Name,
                         date = x.StartTime.ToString("yyyy-MM-dd"),
                         //contact = x.Site.AspCompany.ApsMentor.Email
                     }).ToListAsync();
@@ -496,26 +496,34 @@ namespace IMK_web.Repository
 
         }
 
-        /////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////// GLOBES /////////////////////////////////////////////////////
+
         // get # of sites usage (num of site visits by country)
-        public async Task<ActionResult> GetSiteUsage(string start, string end)
+        public async Task<ActionResult> GetSiteUsage(string start, string end, string marketArea)
         {
-            var visits = await _context.SiteVisits.Include("Site").ToListAsync();
+            var countries = await this.GetIMKCountriesByMA(marketArea);
+            var c = countries.Select(c => c.Country).Distinct().ToList();
+
+            var visits = await _context.SiteVisits.Include("Site").Where(x =>c.Contains(x.Site.Country)).ToListAsync();
+            var unique_visits = await _context.SiteVisits.Include("Site").Where(x =>c.Contains(x.Site.Country)).Select(x =>x.Site.SiteId).Distinct().ToListAsync();
             var all_usage = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
-                usage = y.Select(i => i.VisitId).Count(),
-                percent = ((float)y.Select(i => i.VisitId).Count() / (float)visits.Count()) * 100
+                usage = y.Select(i => i.Site.SiteId).Distinct().Count(),
+                percent = ((float)y.Select(i => i.Site.SiteId).Distinct().Count() / (float)unique_visits.Count()) * 100
 
             });
             return new JsonResult(all_usage);
         }
 
         // get active users by country (users accompanied with site visits)
-        public async Task<ActionResult> GetActiveUsers(string start, string end)
+        public async Task<ActionResult> GetActiveUsers(string start, string end, string marketArea)
         {
-            var visits = await _context.SiteVisits.Include("User").Include("Site").ToListAsync();
-            var site_users = await _context.SiteVisits.Include("User").Select(x => x.User.UserId).Distinct().ToListAsync();
+            var countries = await this.GetIMKCountriesByMA(marketArea);
+            var c = countries.Select(c => c.Country).Distinct().ToList();
+
+            var visits = await _context.SiteVisits.Include("User").Include("Site").Where(x =>c.Contains(x.Site.Country)).ToListAsync();
+            var site_users = await _context.SiteVisits.Include("User").Where(x =>c.Contains(x.Site.Country)).Select(x => x.User.UserId).Distinct().ToListAsync();
             var active_users = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
@@ -527,9 +535,12 @@ namespace IMK_web.Repository
         }
 
         // get number of new user profiles created
-        public async Task<ActionResult> GetNewProfiles(string start, string end)
+        public async Task<ActionResult> GetNewProfiles(string start, string end, string marketArea)
         {
-            var allusers = await _context.Users.Include(x =>x.AspCompany).Include(x=>x.AspCompany.Country).ToListAsync(); //registered at betwen start -end
+            var countries = await this.GetIMKCountriesByMA(marketArea);
+            var c = countries.Select(c => c.Country).Distinct().ToList();  
+
+            var allusers = await _context.Users.Include(x =>x.AspCompany).Include(x=>x.AspCompany.Country).Where(x =>c.Contains(x.AspCompany.Country.Name)).ToListAsync(); //registered at betwen start -end
             var newusers = allusers.GroupBy( x=> new {x.AspCompany.Country.Name}).Select( y => new 
             {
                 country = y.Key.Name,
