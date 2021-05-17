@@ -504,7 +504,8 @@ namespace IMK_web.Repository
             var all_usage = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
-                usage = ((float)y.Select(i => i.VisitId).Count() / (float)visits.Count()) * 100
+                usage = y.Select(i => i.VisitId).Count(),
+                percent = ((float)y.Select(i => i.VisitId).Count() / (float)visits.Count()) * 100
 
             });
             return new JsonResult(all_usage);
@@ -518,7 +519,8 @@ namespace IMK_web.Repository
             var active_users = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
-                users = ((float)y.Select(i => i.User.UserId).Distinct().Count() / (float)site_users.Count()) * 100
+                users = y.Select(i => i.User.UserId).Distinct().Count(),
+                percent =  ((float)y.Select(i => i.User.UserId).Distinct().Count() / (float)site_users.Count()) * 100
 
             });
             return new JsonResult(active_users);
@@ -527,17 +529,16 @@ namespace IMK_web.Repository
         // get number of new user profiles created
         public async Task<ActionResult> GetNewProfiles(string start, string end)
         {
-            var allusers = await _context.AspCompanies.Include(x => x.Workers).ToListAsync(); //TODO condition user isactive & isapproved
-
-            // var newusers = allusers.GroupBy( x=> new {x.Country.Name}).Select( y => new 
-            // {
-            //     country = y.Key.Name,
-            //     //users = y.Where(i =>i.RegisteredAt >= DateTime.Parse(start) && i.RegisteredAt <= DateTime.Parse(end)).Select(j => j.UserId)
-            //     u = y.Select(i => i.Sites.)
-            // });
-            return new JsonResult(allusers);
+            var allusers = await _context.Users.Include(x =>x.AspCompany).Include(x=>x.AspCompany.Country).ToListAsync(); //registered at betwen start -end
+            var newusers = allusers.GroupBy( x=> new {x.AspCompany.Country.Name}).Select( y => new 
+            {
+                country = y.Key.Name,
+                users = y.Select(i => i.UserId).Count(),
+                percent = ((float)y.Select(i => i.UserId).Count() / (float)allusers.Count()) *100
+            });
+            return new JsonResult(newusers);
         }
-
+ 
 
 
     }
