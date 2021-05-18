@@ -134,23 +134,8 @@ namespace IMK_web.Controllers
             foreach (Log log in logs)
             {
 
-                string key = null;
-                if (log.Command.StartsWith("fru"))
-                {
-                    key = "fru";
-                }
-                else if (log.Command.StartsWith("alarm"))
-                {
-                    key = "alarm";
-                }
-                else if (log.Command.StartsWith("rssi-lte"))
-                {
-                    key = "rssi-lte";
-                }
-                else
-                {
-                    key = log.Command;
-                }
+                var key = log.Command;
+                
                 if (imkFunctionsDic.ContainsKey(key))
                 {
                     imkFunctionsDic[key]++;
@@ -162,17 +147,38 @@ namespace IMK_web.Controllers
             }
 
             IMK_Functions iMK_Functions = new IMK_Functions();
-            iMK_Functions.VSWR = imkFunctionsDic.GetValueOrDefault("vswr");
-            iMK_Functions.FRU = imkFunctionsDic.GetValueOrDefault("fru");
-            iMK_Functions.CPRI = imkFunctionsDic.GetValueOrDefault("cpri");
-            iMK_Functions.IPROUT = imkFunctionsDic.GetValueOrDefault("transport_routes");
-            iMK_Functions.IPInterfaces = imkFunctionsDic.GetValueOrDefault("transport_interfaces");
-            iMK_Functions.Alarms = imkFunctionsDic.GetValueOrDefault("alarm");
+            iMK_Functions.FruStatus = imkFunctionsDic.GetValueOrDefault("frustatus");
+            iMK_Functions.FruState = imkFunctionsDic.GetValueOrDefault("frustate");
+            iMK_Functions.FruSerial = imkFunctionsDic.GetValueOrDefault("fruserial");
+            iMK_Functions.FruProdNo = imkFunctionsDic.GetValueOrDefault("fruprodno");
+
             iMK_Functions.RetSerial = imkFunctionsDic.GetValueOrDefault("ret_serial");
-            iMK_Functions.RETAntenna = imkFunctionsDic.GetValueOrDefault("ret_antenna");
+            iMK_Functions.TMA = imkFunctionsDic.GetValueOrDefault("tma");
+            iMK_Functions.RetAntenna = imkFunctionsDic.GetValueOrDefault("ret_antenna");
+
+            iMK_Functions.VSWR = imkFunctionsDic.GetValueOrDefault("vswr");
+            iMK_Functions.CPRI = imkFunctionsDic.GetValueOrDefault("cpri");
+
+            iMK_Functions.Transport = imkFunctionsDic.GetValueOrDefault("transport");
+            iMK_Functions.TransportRoutes = imkFunctionsDic.GetValueOrDefault("transport_routes");
+            iMK_Functions.TransportInterfaces = imkFunctionsDic.GetValueOrDefault("transport_interfaces");
+
+            iMK_Functions.MMEStatus = imkFunctionsDic.GetValueOrDefault("MME-status");
+            iMK_Functions.GsmTRX = imkFunctionsDic.GetValueOrDefault("GSM-TRX");
+            iMK_Functions.GsmState = imkFunctionsDic.GetValueOrDefault("GSM-State");
+            iMK_Functions.SgwStatus = imkFunctionsDic.GetValueOrDefault("SGW-status");
+
+            iMK_Functions.Traffic3g = imkFunctionsDic.GetValueOrDefault("traffic-3g");
+            iMK_Functions.Traffic4g = imkFunctionsDic.GetValueOrDefault("traffic-4g");
+            iMK_Functions.Traffic5g = imkFunctionsDic.GetValueOrDefault("traffic-5g");
+
             iMK_Functions.RSSIUMTS = imkFunctionsDic.GetValueOrDefault("rssi_umts");
-            iMK_Functions.RSSILTE = imkFunctionsDic.GetValueOrDefault("rssi-lte");
+            iMK_Functions.RSSIFDD = imkFunctionsDic.GetValueOrDefault("rssi-lte EUtranCellFDD");
+            iMK_Functions.RSSITDD = imkFunctionsDic.GetValueOrDefault("rssi-lte EUtranCellTDD");
             iMK_Functions.RSSINR = imkFunctionsDic.GetValueOrDefault("rssi-nr");
+            iMK_Functions.ExternalAlarm = imkFunctionsDic.GetValueOrDefault("external_alarm");
+            iMK_Functions.Alarm = imkFunctionsDic.GetValueOrDefault("alarm");
+          
             siteVisit.IMK_Functions = iMK_Functions;
 
             _appRepository.Add(siteVisit);
