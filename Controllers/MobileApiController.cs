@@ -52,7 +52,16 @@ namespace IMK_web.Controllers
 
                 await _appRepository.SaveChanges();
                 await this.sendAccessRequest(userDto);
-                return Ok(user);
+                UserToReturn userToReturnDto = new UserToReturn();
+                userToReturnDto.AspCompany = user.AspCompany.Name;
+                userToReturnDto.Email = user.Email;
+                userToReturnDto.IsActive = user.IsActive;
+                userToReturnDto.IsAdmin = user.IsAdmin;
+                userToReturnDto.Name = user.Name;
+                userToReturnDto.Phone = user.Phone;
+                userToReturnDto.UserId = user.UserId;
+
+                return Ok(userToReturnDto);
             }
             else
                 return BadRequest("User already exists");
