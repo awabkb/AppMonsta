@@ -294,16 +294,16 @@ namespace IMK_web.Repository
             var functions = _context.IMK_Functions.Where(x => sfunctions.Contains(x.Id)).GroupBy(x => true).Select(x => new
             {
                 VSWR = x.Sum(y => y.VSWR),
-                FRU = x.Sum(y => y.FRU),
-                CPRI = x.Sum(y => y.CPRI),
-                IPROUT = x.Sum(y => y.IPROUT),
-                RetSerial = x.Sum(y => y.RetSerial),
-                RSSILTE = x.Sum(y => y.RSSILTE),
-                RSSIUMTS = x.Sum(y => y.RSSIUMTS),
-                RSSINR = x.Sum(y => y.RSSINR),
-                IPInterfaces = x.Sum(y => y.IPInterfaces),
-                RETAntenna = x.Sum(y => y.RETAntenna),
-                Alarms = x.Sum(y => y.Alarms)
+                // FRU = x.Sum(y => y.FRU),
+                // CPRI = x.Sum(y => y.CPRI),
+                // IPROUT = x.Sum(y => y.IPROUT),
+                // RetSerial = x.Sum(y => y.RetSerial),
+                // RSSILTE = x.Sum(y => y.RSSILTE),
+                // RSSIUMTS = x.Sum(y => y.RSSIUMTS),
+                // RSSINR = x.Sum(y => y.RSSINR),
+                // IPInterfaces = x.Sum(y => y.IPInterfaces),
+                // RETAntenna = x.Sum(y => y.RETAntenna),
+                // Alarms = x.Sum(y => y.Alarms)
             });
             return new JsonResult(functions);
         }
