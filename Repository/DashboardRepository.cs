@@ -293,17 +293,32 @@ namespace IMK_web.Repository
             }
             var functions = _context.IMK_Functions.Where(x => sfunctions.Contains(x.Id)).GroupBy(x => true).Select(x => new
             {
-                VSWR = x.Sum(y => y.VSWR),
-                // FRU = x.Sum(y => y.FRU),
-                // CPRI = x.Sum(y => y.CPRI),
-                // IPROUT = x.Sum(y => y.IPROUT),
-                // RetSerial = x.Sum(y => y.RetSerial),
-                // RSSILTE = x.Sum(y => y.RSSILTE),
-                // RSSIUMTS = x.Sum(y => y.RSSIUMTS),
-                // RSSINR = x.Sum(y => y.RSSINR),
-                // IPInterfaces = x.Sum(y => y.IPInterfaces),
-                // RETAntenna = x.Sum(y => y.RETAntenna),
-                // Alarms = x.Sum(y => y.Alarms)
+
+            FruStatus = x.Sum(y => y.FruStatus),
+            FruState = x.Sum(y => y.FruState),
+            FruSerial = x.Sum(y => y.FruSerial),
+            FruProdNo = x.Sum(y => y.FruProdNo),
+            RetSerial = x.Sum(y => y.RetSerial),
+            TMA = x.Sum(y => y.TMA),
+            RetAntenna = x.Sum(y => y.RetAntenna),
+            VSWR = x.Sum(y => y.VSWR),
+            CPRI = x.Sum(y => y.CPRI),
+            Transport = x.Sum(y => y.Transport),
+            TransportRoutes = x.Sum(y => y.TransportRoutes),
+            TransportInterfaces = x.Sum(y => y.TransportInterfaces),
+            MMEStatus = x.Sum(y => y.MMEStatus),
+            GsmTRX = x.Sum(y => y.GsmTRX),
+            GsmState = x.Sum(y => y.GsmState),
+            SgwStatus = x.Sum(y => y.SgwStatus),
+            Traffic3g = x.Sum(y => y.Traffic3g),
+            Traffic4g = x.Sum(y => y.Traffic4g),
+            Traffic5g = x.Sum(y => y.Traffic5g),
+            RSSIUMTS = x.Sum(y => y.RSSIUMTS),
+            RSSIFDD = x.Sum(y => y.RSSIFDD),
+            RSSITDD = x.Sum(y => y.RSSITDD),
+            RSSINR = x.Sum(y => y.RSSINR),
+            ExternalAlarm = x.Sum(y => y.ExternalAlarm),
+            Alarm = x.Sum(y => y.Alarm)
             });
             return new JsonResult(functions);
         }
