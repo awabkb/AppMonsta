@@ -494,7 +494,8 @@ function getdata(query) {
                 }
                 new Chartist.Bar('.tech_used', {
 
-                    labels: ['VSWR', 'FRUS', 'CPRI', 'Transport IP Routes', 'RET Serial', 'RSSI-LTE FDD', 'RSSI-UMTS', 'RSSI-NR', 'Transport IP Interfaces', 'RET Antenna', 'RSSI-LTE TDD'],
+                    labels: ['FRU Status','FRU State','FRU Serial','FRU Prod No','RET Serial','TMA','RET Antenna','VSWR','CPRI','Transport','Transport Routes','Transport Interfaces',
+                    'MME Status','GSM-TRX', 'GSM-State','SGW-Status','Traffic-3G','Traffic-4G','Traffic-5G','RSSI UMTS','RSSI-LTE FDD','RSSI-LTE TDD','RSSI-NR','External Alarm', 'Alarm'],
                     series: [
                         datarows
                     ]
