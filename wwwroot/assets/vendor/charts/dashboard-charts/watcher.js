@@ -21,6 +21,7 @@
 
 var showFilter = true;
 var filterCountryList = [];
+var filterMAList = [];
 var filterOperatorList = [];
 var dataTableData = '';
 var topquery = '';
@@ -162,9 +163,11 @@ function oncheck(country) {
             document.getElementById("SelectAllCountries").setAttribute("checked", "checked");
         }
     } else {
-        //filterCountryList = [];
+        filterCountryList = [];
         //getAllCountries()
         getMA()
+
+     
 
     }
 
@@ -240,7 +243,7 @@ function getMA() {
         type: 'GET',
         data: localStorage['MQ'],
         success: function (res) {
-            filterCountryList = res;
+            filterMAList = res;
             htmlFilterContent = '<h2>Countries</h2><form>';
             htmlFilterContent += '<label class="custom-control custom-checkbox custom-control-inline">' +
                 '<input type="checkbox" id="SelectAllCountries" checked="" class="custom-control-input"  onclick=\'oncheck("SelectALL");\'><span class="custom-control-label">Select All</span></label><br>'
