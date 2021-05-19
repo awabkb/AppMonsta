@@ -552,10 +552,9 @@ namespace IMK_web.Repository
         // get number of new user profiles created
         public async Task<ActionResult> GetNewProfiles(string start, string end, string marketArea)
         {
-            var countries = await this.GetIMKCountriesByMA(marketArea);
-            var c = countries.Select(c => c.Country).Distinct().ToList();  
-
-            var allusers = await _context.Users.Include(x =>x.AspCompany).Include(x=>x.AspCompany.Country).Where(x =>c.Contains(x.AspCompany.Country.Name)).ToListAsync(); //registered at betwen start -end
+            string [] countries = await _context.Countries.Where(x => x.MA.Equals(marketArea)).Select(x =>x.Name).ToArrayAsync();
+            
+            var allusers = await _context.Users.Include(x =>x.AspCompany).Include(x=>x.AspCompany.Country).Where(x =>countries.Contains(x.AspCompany.Country.Name)).ToListAsync(); //registered at betwen start -end
             var newusers = allusers.GroupBy( x=> new {x.AspCompany.Country.Name}).Select( y => new 
             {
                 country = y.Key.Name,
