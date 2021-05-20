@@ -499,28 +499,30 @@ function getdata(query) {
             var externalalarm=0;
             var alarm =0;
             if ($('.tech_used').length) {
-
-                    if(res[0]['fruStatus'] || res[0]['fruState']|| res[0]['fruSerial']|| res[0]['fruProdNo'])
-                        fru++;
-                    if(res[0]['retSerial']|| res[0]['tma']|| res[0]['retAntenna'])
-                        ret++;
-                    if(res[0]['vswr'])
-                        vswr++;
-                    if(res[0]['cpri'])
-                        cpri++;
-                    if(res[0]['transport']|| res[0]['transportRoutes']|| res[0]['transportInterfaces'])
-                        transport++;
-                    if(res[0]['mmeStatus']|| res[0]['gsmTRX']|| res[0]['gsmState']|| res[0]['sgwStatus'])
-                        traffic++;
-                    if(res[0]['traffic3g']|| res[0]['traffic4g']|| res[0]['traffic5g'])
-                        rat++;
-                    if(res[0]['rssiumts']|| res[0]['rssifdd']|| res[0]['rssitdd']|| res[0]['rssinr'])
-                        rssi++;
-                    if(res[0]['externalAlarm'])
-                        externalalarm++;
-                    if(res[0]['alarm'])
-                        alarm++;
-
+                var obj = (res[0]);
+                for (var i in obj) {
+                    if(i==='fruStatus'|| i==='fruState' || i==='fruSerial' || i==='fruProdNo')
+                        fru+=obj[i];
+                    if(i==='retSerial'|| i==='tma'|| i==='retAntenna')
+                        ret+=obj[i];
+                    if(i==='vswr')
+                        vswr+=obj[i];
+                    if(i==='cpri')
+                        cpri+=obj[i];
+                    if(i==='transport'|| i==='transportRoutes'|| i==='transportInterfaces')
+                        transport+=obj[i];
+                    if(i==='mmeStatus'|| i==='gsmTRX'|| i==='gsmState'|| i==='sgwStatus')
+                        traffic+=obj[i];
+                    if(i==='traffic3g'|| i==='traffic4g'|| i==='traffic5g')
+                        rat+=obj[i];
+                    if(i==='rssiumts'|| i==='rssifdd'|| i==='rssitdd'|| i==='rssinr')
+                        rssi+=obj[i];
+                    if(i==='externalAlarm')
+                        externalalarm+=obj[i];
+                    if(i==='alarm')
+                        alarm+=obj[i];
+                   // datarows.push(res[0][i]);
+                }
                 datarows.push(fru);
                 datarows.push(ret);
                 datarows.push(vswr);
@@ -531,8 +533,6 @@ function getdata(query) {
                 datarows.push(rssi);
                 datarows.push(externalalarm);
                 datarows.push(alarm);
-                console.log("HERE");
-                console.log(datarows);
                 
                 new Chartist.Bar('.tech_used', {
 
