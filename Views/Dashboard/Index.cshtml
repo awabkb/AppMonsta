@@ -212,7 +212,7 @@
                                     <div class="card">
                                         <h5 class="card-header">IMK Functions</h5>
                                         <div class="card-body">
-                                            <div style="color :#fff !important;" class="tech_used ct-golden-section">
+                                            <div style="color :#fff !important;" id="tech_used" class="tech_used ct-golden-section">
                                             </div>
                                         </div>
                                     </div>
@@ -639,6 +639,7 @@
                             mapdata.push(data)
                         }
                     }
+                    console.log(mapdata)
                     am4core.ready(function () {
 
 
@@ -718,7 +719,7 @@
                         var isocode=getCountryName(obj["country"])
                         if(isocode!="Other"){
                             var data = []
-                            if(obj["percent"]>20){
+                            if(obj["percent"]>=20){
                                 
                                     data["title"]=obj["country"]
                                     data["id"] = isocode;
@@ -732,7 +733,7 @@
                                     data["customData"]= obj["usage"]+" ("+obj["percent"]+"%)";
                                     data["fill"]="#FFA500"
                                 } 
-                                if( obj["percent"]<10){
+                                if( obj["percent"]<=10){
                                     var data=[];
                                     
                                     data["title"]=obj["country"]
@@ -746,7 +747,7 @@
                         }
                         if(isocode=="MA"){
                             var data = []
-                            if(obj["percent"]>20){
+                            if(obj["percent"]>=20){
                                 
                                     data["title"]=obj["country"]
                                     data["id"] = 'EH';
@@ -760,7 +761,7 @@
                                     data["customData"]= obj["usage"]+" ("+obj["percent"]+"%)";
                                     data["fill"]="#FFA500"
                                 } 
-                                if(obj["percent"]<10){
+                                if(obj["percent"]<=10){
                                     var data=[];
                                     
                                     data["title"]=obj["country"]
@@ -844,7 +845,7 @@
                         var isocode = getCountryName(obj["country"])
                         if(isocode!="Other"){
                             var data = []
-                            if(obj["percent"]>20){
+                            if(obj["percent"]>=20){
                                 
                                     data["title"]=obj["country"]
                                     data["id"] = isocode;
@@ -858,7 +859,7 @@
                                     data["customData"]= obj["users"]+" ("+obj["percent"]+"%)";
                                     data["fill"]="#FFA500"
                                 } 
-                                if( obj["percent"]<10){
+                                if( obj["percent"]<=10){
                                     var data=[];
                                     
                                     data["title"]=obj["country"]
@@ -872,7 +873,7 @@
                         }
                         if(isocode=="MA"){
                             var data = []
-                            if(obj["percent"]>20){
+                            if(obj["percent"]>=20){
                                 
                                     data["title"]=obj["country"]
                                     data["id"] = 'EH';
@@ -886,7 +887,7 @@
                                     data["customData"]= obj["users"]+" ("+obj["percent"]+"%)";
                                     data["fill"]="#FFA500"
                                 } 
-                                if(obj["percent"]<10){
+                                if(obj["percent"]<=10){
                                     var data=[];
                                     
                                     data["title"]=obj["country"]
