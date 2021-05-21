@@ -487,56 +487,15 @@ function getdata(query) {
         type: "GET",
         data: query,
         success: function (res) {
-            var datarows = [];
-            var fru =0;
-            var ret =0;
-            var vswr=0;
-            var cpri=0;
-            var transport=0;
-            var traffic =0;
-            var rat =0;
-            var rssi=0;
-            var externalalarm=0;
-            var alarm =0;
+            datarows = [];
             if ($('.tech_used').length) {
-                var obj = (res[0]);
-                for (var i in obj) {
-                    if(i==='fruStatus'|| i==='fruState' || i==='fruSerial' || i==='fruProdNo')
-                        fru+=obj[i];
-                    if(i==='retSerial'|| i==='tma'|| i==='retAntenna')
-                        ret+=obj[i];
-                    if(i==='vswr')
-                        vswr+=obj[i];
-                    if(i==='cpri')
-                        cpri+=obj[i];
-                    if(i==='transport'|| i==='transportRoutes'|| i==='transportInterfaces')
-                        transport+=obj[i];
-                    if(i==='mmeStatus'|| i==='gsmTRX'|| i==='gsmState'|| i==='sgwStatus')
-                        traffic+=obj[i];
-                    if(i==='traffic3g'|| i==='traffic4g'|| i==='traffic5g')
-                        rat+=obj[i];
-                    if(i==='rssiumts'|| i==='rssifdd'|| i==='rssitdd'|| i==='rssinr')
-                        rssi+=obj[i];
-                    if(i==='externalAlarm')
-                        externalalarm+=obj[i];
-                    if(i==='alarm')
-                        alarm+=obj[i];
-                   // datarows.push(res[0][i]);
+                for (var i in res[0]) {
+                    datarows.push(res[0][i]);
                 }
-                datarows.push(fru);
-                datarows.push(ret);
-                datarows.push(vswr);
-                datarows.push(cpri);
-                datarows.push(transport);
-                datarows.push(traffic);
-                datarows.push(rat);
-                datarows.push(rssi);
-                datarows.push(externalalarm);
-                datarows.push(alarm);
-                
                 new Chartist.Bar('.tech_used', {
 
-                    labels: ['Hardware-FRU', 'Hardware-RET', 'Hardware-VSWR', 'Hardware-CPRI', 'Transport', 'Traffic','Traffic-RAT', 'Health-RSSI', 'Health-External Alarm', 'Health-Alarm'],
+                    labels: ['FRU Status','FRU State','FRU Serial','FRU Prod No','RET Serial','TMA','RET Antenna','VSWR','CPRI','Transport','Transport Routes','Transport Interfaces',
+                    'MME Status','GSM-TRX', 'GSM-State','SGW-Status','Traffic-3G','Traffic-4G','Traffic-5G','RSSI UMTS','RSSI-LTE FDD','RSSI-LTE TDD','RSSI-NR','External Alarm', 'Alarm'],
                     series: [
                         datarows
                     ]
