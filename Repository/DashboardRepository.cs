@@ -54,8 +54,12 @@ namespace IMK_web.Repository
 
         public async Task<IEnumerable<Site>> GetIMKCountriesByMA(string MA)
         {
-            string [] countries = await _context.Countries.Where(c => c.MA.Equals(MA)).Select(x => x.Name).ToArrayAsync();
-            return await _context.Sites.Where(x => countries.Contains(x.Country)).OrderBy(s => s.Country).ToListAsync();
+            if(MA.Equals("SelectAll"))
+                return await _context.Sites.OrderBy(s => s.Country).ToListAsync();
+            else {
+                string [] countries = await _context.Countries.Where(c => c.MA.Equals(MA)).Select(x => x.Name).ToArrayAsync();
+                return await _context.Sites.Where(x => countries.Contains(x.Country)).OrderBy(s => s.Country).ToListAsync();
+            }
         }
 
         //get operators for countries
