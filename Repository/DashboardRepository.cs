@@ -459,7 +459,8 @@ namespace IMK_web.Repository
                     date = x.StartTime.ToString("yyyy-MM-dd"),
                     //contact = x.Site.AspCompany.ApsMentor.Email
                 }).ToListAsync();
-                return new JsonResult(visitDetails);
+                var result = visitDetails.GroupBy(x => new {x.user, x.siteName}).Select(g =>g.First());
+                return new JsonResult(result);
 
             }
             else
