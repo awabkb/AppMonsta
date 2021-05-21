@@ -74,7 +74,7 @@ var htmlFilterContent = '';
 
 function init() {
     //getAllCountries()
-    localStorage["MQ"]="marketArea=MMEA";
+    localStorage["MQ"]="marketArea=SelectAll";
     getMA()
     var start = moment().subtract(29, 'days');
     var end = moment();
@@ -230,12 +230,13 @@ function getAllCountries() {
     });
 }
 
-
-var radios = document.querySelectorAll('input[type=radio][name="MA"]');
-radios.forEach(radio => radio.addEventListener('change', () =>  {
-    localStorage['MQ']='marketArea='+radio.value.toString();
+function filterMA() {
+    console.log("DONE");
+    var marketArea = $("input[type='radio'][name='MA']:checked").val();
+    console.log(marketArea);
+    localStorage['MQ']='marketArea='+marketArea;
     getMA()
-}));
+}
 
 function getMA() {
     $.ajax({
