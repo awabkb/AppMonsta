@@ -28,15 +28,15 @@ namespace IMK_web.Controllers
 
         ////// Filtering //////
         [Authorize]
-        [HttpGet("countries")]
-        public async Task<List<string>> getIMKCountries()
-        {
-            var countries = await _dashRepository.GetIMKCountries();
-            // return countries.GroupBy(c => c.Country).SelectMany(g =>g).ToList();
-            return countries.Select(c => c.Country).Distinct().ToList();
-        }
+        // [HttpGet("countries")]
+        // public async Task<List<string>> getIMKCountries()
+        // {
+        //     var countries = await _dashRepository.GetIMKCountries();
+        //     // return countries.GroupBy(c => c.Country).SelectMany(g =>g).ToList();
+        //     return countries.Select(c => c.Country).Distinct().ToList();
+        // }
 
-        [HttpGet("countries2")]
+        [HttpGet("countries")]
         public async Task<List<string>> getIMKCountriesByMA([FromQuery] string marketArea)
         {
             var countries = await _dashRepository.GetIMKCountriesByMA(marketArea);
@@ -56,18 +56,18 @@ namespace IMK_web.Controllers
         [AllowAnonymous]
         ////// get unique site per day
         [HttpGet("unique_sites")]
-        public async Task<ActionResult> getUniqueSiteVisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getUniqueSiteVisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var sites = await _dashRepository.GetSiteVisits(start, end, filetedcountries, filetedoperators);
+            var sites = await _dashRepository.GetSiteVisits(start, end, countries, operators);
             return sites;
         }
         
         [AllowAnonymous]
         ////// get # sites per country
         [HttpGet("countryview")]
-        public async Task<ActionResult> getSiteByCountry([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getSiteByCountry([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var sites = await _dashRepository.GetSitesByCountry(start, end, filetedcountries,filetedoperators);
+            var sites = await _dashRepository.GetSitesByCountry(start, end, countries,operators);
             return sites;
         }
 
@@ -75,53 +75,53 @@ namespace IMK_web.Controllers
         [AllowAnonymous]
         ////// get # site revisits
         [HttpGet("revisits")]
-        public async Task<ActionResult> getSiteRevisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getSiteRevisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var revisits = await _dashRepository.GetSiteRevisits(start, end, filetedcountries,filetedoperators);
+            var revisits = await _dashRepository.GetSiteRevisits(start, end, countries,operators);
             return revisits;
         }
 
         ////// get IMK functions count 
         [AllowAnonymous]
         [HttpGet("imkfunctions")]
-        public async Task<ActionResult> getIMKFunctions([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getIMKFunctions([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var visits = await _dashRepository.GetIMKFunctions(start, end, filetedcountries,filetedoperators);
+            var visits = await _dashRepository.GetIMKFunctions(start, end, countries,operators);
             return visits;
         }
 
         [AllowAnonymous]
         ////// get top 10 field engineers
         [HttpGet("topasp")]
-        public async Task<ActionResult> getTopEngineers([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getTopEngineers([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var asp = await _dashRepository.GetTopEngineers(start, end, filetedcountries,filetedoperators);
+            var asp = await _dashRepository.GetTopEngineers(start, end, countries,operators);
             return asp;
         }
 
 
         ///// get app version
         [HttpGet("appversion")]
-        public async Task<ActionResult> getAppVersion([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getAppVersion([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var versions = await _dashRepository.GetAppVersion(start, end, filetedcountries,filetedoperators);
+            var versions = await _dashRepository.GetAppVersion(start, end, countries,operators);
             return versions;
         }
 
 
         ///// get Raspberry PI version
         [HttpGet("rpversion")]
-        public async Task<ActionResult> getRPVersion([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getRPVersion([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var versions = await _dashRepository.GetRPIVersion(start, end, filetedcountries,filetedoperators);
+            var versions = await _dashRepository.GetRPIVersion(start, end, countries,operators);
             return versions;
         }
 
         //get all site visits details 
         [HttpGet("site_details")]
-        public async Task<ActionResult> getSiteDetails([FromQuery] string start, [FromQuery] string end, [FromQuery] string filetedcountries, [FromQuery] string filetedoperators)
+        public async Task<ActionResult> getSiteDetails([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var data = await _dashRepository.GetSiteVisitDetails(start, end, filetedcountries,filetedoperators);
+            var data = await _dashRepository.GetSiteVisitDetails(start, end, countries,operators);
             return data;
         }
 
