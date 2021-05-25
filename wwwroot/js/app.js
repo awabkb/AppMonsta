@@ -245,15 +245,6 @@ function getData(countries, operators) {
                 names.push(res[i]["name"])
                 sites.push(res[i]["sites"]);
             }
-            // function openE2E(title) {
-            //     console.log(title)
-
-            //     const notification = new eds.Notification({
-            //         title: title,
-            //         description: 'jhg',
-            //     });
-            //     notification.init();
-            // }
 
             const chart = new eds.HorizontalBarChart({
                 element: document.getElementById('top-asp'),
@@ -262,6 +253,12 @@ function getData(countries, operators) {
                     "series": [{ "name": "Top Asp", "values": sites }]
                 },
                 x: { unit: 'Sites' },
+                thresholds: [
+                    {
+                        "moreThan": 1,
+                        "color": "orange"
+                    },
+                ]
                 // onSelect: common => openE2E(common),
             });
 
@@ -327,32 +324,40 @@ function getData(countries, operators) {
                     {
                         key: 'siteName',
                         title: 'Site Name',
+                        sort: 'none'
                     },
                     {
                         key: 'country',
                         title: 'Country',
+                        sort: 'none'
                     },
                     {
                         key: 'user',
-                        title: 'Field Engineer'
+                        title: 'Field Engineer',
+                        sort: 'none'
                     },
                     {
                         key: 'appVersion',
                         title: 'Android Version',
+                        sort: 'none'
                     },
                     {
                         key: 'rpiVersion',
                         title: 'IMK Version',
+                        sort: 'none'
                     },
                     {
                         key: 'asp',
                         title: 'ASP',
+                        sort: 'none'
                     },
                     {
                         key: 'date',
                         title: 'Date',
+                        sort: 'none'
                     },
-                ]
+                ],
+                sortable: true
             });
             table.init();
         }
