@@ -60,6 +60,7 @@ namespace IMK_web.Repository
             else
             {
                 string[] countries = await _context.Countries.Where(c => c.MA.Equals(MA)).Select(x => x.Name).ToArrayAsync();
+
                 return await _context.Sites.Where(x => countries.Contains(x.Country)).OrderBy(s => s.Country).ToListAsync();
             }
         }
@@ -455,8 +456,6 @@ namespace IMK_web.Repository
             if (countries == "[]" || countries == null)
             {
                 allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).ToListAsync();
-
-
             }
             else
             {
