@@ -27,49 +27,32 @@ eds.NotificationLog.init();
 var countriesFilter = [];
 var operatorsFilter = [];
 var marketArea = '';
+var datestart = null;
+var dateend = null;
+
 
 function init() {
     marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
     countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : [];
     operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
+    datestart= moment().subtract(29, 'days');
+    dateend = moment();
         
     getCountries(marketArea);
+    // dateFilter();
     // getOperators();
-    getData(countriesFilter, operatorsFilter);
-    initMap(marketArea);
-    //getData(countriesFilter, operatorsFilter);
+    getData(datestart.format('YYYY-MM-DD'),dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
+    initMap(datestart.format('YYYY-MM-DD'),dateend.format('YYYY-MM-DD'),marketArea);
 
 }
-
-$('#filter').on('submit',function (e) {
-    // e.preventDefault();
-    
-    var c = [];
-    var o = [];
-    const checkedCountries = document.querySelectorAll(".country[type='checkbox']:checked");
-    const checkedOperators = document.querySelectorAll(".operator[type='checkbox']:checked");
-    var ma = $('#market-areas li.active').attr('value');
-
-
-    checkedCountries.forEach(element => {
-        c.push($(element).attr('value'));
-    });
-
-    checkedOperators.forEach(element => {
-        o.push($(element).attr('value'));
-    });
-
-    sessionStorage['countries'] = c;
-    sessionStorage['operators'] = o;
-    filter(ma,c ,o);
-});
 
 $(function () {
     var start = moment().subtract(29, 'days');
     var end = moment();
-
     function cb(start, end) {
         $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        $('#start').attr('value', start.format('YYYY-MM-DD'));
+        $('#end').attr('value', end.format('YYYY-MM-DD'));
     }
 
     $('#reportrange').daterangepicker({
@@ -82,10 +65,40 @@ $(function () {
             'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
         }
     }, cb);
-
     cb(start, end);
-
 });
+
+
+$('#filter').on('submit',function (e) {
+    e.preventDefault();
+    // dateFilter();
+    var c = [];
+    var o = [];
+    const checkedCountries = document.querySelectorAll(".country[type='checkbox']:checked");
+    const checkedOperators = document.querySelectorAll(".operator[type='checkbox']:checked");
+    var ma = $('#market-areas li.active').attr('value');
+    var s = $('#start').attr('value');
+    var e = $('#end').attr('value');
+
+
+
+    checkedCountries.forEach(element => {
+        c.push($(element).attr('value'));
+    });
+
+    checkedOperators.forEach(element => {
+        o.push($(element).attr('value'));
+    });
+
+    sessionStorage['countries'] = c;
+    sessionStorage['operators'] = o;
+    sessionStorage['start'] = s;
+    sessionStorage['end'] = e;
+
+    filter(s,e,ma,c ,o);
+});
+
+
 
 $("#market-areas li").on("click", function () {
     $(this).parent().find("li.active").removeClass("active");
@@ -145,9 +158,9 @@ function getOperators() {
 
 }
 
-function filter(ma,c,o) {
-    getData(c, o);
-    initMap(ma);
+function filter(s,e,ma,c,o) {
+    getData(s,e,c, o);
+    initMap(s,e,ma);
 }
 
 // restoreFilters();
@@ -160,17 +173,18 @@ function filter(ma,c,o) {
 //     });
 // }
 
-function getData(countries, operators) {
-
-    var Data = { countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
+function getData(startdate,enddate, countries, operators) {
+    var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
     $.ajax({
         url: "api/dashboardapi/unique_sites",
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('unique-sites');
+            element.innerHTML='';
             var data = mapData(res)
             const chart1 = new eds.HorizontalBarChartStacked({
-                element: document.getElementById('unique-sites'),
+                element: element,
                 data: {
                     "common": data[0],
                     "series": data[1]
@@ -187,9 +201,11 @@ function getData(countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('unique-nodes');
+            element.innerHTML='';
             var data = mapData(res)
             const chart1 = new eds.HorizontalBarChartStacked({
-                element: document.getElementById('unique-nodes'),
+                element: element,
                 data: {
                     "common": data[0],
                     "series": data[1]
@@ -206,9 +222,11 @@ function getData(countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('site-revisits');
+            element.innerHTML='';
             var data = mapData(res)
             const chart1 = new eds.HorizontalBarChartStacked({
-                element: document.getElementById('site-revisits'),
+                element: element,
                 data: {
                     "common": data[0],
                     "series": data[1]
@@ -225,13 +243,15 @@ function getData(countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('imk-functions');
+            element.innerHTML='';
             var functions = [];
 
             for (var i in res[0]) {
                 functions.push(res[0][i]);
             }
             const chart = new eds.HorizontalBarChart({
-                element: document.getElementById('imk-functions'),
+                element: element,
                 data: {
                     "common": ['FRU Status', 'FRU State', 'FRU Serial', 'FRU Prod No', 'RET Serial', 'TMA', 'RET Antenna', 'VSWR', 'CPRI', 'Transport', 'Transport Routes', 'Transport Interfaces',
                         'MME Status', 'GSM-TRX', 'GSM-State', 'SGW-Status', 'Traffic-3G', 'Traffic-4G', 'Traffic-5G', 'RSSI UMTS', 'RSSI-LTE FDD', 'RSSI-LTE TDD', 'RSSI-NR', 'External Alarm', 'Alarm'],
@@ -255,6 +275,8 @@ function getData(countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('top-asp');
+            element.innerHTML='';
             var names = [];
             var sites = [];
 
@@ -264,7 +286,7 @@ function getData(countries, operators) {
             }
 
             const chart = new eds.HorizontalBarChart({
-                element: document.getElementById('top-asp'),
+                element: element,
                 data: {
                     "common": names,
                     "series": [{ "name": "Top Asp", "values": sites }]
@@ -334,7 +356,11 @@ function getData(countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            // tableData = [];
+            // for(var i in res)
+            //     tableData.push(i);
             const tableDOM = document.querySelector('#site-details');
+            tableDOM.innerHTML = '';
             const table = new eds.Table(tableDOM, {
                 data: res,
                 columns: [
@@ -376,7 +402,7 @@ function getData(countries, operators) {
                 ],
                 sortable: true
             });
-            table.init();
+              table.init();
         }
     });
 
@@ -689,12 +715,12 @@ function getCountryName(countryCode) {
         return countryCode;
     }
 }
-function initMap(m_a) {
+function initMap(start, end , m_a) {
 
     $.ajax({
         url: "api/dashboardapi/new_users",
         type: "GET",
-        data: { marketArea: m_a },
+        data: { start: start, end: end, marketArea: m_a },
         success: function (res) {
             var mapdata = [];
             for (var i = 0; i < res.length; i++) {
@@ -826,7 +852,7 @@ function initMap(m_a) {
     $.ajax({
         url: "api/dashboardapi/usage",
         type: "GET",
-        data: { marketArea: m_a },
+        data: { start: start, end: end, marketArea: m_a },
         success: function (res) {
             var mapdata = [];
             for (var i = 0; i < res.length; i++) {
@@ -952,7 +978,7 @@ function initMap(m_a) {
     $.ajax({
         url: "api/dashboardapi/active_users",
         type: "GET",
-        data: { marketArea: m_a },
+        data: { start: start, end: end, marketArea: m_a },
         success: function (res) {
             var mapdata = [];
             for (var i = 0; i < res.length; i++) {
