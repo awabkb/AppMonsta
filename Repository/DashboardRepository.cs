@@ -462,14 +462,14 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
                 }
                 else
                 {
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
                 }
             }
@@ -583,7 +583,7 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetNewProfiles(string start, string end, string marketArea)
         {
             string[] countries;
-            if (marketArea.Equals("SelectAll"))
+            if (marketArea == null)
                 countries = await _context.Countries.Select(x => x.Name).ToArrayAsync();
             else
                 countries = await _context.Countries.Where(x => x.MA.Equals(marketArea)).Select(x => x.Name).ToArrayAsync();
