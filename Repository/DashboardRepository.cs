@@ -68,6 +68,7 @@ namespace IMK_web.Repository
         //get operators for countries
         public async Task<IEnumerable<Country>> GetOperatorsByCountry(string countries)
         {
+            
             string[] arrCountries = countries.Split(",");
             return await _context.Countries.Where(c => arrCountries.Contains(c.Name)).Include(x => x.Operators).ToListAsync();
 
@@ -84,14 +85,16 @@ namespace IMK_web.Repository
             List<SiteVisit> visits = null;
             if (countries == null)
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).ToListAsync();
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site)
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date).ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date).ToListAsync();
                 }
                 else
                 {
@@ -100,7 +103,8 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
                     visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country))
-                        .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                        .Where(c => arrOps.Contains(c.Site.Operator.Name))
+                        .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date).ToListAsync();
                 }
             }
 
@@ -134,14 +138,16 @@ namespace IMK_web.Repository
             List<SiteVisit> visits = null;
             if (countries == "[]" || countries == null)
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).ToListAsync();
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site)
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date).ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date).ToListAsync();
                 }
                 else
                 {
@@ -150,7 +156,8 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
                     visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country))
-                        .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                        .Where(c => arrOps.Contains(c.Site.Operator.Name))
+                        .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date).ToListAsync();
                 }
             }
 
@@ -180,20 +187,21 @@ namespace IMK_web.Repository
             List<Site> sites = null;
             if (countries == "[]" || countries == null)
             {
-                sites = await _context.Sites.Include(x => x.SiteVisits).ToListAsync();
+                sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)).ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    sites = await _context.Sites.Include(x => x.SiteVisits).Where(c => arrCountries.Contains(c.Country)).ToListAsync();
+                    sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date))
+                    .Where(c => arrCountries.Contains(c.Country)).ToListAsync();
                 }
                 else
                 {
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
-                    sites = await _context.Sites.Include(x => x.SiteVisits)
+                    sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date))
                         .Where(c => arrCountries.Contains(c.Country))
                         .Where(c => arrOps.Contains(c.Operator.Name)).ToListAsync();
                 }
@@ -278,7 +286,9 @@ namespace IMK_web.Repository
             List<int> sfunctions = null;
             if (countries == "[]" || countries == null)
             {
-                sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Select(s => s.IMK_Functions.Id).ToListAsync();
+                sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions")
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                .Select(s => s.IMK_Functions.Id).ToListAsync();
             }
             else
             {
@@ -286,7 +296,9 @@ namespace IMK_web.Repository
                 {
 
                     string[] arrCountries = countries.Split(",");
-                    sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Where(c => arrCountries.Contains(c.Site.Country)).Select(s => s.IMK_Functions.Id).ToListAsync();
+                    sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .Select(s => s.IMK_Functions.Id).ToListAsync();
                 }
                 else
                 {
@@ -294,7 +306,9 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
 
                     sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions").Include(x => x.Site.Operator)
-                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name)).Select(s => s.IMK_Functions.Id).ToListAsync();
+                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .Select(s => s.IMK_Functions.Id).ToListAsync();
 
                 }
             }
@@ -336,7 +350,9 @@ namespace IMK_web.Repository
             List<SiteVisit> allVisits = null;
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("Site").Include("User").ToListAsync();
+                allVisits = await _context.SiteVisits.Include("Site").Include("User")
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                .ToListAsync();
 
             }
             else
@@ -344,7 +360,9 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .ToListAsync();
                 }
                 else
                 {
@@ -352,7 +370,9 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
 
                     allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.Site.Operator)
-                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .ToListAsync();
                 }
 
             }
@@ -375,7 +395,9 @@ namespace IMK_web.Repository
             List<SiteVisit> allVisits = null;
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("ImkVersion").ToListAsync();
+                allVisits = await _context.SiteVisits.Include("ImkVersion")
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                .ToListAsync();
 
             }
             else
@@ -384,7 +406,9 @@ namespace IMK_web.Repository
                 {
 
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .ToListAsync();
                 }
                 else
                 {
@@ -395,7 +419,9 @@ namespace IMK_web.Repository
 
                     allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
                     .Where(c => arrCountries.Contains(c.Site.Country))
-                    .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                    .Where(c => arrOps.Contains(c.Site.Operator.Name))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .ToListAsync();
 
                 }
             }
@@ -416,7 +442,9 @@ namespace IMK_web.Repository
             List<SiteVisit> allVisits = null;
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("ImkVersion").ToListAsync();
+                allVisits = await _context.SiteVisits.Include("ImkVersion")
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                .ToListAsync();
 
             }
             else
@@ -424,7 +452,9 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .ToListAsync();
                 }
                 else
                 {
@@ -433,7 +463,9 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
                     allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
                     .Where(c => arrCountries.Contains(c.Site.Country))
-                   .Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                   .Where(c => arrOps.Contains(c.Site.Operator.Name))
+                   .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                   .ToListAsync();
                 }
             }
 
@@ -455,14 +487,18 @@ namespace IMK_web.Repository
 
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).ToListAsync();
+                allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany)
+                .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                .ToListAsync();
             }
             else
             {
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country)).ToListAsync();
+                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                    .ToListAsync();
                 }
                 else
                 {
@@ -470,7 +506,9 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
 
                     allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
-                        .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name)).ToListAsync();
+                        .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                        .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+                        .ToListAsync();
                 }
             }
 
@@ -549,7 +587,10 @@ namespace IMK_web.Repository
             var countries = await this.GetIMKCountriesByMA(marketArea);
             var c = countries.Select(c => c.Country).Distinct().ToList();
 
-            var visits = await _context.SiteVisits.Include("Site").Where(x => c.Contains(x.Site.Country)).ToListAsync();
+            var visits = await _context.SiteVisits.Include("Site").Where(x => c.Contains(x.Site.Country))
+            .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+            .ToListAsync();
+            
             var unique_visits = await _context.SiteVisits.Include("Site").Where(x => c.Contains(x.Site.Country)).Select(x => x.Site.SiteId).Distinct().ToListAsync();
             var all_usage = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
@@ -567,7 +608,10 @@ namespace IMK_web.Repository
             var countries = await this.GetIMKCountriesByMA(marketArea);
             var c = countries.Select(c => c.Country).Distinct().ToList();
 
-            var visits = await _context.SiteVisits.Include("User").Include("Site").Where(x => c.Contains(x.Site.Country)).ToListAsync();
+            var visits = await _context.SiteVisits.Include("User").Include("Site").Where(x => c.Contains(x.Site.Country))
+            .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
+            .ToListAsync();
+            
             var site_users = await _context.SiteVisits.Include("User").Where(x => c.Contains(x.Site.Country)).Select(x => x.User.UserId).Distinct().ToListAsync();
             var active_users = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
@@ -588,7 +632,10 @@ namespace IMK_web.Repository
             else
                 countries = await _context.Countries.Where(x => x.MA.Equals(marketArea)).Select(x => x.Name).ToArrayAsync();
 
-            var allusers = await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country).Where(x => countries.Contains(x.AspCompany.Country.Name)).ToListAsync(); //registered at betwen start -end
+            var allusers = await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country).Where(x => countries.Contains(x.AspCompany.Country.Name))
+            .Where(x => x.RegisteredAt.Date>=Convert.ToDateTime(start).Date && x.RegisteredAt.Date<=Convert.ToDateTime(end).Date)
+            .ToListAsync(); 
+            
             var newusers = allusers.GroupBy(x => new { x.AspCompany.Country.Name }).Select(y => new
             {
                 country = y.Key.Name,
