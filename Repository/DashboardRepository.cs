@@ -427,7 +427,7 @@ namespace IMK_web.Repository
             }
             var versions = allVisits.GroupBy(x => new { x.ImkVersion.AppVersion }).Select(y => new
             {
-                name = y.Key.AppVersion,
+                name = ((double)y.Key.AppVersion).ToString("0.00"),
                 values = y.Select(i => i.VisitId).Count()
             });
 
@@ -471,7 +471,7 @@ namespace IMK_web.Repository
 
             var versions = allVisits.GroupBy(x => new { x.ImkVersion.RPIVersion }).Select(y => new
             {
-                name = y.Key.RPIVersion,
+                name = ((double)y.Key.RPIVersion).ToString("0.00"),
                 values = y.Select(i => i.VisitId).Count()
             });
 
