@@ -98,9 +98,9 @@
                         </div>
 
                         <div class="bottom">
-                            <button type="button" class="btn big"><i class="icon icon-logout"
-                                    asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignOut"></i> Sign
-                                out</button>
+                            <a type="button" class="btn big"
+                                        asp-area="MicrosoftIdentity" asp-controller="Account"
+                                        asp-action="SignOut"><i class="icon icon-logout"></i>Signout</a>
                         </div>
                     </div>
                 </div>
@@ -198,15 +198,15 @@
                             </div>
                         </form>
                         @* <ul>
-                            <li><span class="item active">Example page</span></li>
-                            <li><span class="item">Standalone example page</span></li> *@
+                                <li><span class="item active">Example page</span></li>
+                                <li><span class="item">Standalone example page</span></li> *@
                         @* <div id="reportrange"
-                            style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width:
-                            100%">
-                            <i class="icon icon-calendar"></i>&nbsp;
-                            <span></span> <i class="icon-chevron-down"></i>
-                            </div>
-                            </ul> *@
+                                style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width:
+                                100%">
+                                <i class="icon icon-calendar"></i>&nbsp;
+                                <span></span> <i class="icon-chevron-down"></i>
+                                </div>
+                                </ul> *@
                     </div>
                 </div>
 
@@ -262,7 +262,6 @@
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Unique Physical Sites</div>
-                                    <div class="subtitle">per day</div>
                                 </div>
                             </div>
                             <div class="content">
@@ -275,7 +274,6 @@
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Number of Unique Nodes</div>
-                                    <div class="subtitle">per day</div>
                                 </div>
                             </div>
                             <div class="content">
@@ -308,6 +306,16 @@
                                 <div class="left">
                                     <div class="title">IMK Functions</div>
                                 </div>
+                                @* <div class="right">
+                                        <div class="action">
+                                            <div class="dropdown more" data-type="click">
+                                            <button class="btn clickable"><i class="icon icon-more"></i></button>
+                                            <div class="menu">
+                                                <div class="item" tabindex="0"><button id="view" class="btn" value="0" onclick="changeView(this.value)">Change View</button></div>
+                                            </div>
+                                            </div>
+                                        </div>
+                                    </div> *@
                             </div>
                             <div class="content">
                                 <div id="imk-functions"></div>
@@ -321,7 +329,7 @@
                                     <div class="title">IMK Version</div>
                                 </div>
                             </div>
-                            <div class="content">
+                            <div class="content" style="margin: 0 auto;width: 70%;"> 
                                 <div id="imk-version"></div>
                             </div>
                         </div>
@@ -353,7 +361,7 @@
                                     <div class="title">App Version</div>
                                 </div>
                             </div>
-                            <div class="content">
+                            <div class="content" style="margin: 0 auto;width: 70%;">
                                 <div id="app-version"></div>
                             </div>
                         </div>
@@ -369,16 +377,14 @@
                                 <div class="left">
                                     <div class="title">Site Visit Details</div>
                                 </div>
+                                <div class="table-buttons">
+                                    <button class="btn">Export</button>
+                                </div>
                             </div>
                             <div class="content">
                                 <div class="table-top">
                                     <div class="table-top-left">
                                         <div class="table-info"></div>
-                                    </div>
-                                    <div class="table-top-right">
-                                        <div class="table-buttons">
-                                            <button class="btn">Export</button>
-                                        </div>
                                     </div>
                                 </div>
 

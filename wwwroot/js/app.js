@@ -13,6 +13,15 @@ page.init();
 
 eds.NotificationLog.init();
 
+// // Dropdowns
+// const dropdowns = document.querySelectorAll('.dropdown');
+// if (dropdowns) {
+//     Array.from(dropdowns).forEach(dropdownDOM => {
+//         const dropdown = new eds.Dropdown(dropdownDOM);
+//         dropdown.init();
+//     });
+// }
+
 ////////////// Graphs //////////////////
 
 // const datepickers = document.querySelectorAll('.datepicker');
@@ -35,14 +44,14 @@ function init() {
     marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
     countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : [];
     operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
-    datestart= moment().subtract(29, 'days');
+    datestart = moment().subtract(29, 'days');
     dateend = moment();
-        
+
     getCountries(marketArea);
     // dateFilter();
     // getOperators();
-    getData(datestart.format('YYYY-MM-DD'),dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
-    initMap(datestart.format('YYYY-MM-DD'),dateend.format('YYYY-MM-DD'),marketArea);
+    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
+    initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
 
 }
 
@@ -69,7 +78,7 @@ $(function () {
 });
 
 
-$('#filter').on('submit',function (e) {
+$('#filter').on('submit', function (e) {
     e.preventDefault();
     // dateFilter();
     var c = [];
@@ -95,7 +104,7 @@ $('#filter').on('submit',function (e) {
     sessionStorage['start'] = s;
     sessionStorage['end'] = e;
 
-    filter(s,e,ma,c ,o);
+    filter(s, e, ma, c, o);
 });
 
 
@@ -146,8 +155,8 @@ function getOperators() {
                     operators +=
                         '<li>' +
                         '<span class="item" tabindex="0">' +
-                        '<input class="operator" name=\"operators[]\" type="checkbox" id="o-' + i+''+j + '"value="' + res[i].operators[j]["name"] + '">' +
-                        '<label for="o-' + i +''+j+ '">' + res[i].operators[j]["name"] + '</label>' +
+                        '<input class="operator" name=\"operators[]\" type="checkbox" id="o-' + i + '' + j + '"value="' + res[i].operators[j]["name"] + '">' +
+                        '<label for="o-' + i + '' + j + '">' + res[i].operators[j]["name"] + '</label>' +
                         '</span>' +
                         '</li>'
                 }
@@ -158,22 +167,21 @@ function getOperators() {
 
 }
 
-function filter(s,e,ma,c,o) {
-    getData(s,e,c, o);
-    initMap(s,e,ma);
+function filter(s, e, ma, c, o) {
+    getData(s, e, c, o);
+    initMap(s, e, ma);
 }
 
-// restoreFilters();
-
-// function restoreFilters() {
-//     var selectedCountries = sessionStorage['countries'];
-//     selectedCountries.forEach(element => {
-//         // ($(".country[type='checkbox'][value="+element+"]").prop('checked',true));
-//         alert(element)
-//     });
+// function changeView(view) {
+//     if (view === '0') {
+//         $('#view').attr('value', '1');
+//     }
+//     if (view === '1') {
+//         $('#view').attr('value', '0');
+//     }
 // }
 
-function getData(startdate,enddate, countries, operators) {
+function getData(startdate, enddate, countries, operators) {
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
     $.ajax({
         url: "api/dashboardapi/unique_sites",
@@ -181,7 +189,7 @@ function getData(startdate,enddate, countries, operators) {
         data: Data,
         success: function (res) {
             const element = document.getElementById('unique-sites');
-            element.innerHTML='';
+            element.innerHTML = '';
             var data = mapData(res)
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
@@ -202,7 +210,7 @@ function getData(startdate,enddate, countries, operators) {
         data: Data,
         success: function (res) {
             const element = document.getElementById('unique-nodes');
-            element.innerHTML='';
+            element.innerHTML = '';
             var data = mapData(res)
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
@@ -223,7 +231,7 @@ function getData(startdate,enddate, countries, operators) {
         data: Data,
         success: function (res) {
             const element = document.getElementById('site-revisits');
-            element.innerHTML='';
+            element.innerHTML = '';
             var data = mapData(res)
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
@@ -238,13 +246,14 @@ function getData(startdate,enddate, countries, operators) {
         }
     });
 
+
     $.ajax({
         url: "api/dashboardapi/imkfunctions",
         type: "GET",
         data: Data,
         success: function (res) {
             const element = document.getElementById('imk-functions');
-            element.innerHTML='';
+            element.innerHTML = '';
             var functions = [];
 
             for (var i in res[0]) {
@@ -276,7 +285,7 @@ function getData(startdate,enddate, countries, operators) {
         data: Data,
         success: function (res) {
             const element = document.getElementById('top-asp');
-            element.innerHTML='';
+            element.innerHTML = '';
             var names = [];
             var sites = [];
 
@@ -310,13 +319,16 @@ function getData(startdate,enddate, countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('app-version');
+            element.innerHTML = '';
             var data = [];
             for (var i in res) {
+                console.log(res[i]["name"])
                 res[i]["values"] = [res[i]["values"]]
                 data.push(res[i]);
             }
             const chart = new eds.Donut({
-                element: document.getElementById('app-version'),
+                element: element,
                 data: {
                     "series": data
                 },
@@ -333,13 +345,15 @@ function getData(startdate,enddate, countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            const element = document.getElementById('imk-version');
+            element.innerHTML = '';
             var data = [];
             for (var i in res) {
                 res[i]["values"] = [res[i]["values"]]
                 data.push(res[i]);
             }
             const chart = new eds.Donut({
-                element: document.getElementById('imk-version'),
+                element: element,
                 data: {
                     "series": data
                 },
@@ -356,9 +370,7 @@ function getData(startdate,enddate, countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
-            // tableData = [];
-            // for(var i in res)
-            //     tableData.push(i);
+            // document.querySelector('#table-content').innerHTML='';
             const tableDOM = document.querySelector('#site-details');
             tableDOM.innerHTML = '';
             const table = new eds.Table(tableDOM, {
@@ -402,11 +414,9 @@ function getData(startdate,enddate, countries, operators) {
                 ],
                 sortable: true
             });
-              table.init();
+            table.init();
         }
     });
-
-
 }
 
 function mapData(result) {
@@ -715,7 +725,34 @@ function getCountryName(countryCode) {
         return countryCode;
     }
 }
-function initMap(start, end , m_a) {
+function initMap(start, end, m_a) {
+    var lat;
+    var lon;
+    switch (m_a) {
+        case 'MMEA':
+            lat = -20;
+            lon = -20
+            break;
+        case 'MANA':
+            lat = -50;
+            lon = 100
+            break;
+        case 'MELA':
+            lat = -30;
+            lon = 10
+            break;
+        case 'MNEA':
+            lat = -30;
+            lon = -85
+            break;
+        case 'MOAI':
+            lat = 0;
+            lon = -110
+            break;
+        default:
+            lat = -20;
+            lon = -20
+    }
 
     $.ajax({
         url: "api/dashboardapi/new_users",
@@ -801,7 +838,9 @@ function initMap(start, end , m_a) {
                 // Set projection
                 chart3.projection = new am4maps.projections.Orthographic();
                 chart3.panBehavior = "rotateLongLat";
-                chart3.deltaLatitude = -20;
+                chart3.deltaLatitude = lat;
+                chart3.deltaLongitude = lon;
+
                 chart3.padding(20, 20, 20, 20);
 
                 // limits vertical rotation
@@ -934,7 +973,8 @@ function initMap(start, end , m_a) {
                 // Set projection
                 chart.projection = new am4maps.projections.Orthographic();
                 chart.panBehavior = "rotateLongLat";
-                chart.deltaLatitude = -20;
+                chart.deltaLatitude = lat;
+                chart.deltaLongitude = lon;
                 chart.padding(20, 20, 20, 20);
 
                 // limits vertical rotation
@@ -1058,7 +1098,8 @@ function initMap(start, end , m_a) {
                 // Set projection
                 chart2.projection = new am4maps.projections.Orthographic();
                 chart2.panBehavior = "rotateLongLat";
-                chart2.deltaLatitude = -20;
+                chart2.deltaLatitude = lat;
+                chart2.deltaLongitude = lon;
                 chart2.padding(20, 20, 20, 20);
 
                 // limits vertical rotation
