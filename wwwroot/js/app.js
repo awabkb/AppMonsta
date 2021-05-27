@@ -41,6 +41,7 @@ var dateend = null;
 
 
 function init() {
+    daterange();
     marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
     countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : [];
     operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
@@ -54,7 +55,7 @@ function init() {
     initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
 
 }
-
+function daterange() {
 $(function () {
     var start = moment().subtract(29, 'days');
     var end = moment();
@@ -76,6 +77,7 @@ $(function () {
     }, cb);
     cb(start, end);
 });
+}
 
 
 $('#filter').on('submit', function (e) {
@@ -88,8 +90,6 @@ $('#filter').on('submit', function (e) {
     var ma = $('#market-areas li.active').attr('value');
     var s = $('#start').attr('value');
     var e = $('#end').attr('value');
-
-
 
     checkedCountries.forEach(element => {
         c.push($(element).attr('value'));
@@ -106,6 +106,34 @@ $('#filter').on('submit', function (e) {
 
     filter(s, e, ma, c, o);
 });
+
+
+$('#filter').on('reset', function (e) {
+    e.preventDefault();
+    var c = [];
+    var o = [];
+    var ma = '';
+    var s =  (moment().subtract(29, 'days')).format('YYYY-MM-DD');
+    var e = (moment()).format('YYYY-MM-DD');
+
+    $('.country[type="checkbox"]').each(function() { 
+        this.checked = false; 
+    });
+    $('.operator[type="checkbox"]').each(function() { 
+        this.checked = false; 
+    });
+    $('#market-areas').find("li.active").removeClass("active");
+    $('#market-areas li[value=""]').addClass("active");
+
+    sessionStorage['countries'] = c;
+    sessionStorage['operators'] = o;
+    sessionStorage['start'] = s;
+    sessionStorage['end'] = e;
+    sessionStorage['marketArea'] = ma;
+    daterange();
+    filter(s, e, ma, c, o);
+});
+
 
 
 
@@ -172,14 +200,6 @@ function filter(s, e, ma, c, o) {
     initMap(s, e, ma);
 }
 
-// function changeView(view) {
-//     if (view === '0') {
-//         $('#view').attr('value', '1');
-//     }
-//     if (view === '1') {
-//         $('#view').attr('value', '0');
-//     }
-// }
 
 function getData(startdate, enddate, countries, operators) {
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
@@ -815,7 +835,7 @@ function initMap(start, end, m_a) {
             lon = 100
             break;
         case 'MELA':
-            lat = -30;
+            lat = -20;
             lon = 10
             break;
         case 'MNEA':
