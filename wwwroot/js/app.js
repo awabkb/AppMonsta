@@ -395,6 +395,11 @@ function getData(startdate, enddate, countries, operators) {
                 data: res,
                 columns: [
                     {
+                        key: 'date',
+                        title: 'Date',
+                        sort: 'none'
+                    },
+                    {
                         key: 'siteName',
                         title: 'Site Name',
                         sort: 'none'
@@ -422,11 +427,6 @@ function getData(startdate, enddate, countries, operators) {
                     {
                         key: 'asp',
                         title: 'ASP',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'date',
-                        title: 'Date',
                         sort: 'none'
                     },
                 ],
@@ -464,9 +464,9 @@ function getData(startdate, enddate, countries, operators) {
                 });
                 notification.init();
                 var rows = [];
-                rows.push(['Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP', 'Date']);
+                rows.push(['Date','Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP']);
                 table.data.forEach(row => {
-                    rows.push([row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"],row["asp"],row["date"]]);
+                    rows.push([row["date"],row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"],row["asp"]]);
                     console.log(row);
                 });
                 exportToCsv("IMK_Dashboard.csv", rows)
