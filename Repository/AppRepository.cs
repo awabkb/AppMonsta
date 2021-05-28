@@ -39,6 +39,10 @@ namespace IMK_web.Repository
         {
             return await _context.Users.FirstOrDefaultAsync(x =>x.UserId.Equals(userId));
         }
+        public async Task<Country> GetCountryByName(string country)
+        {
+            return await _context.Countries.FirstOrDefaultAsync(x =>x.Name.Equals(country));
+        }
         public async Task<User> GetUserByEmail(string email)
         {
             return await _context.Users.FirstOrDefaultAsync(x =>x.Email.Equals(email));
@@ -54,14 +58,14 @@ namespace IMK_web.Repository
             return await _context.SaveChangesAsync()>0;
         }
 
-        public async Task<AspCompany> GetAspCompany(int aspId)
+        public async Task<AspCompany> GetAspCompanyByCountry(string aspName, string country)
         {
-            return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.AspId==aspId);
+            return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.Name.Equals(aspName) && x.Country.Equals(country));
         }
 
         public async Task<AspCompany> GetAspCompany(string aspName)
         {
-            return await _context.AspCompanies.Include(x=>x.Country).FirstOrDefaultAsync(x =>x.Name==aspName);
+            return await _context.AspCompanies.Include(x=>x.Country).FirstOrDefaultAsync(x =>x.Name.Equals(aspName));
         }
 
         public async Task<Country> GetOperatorByCountry(string country)
@@ -81,7 +85,7 @@ namespace IMK_web.Repository
 
         public async Task<IEnumerable<AspManager>> GetAspManagers(string country)
         {
-            return await _context.AspManagers.Where(x =>x.Country ==country).ToListAsync();
+            return await _context.AspManagers.Where(x =>x.Country.Equals(country)).ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetAllUsers()

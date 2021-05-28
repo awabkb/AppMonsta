@@ -47,7 +47,22 @@ namespace IMK_web.Controllers
                 user.Phone = userDto.Phone;
                 user.RegisteredAt = DateTime.Now;
                 user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
-                user.AspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
+
+                if(!userDto.AspCompany.Equals("N/A"))
+                    user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                else {
+                    var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                    if(asp == null) {
+                        AspCompany naAsp = new AspCompany();
+                        Country country = await _appRepository.GetCountryByName(userDto.Country);
+                        naAsp.Country = country;
+                        naAsp.Name = userDto.AspCompany;
+                        user.AspCompany = naAsp;
+                    }
+                    else 
+                        user.AspCompany = asp;
+                }
+
                 _appRepository.Add(user);
 
                 await _appRepository.SaveChanges();
