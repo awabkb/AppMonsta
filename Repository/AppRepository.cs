@@ -61,7 +61,7 @@ namespace IMK_web.Repository
 
         public async Task<AspCompany> GetAspCompany(string aspName)
         {
-            return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.Name==aspName);
+            return await _context.AspCompanies.Include(x=>x.Country).FirstOrDefaultAsync(x =>x.Name==aspName);
         }
 
         public async Task<Country> GetOperatorByCountry(string country)
@@ -79,9 +79,9 @@ namespace IMK_web.Repository
             return await _context.ImkVersions.OrderBy(x => x.DateOfRelease).LastAsync();
         }
 
-        public async Task<AspManager> GetAspManager(int aspId)
+        public async Task<IEnumerable<AspManager>> GetAspManagers(string country)
         {
-            return await _context.AspManagers.Include(x =>x.AspCompany).FirstOrDefaultAsync(x=>x.AspCompany.AspId==aspId);
+            return await _context.AspManagers.Where(x =>x.Country ==country).ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetAllUsers()
