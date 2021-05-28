@@ -12,11 +12,10 @@ namespace IMK_web.Repository
         void Update<T>(T entity) where T: class;
         Task<Site> GetSite(string sitename);
         Task<User> GetUser(string userId);
-
+        Task<Country> GetCountryByName(string country);
         Task<ImkVersion> GetImkVersion(double rpi,double app);
         Task<bool> SaveChanges();
-
-        Task<AspCompany> GetAspCompany(int aspId);
+        Task<AspCompany> GetAspCompanyByCountry(string aspName, string country);
         Task<AspCompany> GetAspCompany(string aspName);
         Task<Country> GetOperatorByCountry(string country);
         Task<IEnumerable<Country>> GetCountries();
