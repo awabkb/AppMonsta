@@ -51,7 +51,7 @@ namespace IMK_web.Controllers
                 _appRepository.Add(user);
 
                 await _appRepository.SaveChanges();
-                await this.sendAccessRequest(userDto);
+                // await this.sendAccessRequest(userDto);
                 UserToReturn userToReturnDto = new UserToReturn();
                 userToReturnDto.AspCompany = user.AspCompany.Name;
                 userToReturnDto.Email = user.Email;
@@ -88,13 +88,19 @@ namespace IMK_web.Controllers
 
             Operator op = new Operator();
             var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.Country);
-            if (ops.Operators.Count() > 1)
+            if (ops.Operators.Count()==0)
+                op = null;
+            else
             {
-                var opname = this.GetOperatorBySite(siteVisitDto.SiteName,siteVisitDto.Country);
-                op = ops.Operators.FirstOrDefault(x=>x.Name.Equals(opname));
+                if (ops.Operators.Count() > 1)
+                {
+                    var opname = this.GetOperatorBySite(siteVisitDto.SiteName, siteVisitDto.Country);
+                    op = ops.Operators.FirstOrDefault(x => x.Name.Equals(opname));
+                }
+                else
+                    op = ops.Operators.FirstOrDefault();
             }
-            else 
-                op = ops.Operators.FirstOrDefault();
+
 
             if (site == null)
             {
@@ -135,7 +141,7 @@ namespace IMK_web.Controllers
             {
 
                 var key = log.Command;
-                
+
                 if (imkFunctionsDic.ContainsKey(key))
                 {
                     imkFunctionsDic[key]++;
@@ -178,7 +184,7 @@ namespace IMK_web.Controllers
             iMK_Functions.RSSINR = imkFunctionsDic.GetValueOrDefault("rssi-nr");
             iMK_Functions.ExternalAlarm = imkFunctionsDic.GetValueOrDefault("external_alarm");
             iMK_Functions.Alarm = imkFunctionsDic.GetValueOrDefault("alarm");
-          
+
             siteVisit.IMK_Functions = iMK_Functions;
 
             _appRepository.Add(siteVisit);
@@ -253,7 +259,6 @@ namespace IMK_web.Controllers
         [HttpGet("version")]
         public async Task<IActionResult> getLatestVersion()
         {
-
             var version = await _appRepository.GetLatestImkVersion();
             return Ok(version);
         }
@@ -266,7 +271,8 @@ namespace IMK_web.Controllers
         public async Task<IActionResult> sendAccessRequest(UserDto userDto)
         {
             var aspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
-            var aspManager = await _appRepository.GetAspManager(aspCompany.AspId);
+            var aspManagers = await _appRepository.GetAspManagers(aspCompany.Country.Name);
+
             var url = "https://localhost:5001/api/mobileapi/activate";
             SmtpClient client = new SmtpClient();
             client.Host = "smtp.office365.com";
@@ -277,9 +283,13 @@ namespace IMK_web.Controllers
             ntcd.Password = "L@ucs1357ms";
             client.Credentials = ntcd;
 
-            MailAddress from = new MailAddress("sara.shoujaa@lau.edu", "IMK Tool");
-            MailAddress to = new MailAddress(aspManager.Email);
-            MailMessage msg = new MailMessage(from, to);
+            MailMessage msg = new MailMessage();
+
+            msg.From = new MailAddress("sara.shoujaa@lau.edu", "IMK Tool");
+            foreach (var manager in aspManagers)
+            {
+                msg.To.Add(manager.Email);
+            }
 
             msg.IsBodyHtml = true;
             string htmlString = @"<html>
@@ -333,7 +343,7 @@ namespace IMK_web.Controllers
                     op = "Mobily";
             }
 
-            if(country.Equals("Bahrain"))
+            if (country.Equals("Bahrain"))
             {
                 if (sitename.StartsWith("0") || sitename.StartsWith("1") || sitename.StartsWith("2") || sitename.StartsWith("3") || sitename.StartsWith("4") || sitename.StartsWith("5") || sitename.StartsWith("6") || sitename.StartsWith("7") || sitename.StartsWith("8") || sitename.StartsWith("9"))
                     op = "Zain";
@@ -341,14 +351,14 @@ namespace IMK_web.Controllers
                     op = "Batelco";
             }
 
-            if(country.Equals("Morocco"))
+            if (country.Equals("Morocco"))
             {
                 if (sitename.Contains("BB"))
                     op = "INWI";
                 else
                     op = "MarocTel";
             }
-            return op;              
+            return op;
         }
 
 

@@ -30,12 +30,10 @@ namespace IMK_web.Controllers
         }
 
         [HttpPost("addManager")]
-        public async Task<ActionResult> addAspManager(string asp, string email)
+        public async Task<ActionResult> addAspManager(string country, string email)
         {
-            var aspCompany = await _appRepository.GetAspCompany(asp);
-
             AspManager manager = new AspManager();
-            manager.AspCompany = aspCompany;
+            manager.Country = country;
             manager.Email = email;
             _appRepository.Add(manager);
             await _appRepository.SaveChanges();
