@@ -121,12 +121,19 @@ namespace IMK_web.Controllers
             {
                 site = new Site();
                 site.Country = siteVisitDto.Country;
-                site.Latitude = siteVisitDto.Latitude.ToString();
-                site.longitude = siteVisitDto.Longitude.ToString();
+                site.Latitude = siteVisitDto.Latitude;
+                site.Longitude = siteVisitDto.Longitude;
                 site.Name = siteVisitDto.SiteName;
                 site.Operator = op;
 
                 _appRepository.Add(site);
+            }
+
+            if(site.Latitude == 0 && site.Longitude == 0){
+                site.Latitude = siteVisitDto.Latitude;
+                site.Longitude = siteVisitDto.Longitude;
+                
+                _appRepository.Update(site);
             }
 
             siteVisit.Site = site;
