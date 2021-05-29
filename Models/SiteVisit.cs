@@ -18,10 +18,12 @@ namespace IMK_web.Models
         public Site Site{get;set;}
         public IMK_Functions IMK_Functions { get; set; }
         // public DateTime VistedAt { get; set; }
-        public ImkVersion ImkVersion { get; set; }
         public ICollection<Log> Logs { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime FinishTime { get; set; }
+        public int MyProperty { get; set; }
+        public double AppVersion { get; set; }
+        public double RPIVersion { get; set; }
        
     }
     

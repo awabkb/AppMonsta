@@ -60,7 +60,7 @@ namespace IMK_web.Repository
 
         public async Task<AspCompany> GetAspCompanyByCountry(string aspName, string country)
         {
-            return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.Name.Equals(aspName) && x.Country.Equals(country));
+            return await _context.AspCompanies.FirstOrDefaultAsync(x =>x.Name.Equals(aspName) && x.Country.Name.Equals(country));
         }
 
         public async Task<AspCompany> GetAspCompany(string aspName)
