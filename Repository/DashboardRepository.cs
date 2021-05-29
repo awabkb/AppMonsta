@@ -120,8 +120,8 @@ namespace IMK_web.Repository
                     country = y.Key.Country,
                     sites = y.Select(i => new
                     {
-                        lat = (String.Format("{0:n4}", Convert.ToDouble(i.Site.Latitude))),
-                        lon = (String.Format("{0:n4}", Convert.ToDouble(i.Site.longitude)))
+                        lat = (String.Format("{0:n4}", i.Site.Latitude)),
+                        lon = (String.Format("{0:n4}", i.Site.Longitude))
                     }).Distinct().Count()
                 }).ToDictionary(g => g.country, g => g.sites);
 
