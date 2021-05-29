@@ -425,7 +425,7 @@ namespace IMK_web.Repository
 
                 }
             }
-            var versions = allVisits.GroupBy(x => new { x.ImkVersion.AppVersion }).Select(y => new
+            var versions = allVisits.GroupBy(x => new { x.AppVersion }).Select(y => new
             {
                 name = ((double)y.Key.AppVersion).ToString("0.00"),
                 values = y.Select(i => i.VisitId).Count()
@@ -469,7 +469,7 @@ namespace IMK_web.Repository
                 }
             }
 
-            var versions = allVisits.GroupBy(x => new { x.ImkVersion.RPIVersion }).Select(y => new
+            var versions = allVisits.GroupBy(x => new { x.RPIVersion }).Select(y => new
             {
                 name = ((double)y.Key.RPIVersion).ToString("0.00"),
                 values = y.Select(i => i.VisitId).Count()
@@ -517,8 +517,8 @@ namespace IMK_web.Repository
                 siteName = y.Key.Name,
                 country = y.Select(i => i.Site.Country),
                 user = y.Select(i => i.User.Name),
-                androidVersion = y.Select(i => i.ImkVersion.AppVersion),
-                rpVersion = y.Select(i => i.ImkVersion.RPIVersion),
+                androidVersion = y.Select(i => i.AppVersion),
+                rpVersion = y.Select(i => i.RPIVersion),
                 asp = y.Select(i => i.User.AspCompany.Name),
                 date = y.Select(i => i.StartTime)
                 //contact = x.Site.AspCompany.ApsMentor.Email
