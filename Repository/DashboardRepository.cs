@@ -395,7 +395,7 @@ namespace IMK_web.Repository
             List<SiteVisit> allVisits = null;
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("ImkVersion")
+                allVisits = await _context.SiteVisits
                 .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                 .ToListAsync();
 
@@ -406,7 +406,7 @@ namespace IMK_web.Repository
                 {
 
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include("Site").Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                     .ToListAsync();
                 }
@@ -417,7 +417,7 @@ namespace IMK_web.Repository
                     string[] arrOps = operators.Split(",");
 
 
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include("Site").Include(x => x.Site.Operator)
                     .Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(c => arrOps.Contains(c.Site.Operator.Name))
                     .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
@@ -442,7 +442,7 @@ namespace IMK_web.Repository
             List<SiteVisit> allVisits = null;
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("ImkVersion")
+                allVisits = await _context.SiteVisits
                 .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                 .ToListAsync();
 
@@ -452,7 +452,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include("Site").Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                     .ToListAsync();
                 }
@@ -461,7 +461,7 @@ namespace IMK_web.Repository
 
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include("Site").Include(x => x.Site.Operator)
                     .Where(c => arrCountries.Contains(c.Site.Country))
                    .Where(c => arrOps.Contains(c.Site.Operator.Name))
                    .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
@@ -487,7 +487,7 @@ namespace IMK_web.Repository
 
             if (countries == "[]" || countries == null)
             {
-                allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany)
+                allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                 .ToListAsync();
             }
@@ -496,7 +496,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                     .ToListAsync();
                 }
@@ -505,7 +505,7 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include("ImkVersion").Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date>=Convert.ToDateTime(start).Date && x.StartTime.Date<=Convert.ToDateTime(end).Date)
                         .ToListAsync();
