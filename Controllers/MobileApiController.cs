@@ -145,10 +145,9 @@ namespace IMK_web.Controllers
                 });
             }
             siteVisit.Logs = logs;
-
-
-
-            siteVisit.ImkVersion = await _appRepository.GetImkVersion(siteVisitDto.RpiVersion, siteVisitDto.AppVersion);
+            siteVisit.AppVersion = siteVisitDto.AppVersion;
+            siteVisit.RPIVersion = siteVisitDto.RpiVersion;
+            //siteVisit.ImkVersion = await _appRepository.GetImkVersion(siteVisitDto.RpiVersion, siteVisitDto.AppVersion);
 
             Dictionary<string, int> imkFunctionsDic = new Dictionary<string, int>();
 
