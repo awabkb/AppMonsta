@@ -536,8 +536,8 @@ namespace IMK_web.Repository
                     v1.SiteName = vd.siteName;
                     v1.Country = vd.country.First();
                     v1.User = vd.user.First();
-                    v1.AppVersion = vd.androidVersion.First();
-                    v1.RpiVersion = vd.rpVersion.First();
+                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
                     uniqueVisits.Add(v1);
@@ -550,8 +550,8 @@ namespace IMK_web.Repository
                             v.SiteName = vd.siteName;
                             v.Country = vd.country.First();
                             v.User = vd.user.First();
-                            v.AppVersion = vd.androidVersion.First();
-                            v.RpiVersion = vd.rpVersion.First();
+                            v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
+                            v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                             v.ASP = vd.asp.First();
                             v.Date = d[i].Date.ToString("yyyy-MM-dd");
                             uniqueVisits.Add(v);
@@ -565,8 +565,8 @@ namespace IMK_web.Repository
                     v1.SiteName = vd.siteName;
                     v1.Country = vd.country.First();
                     v1.User = vd.user.First();
-                    v1.AppVersion = vd.androidVersion.First();
-                    v1.RpiVersion = vd.rpVersion.First();
+                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
                     v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
                     uniqueVisits.Add(v1);
