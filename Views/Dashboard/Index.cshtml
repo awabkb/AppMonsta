@@ -66,6 +66,7 @@
             </div>
             <div class="item hover settings-trigger">
                 <i class="icon icon-profile"></i>
+                <span>@ViewBag.Username</span>
             </div>
         </div>
     </header>
@@ -91,8 +92,10 @@
                         <div class="content">
                             <div class="title">My settings</div>
                             <div class="item">
-                                <div class="left">Admin Page</div>
-                                <div class="right"></div>
+                                @if(ViewBag.Role.Equals("Admin")){
+                                <div class="left"><a type="button" class="btn" asp-controller="Dashboard" asp-action="Portal">Admin Page</a></div>
+                                }
+                                @* <div class="right">@ViewBag.Role</div> *@
                             </div>
                         </div>
 

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=11">
+  <title>IMK - Admin Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" media="screen" href="~/style/eds.min.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="~/style/app.css" />
+</head>
+
+<body class="light">
+
+  <!-- System bar -->
+  <header class="sysbar">
+    <div class="items-container">
+      <div class="item">
+        <i class="icon icon-econ"></i>
+        <span class="product">Installation Maintenance Kit</span>
+        <span class="acronym">IMK</span>
+      </div>
+    </div>
+    <div class="items-container">
+      <div class="item notification-log-trigger">
+        <span class="notification-log-number"></span>
+        <i class="icon icon-notification"></i>
+        <i class="icon icon-notification-ring"></i>
+      </div>
+      <div class="item hover settings-trigger">
+        <i class="icon icon-profile"></i>
+        <span>Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- System panel -->
+    <aside class="syspanel hidden">
+
+      <!-- System panel: Settings -->
+      <div class="settings">
+        <div class="syspanel-top">
+          <span class="syspanel-title"></span>
+          <i class="syspanel-close icon icon-cross"></i>
+        </div>
+        <div class="row">
+          <div class="column sm-12 container">
+
+            <div class="profile">
+              <i class="icon icon-profile"></i>
+              <div class="username">@ViewBag.Username</div>
+            </div>
+
+            <div class="content">
+              <div class="title">My settings</div>
+              <div class="item">
+                <div class="left">
+                  <div class="left"><a type="button" class="btn" asp-controller="Dashboard"
+                      asp-action="Index">Dashboard
+                    </a></div>
+                </div>
+                <div class="right"></div>
+              </div>
+            </div>
+
+            <div class="bottom">
+              <a type="button" class="btn big" asp-area="MicrosoftIdentity" asp-controller="Account"
+                asp-action="SignOut"><i class="icon icon-logout"></i>Signout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System panel: Notification log -->
+      <div class="notification-log">
+        <div class="syspanel-top">
+          <span class="syspanel-title">Notifications</span>
+          <i class="syspanel-close icon icon-cross"></i>
+        </div>
+        <div class="notification-log-container">
+          <div class="notification-log-empty">No new notifications.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Application -->
+    <div class="app" id="app">
+
+      <!-- Application: Bar -->
+      <nav class="appbar">
+        <div class="actions-left">
+          <div class="item">
+            <i class="navigation-toggle closed"></i>
+          </div>
+          <div class="menu-anchor open-menu">Menu</div>
+          <div class="title open-menu">
+            <span class="title-name">Admin Page</span>
+            @* <span class="subtitle">Page subtitle</span> *@
+          </div>
+        </div>
+        <div class="actions-right"></div>
+      </nav>
+
+      <div class="appbody">
+
+        <!-- Application: Navigation -->
+        <div class="appnav">
+          <div class="tree navigation">
+            <ul id="menu">
+              <li>
+                <span class="title closed item">Users</span>
+                <ul>
+                  <li class="item menu-item" value="active-users">Active</li>
+                  <li class="item menu-item" value="inactive-users">InActive</li>
+                </ul>
+              </li>
+              <li class="item menu-item" value="approvers">Approvers</li>
+              <li class="item menu-item" value="logs">Logs</li>
+            </ul>
+          </div>
+        </div>
+
+
+        <!-- Application: Content -->
+        <div class="appcontent">
+
+          <!-- Tile 1 -->
+          <div class="tile sm-12">
+
+
+            <!------ Active Users ------>
+            <div class="element" id="active-users" style="display:none">
+              <div class="header">
+                <div class="left">
+                  <div class="title">Users</div>
+                  <div class="subtitle">Active</div>
+                </div>
+              </div>
+              <div class="content text-sm">
+                <div class="table-top">
+                  <div class="table-top-left">
+                    <div class="table-info"></div>
+                  </div>
+                </div>
+
+                <table id="a-users" class="table"></table>
+                <div class="table-bottom">
+                  <div class="pagination-group">
+                    <ul class="pagination"></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!------ Inactive Users ------>
+            <div class="element" id="inactive-users" style="display:none">
+              <div class="header">
+                <div class="left">
+                  <div class="title">Users</div>
+                  <div class="subtitle">Not Active</div>
+                </div>
+              </div>
+              <div class="content text-sm">
+                <div class="table-top">
+                  <div class="table-top-left">
+                    <div class="table-info"></div>
+                  </div>
+                </div>
+                <table id="i-users" class="table"></table>
+                <div class="table-bottom">
+                  <div class="pagination-group">
+                    <ul class="pagination"></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!------ Approvers ------>
+            <div class="element" id="approvers" style="display:none">
+              <div class="header">
+                <div class="left">
+                  <div class="title">ASP Approvers</div>
+                  <div class="subtitle">Managers/Mentors</div>
+                </div>
+              </div>
+              <div class="content text-sm">
+                <div class="table-top">
+                  <div class="table-top-left">
+                    <div class="table-info"></div>
+                  </div>
+                </div>
+                <table id="t-approvers" class="table"></table>
+                <div class="table-bottom">
+                  <div class="pagination-group">
+                    <ul class="pagination"></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!------ Logs ------>
+            <div class="element" id="logs" style="display:block">
+              <div class="header">
+                <div class="left">
+                  <div class="title">Logs</div>
+                  <div class="subtitle">Per Site Visit</div>
+                </div>
+              </div>
+              <div class="content text-sm">
+                <div class="table-top">
+                  <div class="table-top-left">
+                    <div class="table-info"></div>
+                  </div>
+                </div>
+                <table id="t-logs" class="table"></table>
+                <div class="table-bottom">
+                  <div class="pagination-group">
+                    <ul class="pagination"></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </main>
+
+  <script src="~/js/eds.min.js" charset="utf-8"></script>
+  <script src="~/js/admin.js" charset="utf-8"></script>
+  <script>getData()</script>
+</body>
+
+</html>

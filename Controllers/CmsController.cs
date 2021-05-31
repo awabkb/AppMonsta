@@ -15,7 +15,7 @@ namespace IMK_web.Controllers
 {
     [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
 
-    [Route("api/[controller]")]
+    [Route("dashboard/api/[controller]")]
     [ApiController]
     public class CmsController : Controller
     {
@@ -29,30 +29,81 @@ namespace IMK_web.Controllers
             _appRepository = appRepository;
         }
 
-        [HttpPost("addManager")]
-        public async Task<ActionResult> addAspManager(string country, string email)
+        [HttpPost("manager")]
+        public async Task<ActionResult> addAspManager(string country, string email, string name, string role)
         {
             AspManager manager = new AspManager();
             manager.Country = country;
             manager.Email = email;
+            manager.Name = name;
+            manager.Role = role;
             _appRepository.Add(manager);
             await _appRepository.SaveChanges();
 
             return Ok(manager);
         }
 
+        [HttpGet("approvers")]
+        public async Task<ActionResult> GetApprovers()
+        {
+            var approvers = await _appRepository.GetApprovers();
+            return Ok(approvers);
 
-        [HttpGet("allUsers")]
-        public async Task<ActionResult> getAllUsers()
+        }
+
+        [HttpGet("users")]
+        public async Task<ActionResult> getAllUsers([FromQuery]bool active)
         {
             var users = await _appRepository.GetAllUsers();
-            return Ok(users);
+            if (active == true)
+            {
+                var active_users = users.Where(x => x.IsActive == true);
+                return Ok(active_users);
+            }
+            else
+            {
+                var inactive_users = users.Where(x => x.IsActive == false);
+                return Ok(inactive_users);
+            }
+        }
+
+        [HttpPut("activate")]
+        public async Task<ActionResult> ActivateUser([FromQuery] string userId)
+        {
+            var user = await _appRepository.GetUser(userId);
+            user.IsActive = true;
+            _appRepository.Update(user);
+            await _appRepository.SaveChanges();
+            return Ok(user);
+        }
+
+        [HttpPut("deactivate")]
+        public async Task<ActionResult> DeactivateUser([FromQuery] string userId)
+        {
+            var user = await _appRepository.GetUser(userId);
+            user.IsActive = false;
+            _appRepository.Update(user);
+            await _appRepository.SaveChanges();
+            return Ok(user);
         }
 
         [HttpGet("logs")]
         public async Task<ActionResult> getLogs()
         {
-            var logs = await _appRepository.GetLogs();
+            var allLogs = await _appRepository.GetLogs();
+            var logs = allLogs.Select(x => new {
+                id = x.SiteVisit.VisitId,
+                date = x.SiteVisit.StartTime.Date,
+                country = x.SiteVisit.Site.Country,
+                site = x.SiteVisit.Site.Name,
+                longitude = x.Longitude,
+                latitude = x.Latitude,
+                rpi = x.SiteVisit.RPIVersion.ToString("0.00"),
+                app = x.SiteVisit.AppVersion.ToString("0.00"),
+                user = x.SiteVisit.User.Name,
+                command = x.Command,
+                result = x.Result
+            }).ToList();
             return Ok(logs);
         }
 

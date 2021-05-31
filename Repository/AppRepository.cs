@@ -90,14 +90,20 @@ namespace IMK_web.Repository
 
         public async Task<IEnumerable<User>> GetAllUsers()
         {
-            return await _context.Users.Include(x =>x.AspCompany).ToListAsync();
+            return await _context.Users.Include(x =>x.AspCompany).OrderByDescending(x => x.RegisteredAt).ToListAsync();
         }
 
         public async Task<IEnumerable<Log>> GetLogs()
         {
-            return await _context.Logs.Include(x =>x.SiteVisit).Include(x=>x.SiteVisit.Site).Include(x=>x.SiteVisit.IMK_Functions).ToListAsync();
-            
+            return await _context.Logs.Include(x =>x.SiteVisit).Include(x=>x.SiteVisit.Site)
+            .Include(x=>x.SiteVisit.User).Include(x=>x.SiteVisit.Site.Operator)
+            .Include(x=>x.SiteVisit.IMK_Functions).OrderBy(x =>x.SiteVisit.StartTime).ToListAsync();
         }
+        public async Task<IEnumerable<AspManager>> GetApprovers()
+        {
+            return await _context.AspManagers.ToListAsync();
+        }
+
 
     }
 }
