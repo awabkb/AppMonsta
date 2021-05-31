@@ -21,6 +21,9 @@ namespace IMK_web.Repository
         Task<ActionResult> GetSiteUsage(string start, string end, string marketArea);
         Task<ActionResult> GetActiveUsers(string start, string end, string marketArea);
         Task<ActionResult> GetNewProfiles(string start, string end, string marketArea);
+        string GetRole(string email);
+
+
 
 
 

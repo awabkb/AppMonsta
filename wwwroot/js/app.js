@@ -438,7 +438,7 @@ function getData(startdate, enddate, countries, operators) {
 
                     td.querySelector('button.email').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var siteEngineer = $(tr).find('td').eq(2).text();
+                        var siteEngineer = $(tr).find('td').eq(3).text();
 
                         $.ajax({
                             url: "api/dashboardapi/unique_sites",

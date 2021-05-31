@@ -24,6 +24,8 @@ namespace IMK_web.Repository
         Task<User> GetUserByEmail(string email);
         Task<IEnumerable<User>> GetAllUsers();
         Task<IEnumerable<Log>> GetLogs();
+        Task<IEnumerable<AspManager>> GetApprovers();
+
 
 
 

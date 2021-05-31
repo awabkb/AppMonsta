@@ -26,10 +26,16 @@ namespace IMK_web.Controllers
         public IActionResult Index(){
 
             ViewBag.Username = User.Claims.Where(c =>c.Type.Equals("name")).Select(c => c.Value).SingleOrDefault();
-
+            var email = User.Claims.Where(c =>c.Type.Equals("preferred_username")).Select(c => c.Value).SingleOrDefault();
+            ViewBag.Role = _repo.GetRole(email);
             return View();
         }
         
+        public IActionResult Portal(){
+
+            ViewBag.Username = User.Claims.Where(c =>c.Type.Equals("name")).Select(c => c.Value).SingleOrDefault();
+            return View("Portal");
+        }
 
     }
 }
