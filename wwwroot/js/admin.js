@@ -30,6 +30,16 @@ function getData() {
                         sort: 'asc'
                     },
                     {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'asp',
+                        title: 'ASP',
+                        sort: 'asc'
+                    },
+                    {
                         key: 'email',
                         title: 'Email',
                         sort: 'asc'
@@ -42,10 +52,6 @@ function getData() {
                         key: 'registeredAt',
                         title: 'Registered On',
                         sort: 'asc'
-                    },
-                    {
-                        key: 'userId',
-                        title: 'UserId',
                     },
                 ],
                 actions: true,
@@ -95,6 +101,16 @@ function getData() {
                         sort: 'asc'
                     },
                     {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'asp',
+                        title: 'ASP',
+                        sort: 'asc'
+                    },
+                    {
                         key: 'email',
                         title: 'Email',
                         sort: 'asc'
@@ -107,10 +123,6 @@ function getData() {
                         key: 'registeredAt',
                         title: 'Registered On',
                         sort: 'asc'
-                    },
-                    {
-                        key: 'userId',
-                        title: 'UserId',
                     },
                 ],
                 actions: true,

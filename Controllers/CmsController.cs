@@ -52,17 +52,33 @@ namespace IMK_web.Controllers
         }
 
         [HttpGet("users")]
-        public async Task<ActionResult> getAllUsers([FromQuery]bool active)
+        public async Task<ActionResult> getAllUsers([FromQuery] bool active)
         {
             var users = await _appRepository.GetAllUsers();
             if (active == true)
             {
-                var active_users = users.Where(x => x.IsActive == true);
+                var active_users = users.Where(x => x.IsActive == true).Select(x => new
+                {
+                    name = x.Name,
+                    country = x.AspCompany.Country.Name,
+                    asp = x.AspCompany.Name,
+                    email = x.Email,
+                    phone = x.Phone,
+                    registeredAt = x.RegisteredAt
+                });
                 return Ok(active_users);
             }
             else
             {
-                var inactive_users = users.Where(x => x.IsActive == false);
+                var inactive_users = users.Where(x => x.IsActive == false).Select(x => new
+                {
+                    name = x.Name,
+                    country = x.AspCompany.Country.Name,
+                    asp = x.AspCompany.Name,
+                    email = x.Email,
+                    phone = x.Phone,
+                    registeredAt = x.RegisteredAt
+                });
                 return Ok(inactive_users);
             }
         }
@@ -91,9 +107,10 @@ namespace IMK_web.Controllers
         public async Task<ActionResult> getLogs()
         {
             var allLogs = await _appRepository.GetLogs();
-            var logs = allLogs.Select(x => new {
+            var logs = allLogs.Select(x => new
+            {
                 id = x.SiteVisit.VisitId,
-                date = x.SiteVisit.StartTime.Date,
+                date = x.SiteVisit.StartTime,
                 country = x.SiteVisit.Site.Country,
                 site = x.SiteVisit.Site.Name,
                 longitude = x.Longitude,
