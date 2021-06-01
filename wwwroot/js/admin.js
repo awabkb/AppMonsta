@@ -83,8 +83,21 @@ function getData() {
                     });
                 }
             });
-
             table.init();
+            document.querySelector('#export-ausers').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                  title: 'Export data',
+                  description: 'Table data is exported to IMK_ActiveUsers.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Name','Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+                table.data.forEach(row => {
+                    rows.push([row["name"],row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                });
+                exportToCsv("IMK_ActiveUsers.csv", rows)
+
+            });
         }
     });
 
@@ -161,6 +174,20 @@ function getData() {
             });
 
             table.init();
+            document.querySelector('#export-iusers').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                  title: 'Export data',
+                  description: 'Table data is exported to IMK_InactiveUsers.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Name','Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+                table.data.forEach(row => {
+                    rows.push([row["name"],row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                });
+                exportToCsv("IMK_InactiveUsers.csv", rows)
+
+            });
         }
     });
 
@@ -227,6 +254,20 @@ function getData() {
             });
 
             table.init();
+            document.querySelector('#export-approvers').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                  title: 'Export data',
+                  description: 'Table data is exported to IMK_Approvers.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Country', 'Name', 'Email', 'Role']);
+                table.data.forEach(row => {
+                    rows.push([row["country"],row["name"], row["email"], row["role"]]);
+                });
+                exportToCsv("IMK_Approvers.csv", rows)
+
+            });
         }
     });
 
@@ -290,6 +331,20 @@ function getData() {
             });
 
             table.init();
+            document.querySelector('#export-logs').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                  title: 'Export data',
+                  description: 'Table data is exported to IMK_Logs.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Date', 'Country', 'Site', 'Longitude', 'Latitude', 'RPI Version', 'App Version', 'User', 'Commands', 'Results' ]);
+                table.data.forEach(row => {
+                    rows.push([row["date"],row["country"], row["site"], row["longitude"], row["latitude"], row["rpi"], row["app"], row["user"], row["command"],row["result"]]);
+                });
+                exportToCsv("IMK_Logs.csv", rows)
+
+            });
         }
     });
 
@@ -331,4 +386,46 @@ $('#submit-approver').on('click', function (e) {
         }
     });
 });
+
+function exportToCsv(filename, rows) {
+    var processRow = function (row) {
+        var finalVal = '';
+        for (var j = 0; j < row.length; j++) {
+            var innerValue = row[j] === null ? '' : row[j].toString();
+            if (row[j] instanceof Date) {
+                innerValue = row[j].toLocaleString();
+            };
+            var result = innerValue.replace(/"/g, '""');
+            if (result.search(/("|,|\n)/g) >= 0)
+                result = '"' + result + '"';
+            if (j > 0)
+                finalVal += ',';
+            finalVal += result;
+        }
+        return finalVal + '\n';
+    };
+
+    var csvFile = '';
+    for (var i = 0; i < rows.length; i++) {
+        csvFile += processRow(rows[i]);
+    }
+
+    var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, filename);
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
 
