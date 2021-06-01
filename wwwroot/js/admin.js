@@ -57,6 +57,7 @@ function getData() {
                 ],
                 actions: true,
                 sortable: true,
+                selectable: 'multi',
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
                     td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-cross"></i></button>`;
@@ -84,16 +85,45 @@ function getData() {
                 }
             });
             table.init();
+            const toggleActivateBtn = () => {
+                (document.querySelector('#deactivate-users')).style.display =
+                    (table.selected.length === 0) ? 'none' : '';
+            };
+            document.querySelector('#deactivate-users').addEventListener('click', () => {
+                var result = confirm("Are you sure you want to deactivate users?");
+                if (result) {
+                    table.selected.forEach((d) => {
+                        var email = d["email"];
+                        $.ajax({
+                            url: "api/cms/deactivate?email=" + email,
+                            type: "PUT",
+                            success: function (res) {
+                                const notification = new eds.Notification({
+                                    title: "User Action",
+                                    description: 'Selected users have been deactivated',
+                                });
+                                notification.init();
+                                getData();
+                            }
+                        });
+                    });
+                }
+                toggleActivateBtn();
+            });
+
+            tableDOM.addEventListener('toggleSelectRow', toggleActivateBtn);
+            toggleActivateBtn()
+
             document.querySelector('#export-ausers').addEventListener('click', () => {
                 const notification = new eds.Notification({
-                  title: 'Export data',
-                  description: 'Table data is exported to IMK_ActiveUsers.csv file',
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_ActiveUsers.csv file',
                 });
                 notification.init();
                 var rows = [];
-                rows.push(['Name','Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+                rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
                 table.data.forEach(row => {
-                    rows.push([row["name"],row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
                 });
                 exportToCsv("IMK_ActiveUsers.csv", rows)
 
@@ -145,6 +175,7 @@ function getData() {
                 ],
                 actions: true,
                 sortable: true,
+                selectable: 'multi',
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
                     td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-check"></i></button>`;
@@ -172,18 +203,47 @@ function getData() {
 
                 }
             });
-
             table.init();
+
+            const toggleActivateBtn = () => {
+                (document.querySelector('#activate-users')).style.display =
+                    (table.selected.length === 0) ? 'none' : '';
+            };
+            document.querySelector('#activate-users').addEventListener('click', () => {
+                var result = confirm("Are you sure you want to activate users?");
+                if (result) {
+                    table.selected.forEach((d) => {
+                        var email = d["email"];
+                        $.ajax({
+                            url: "api/cms/activate?email=" + email,
+                            type: "PUT",
+                            success: function (res) {
+                                const notification = new eds.Notification({
+                                    title: "User Action",
+                                    description: 'Selected users have been activated',
+                                });
+                                notification.init();
+                                getData();
+                            }
+                        });
+                    });
+                }
+                toggleActivateBtn();
+            });
+
+            tableDOM.addEventListener('toggleSelectRow', toggleActivateBtn);
+            toggleActivateBtn()
+
             document.querySelector('#export-iusers').addEventListener('click', () => {
                 const notification = new eds.Notification({
-                  title: 'Export data',
-                  description: 'Table data is exported to IMK_InactiveUsers.csv file',
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_InactiveUsers.csv file',
                 });
                 notification.init();
                 var rows = [];
-                rows.push(['Name','Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+                rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
                 table.data.forEach(row => {
-                    rows.push([row["name"],row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
                 });
                 exportToCsv("IMK_InactiveUsers.csv", rows)
 
@@ -256,14 +316,14 @@ function getData() {
             table.init();
             document.querySelector('#export-approvers').addEventListener('click', () => {
                 const notification = new eds.Notification({
-                  title: 'Export data',
-                  description: 'Table data is exported to IMK_Approvers.csv file',
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_Approvers.csv file',
                 });
                 notification.init();
                 var rows = [];
                 rows.push(['Country', 'Name', 'Email', 'Role']);
                 table.data.forEach(row => {
-                    rows.push([row["country"],row["name"], row["email"], row["role"]]);
+                    rows.push([row["country"], row["name"], row["email"], row["role"]]);
                 });
                 exportToCsv("IMK_Approvers.csv", rows)
 
@@ -333,14 +393,14 @@ function getData() {
             table.init();
             document.querySelector('#export-logs').addEventListener('click', () => {
                 const notification = new eds.Notification({
-                  title: 'Export data',
-                  description: 'Table data is exported to IMK_Logs.csv file',
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_Logs.csv file',
                 });
                 notification.init();
                 var rows = [];
-                rows.push(['Date', 'Country', 'Site', 'Longitude', 'Latitude', 'RPI Version', 'App Version', 'User', 'Commands', 'Results' ]);
+                rows.push(['Date', 'Country', 'Site', 'Longitude', 'Latitude', 'RPI Version', 'App Version', 'User', 'Commands', 'Results']);
                 table.data.forEach(row => {
-                    rows.push([row["date"],row["country"], row["site"], row["longitude"], row["latitude"], row["rpi"], row["app"], row["user"], row["command"],row["result"]]);
+                    rows.push([row["date"], row["country"], row["site"], row["longitude"], row["latitude"], row["rpi"], row["app"], row["user"], row["command"], row["result"]]);
                 });
                 exportToCsv("IMK_Logs.csv", rows)
 
