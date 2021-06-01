@@ -84,9 +84,9 @@ namespace IMK_web.Controllers
         }
 
         [HttpPut("activate")]
-        public async Task<ActionResult> ActivateUser([FromQuery] string userId)
+        public async Task<ActionResult> ActivateUser([FromQuery] string email)
         {
-            var user = await _appRepository.GetUser(userId);
+            var user = await _appRepository.GetUserByEmail(email);
             user.IsActive = true;
             _appRepository.Update(user);
             await _appRepository.SaveChanges();
@@ -94,9 +94,9 @@ namespace IMK_web.Controllers
         }
 
         [HttpPut("deactivate")]
-        public async Task<ActionResult> DeactivateUser([FromQuery] string userId)
+        public async Task<ActionResult> DeactivateUser([FromQuery] string email)
         {
-            var user = await _appRepository.GetUser(userId);
+            var user = await _appRepository.GetUserByEmail(email);
             user.IsActive = false;
             _appRepository.Update(user);
             await _appRepository.SaveChanges();
