@@ -39,13 +39,13 @@ namespace IMK_web.Repository
         {
             return await _context.Users.FirstOrDefaultAsync(x =>x.UserId.Equals(userId));
         }
+        public async Task<User> GetUserByEmail(string email)
+        {
+            return await _context.Users.SingleOrDefaultAsync(x =>x.Email.Equals(email));
+        }
         public async Task<Country> GetCountryByName(string country)
         {
             return await _context.Countries.FirstOrDefaultAsync(x =>x.Name.Equals(country));
-        }
-        public async Task<User> GetUserByEmail(string email)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x =>x.Email.Equals(email));
         }
 
         public async Task<ImkVersion> GetImkVersion(double rpi, double app)

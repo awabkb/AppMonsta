@@ -21,6 +21,7 @@ function getData() {
         type: "GET",
         success: function (res) {
             const tableDOM = document.querySelector('#a-users');
+            tableDOM.innerHTML = '';
             const table = new eds.Table(tableDOM, {
                 data: res,
                 columns: [
@@ -62,20 +63,23 @@ function getData() {
 
                     td.querySelector('button.activate').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var userId = $(tr).find('td').eq(5).text();
-
-                        $.ajax({
-                            url: "api/cms/deactivate?userId=" + userId,
-                            type: "PUT",
-                            success: function (res) {
-                                const notification = new eds.Notification({
-                                    title: "User Activated",
-                                    description: name + ' has been deactivated',
-                                });
-                                notification.init();
-                            }
-                        });
+                        var name = $(tr).find('td').eq(0).text();
+                        var email = $(tr).find('td').eq(3).text();
+                        var result = confirm("Are you sure you want to deactivate user?");
+                        if (result) {
+                            $.ajax({
+                                url: "api/cms/deactivate?email=" + email,
+                                type: "PUT",
+                                success: function (res) {
+                                    const notification = new eds.Notification({
+                                        title: "User Action",
+                                        description: name + ' has been deactivated',
+                                    });
+                                    notification.init();
+                                    getData();
+                                }
+                            });
+                        }
                     });
                 }
             });
@@ -92,6 +96,7 @@ function getData() {
         type: "GET",
         success: function (res) {
             const tableDOM = document.querySelector('#i-users');
+            tableDOM.innerHTML = '';
             const table = new eds.Table(tableDOM, {
                 data: res,
                 columns: [
@@ -133,20 +138,24 @@ function getData() {
 
                     td.querySelector('button.activate').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var userId = $(tr).find('td').eq(5).text();
-
-                        $.ajax({
-                            url: "api/cms/activate?userId=" + userId,
-                            type: "PUT",
-                            success: function (res) {
-                                const notification = new eds.Notification({
-                                    title: "User Activated",
-                                    description: name + ' has been activated',
-                                });
-                                notification.init();
-                            }
-                        });
+                        var name = $(tr).find('td').eq(0).text();
+                        var email = $(tr).find('td').eq(3).text();
+                        var result = confirm("Are you sure you want to activate user?");
+                        console.log(email);
+                        if (result) {
+                            $.ajax({
+                                url: "api/cms/activate?email=" + email,
+                                type: "PUT",
+                                success: function (res) {
+                                    const notification = new eds.Notification({
+                                        title: "User Action",
+                                        description: name + ' has been activated',
+                                    });
+                                    notification.init();
+                                    getData();
+                                }
+                            });
+                        }
                     });
                 }
             });
@@ -195,20 +204,21 @@ function getData() {
 
                     td.querySelector('button.activate').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var userId = $(tr).find('td').eq(5).text();
+                        var name = $(tr).find('td').eq(0).text();
+                        var email = $(tr).find('td').eq(3).text();
 
-                        $.ajax({
-                            url: "api/cms/activate?userId=" + userId,
-                            type: "PUT",
-                            success: function (res) {
-                                const notification = new eds.Notification({
-                                    title: "User Activated",
-                                    description: name + ' has been activated',
-                                });
-                                notification.init();
-                            }
-                        });
+                        // $.ajax({
+                        //     url: "api/cms/activate?email=" + email,
+                        //     type: "PUT",
+                        //     success: function (res) {
+                        //         const notification = new eds.Notification({
+                        //             title: "User Activated",
+                        //             description: name + ' has been activated',
+                        //         });
+                        //         notification.init();
+                        //         getData()
+                        //     }
+                        // });
                     });
                 }
             });
@@ -277,7 +287,7 @@ function getData() {
                 sortable: true,
                 expandable: true,
                 onCreatedDetailsRow: (td, data) => {
-                  td.innerHTML = `<b>Command:</b> ${data['command']}<br><b>Result:</b> ${data['result']}`;
+                    td.innerHTML = `<b>Command:</b> ${data['command']}<br><b>Result:</b> ${data['result']}`;
                 }
             });
 
@@ -286,9 +296,9 @@ function getData() {
     });
 
     /// ACTION ///
-    $('#menu li.item').on('click', function(){
+    $('#menu li.item').on('click', function () {
         $('.element').hide();
-        $("#"+$(this).attr('value')+"").show();
+        $("#" + $(this).attr('value') + "").show();
     });
 
 }
