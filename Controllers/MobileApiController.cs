@@ -79,7 +79,28 @@ namespace IMK_web.Controllers
                 return Ok(userToReturnDto);
             }
             else
-                return BadRequest("User already exists");
+            {
+                user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
+                user.Phone = userDto.Phone;
+                user.Email = userDto.Email;
+                if(!userDto.AspCompany.Equals("N/A"))
+                    user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                else {
+                    var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                    if(asp == null) {
+                        AspCompany naAsp = new AspCompany();
+                        Country country = await _appRepository.GetCountryByName(userDto.Country);
+                        naAsp.Country = country;
+                        naAsp.Name = userDto.AspCompany;
+                        user.AspCompany = naAsp;
+                    }
+                    else 
+                        user.AspCompany = asp;
+                }                
+                _appRepository.Update(user);
+                await _appRepository.SaveChanges();
+                return Ok("profile updated");
+            }
 
         }
 
