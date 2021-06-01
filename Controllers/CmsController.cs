@@ -29,8 +29,8 @@ namespace IMK_web.Controllers
             _appRepository = appRepository;
         }
 
-        [HttpPost("manager")]
-        public async Task<ActionResult> addAspManager(string country, string email, string name, string role)
+        [HttpPost("approver")]
+        public async Task<ActionResult> addAspManager([FromQuery]string name, [FromQuery]string email, [FromQuery]string role, [FromQuery]string country)
         {
             AspManager manager = new AspManager();
             manager.Country = country;
@@ -42,6 +42,16 @@ namespace IMK_web.Controllers
 
             return Ok(manager);
         }
+        
+        [HttpDelete("approver")]
+        public async Task<ActionResult> removeApprover([FromQuery] string email)
+        {
+            AspManager approver = await _appRepository.GetApprover(email);
+            _appRepository.Remove(approver);
+            await _appRepository.SaveChanges();
+            return Ok("Removed");
+        }
+
 
         [HttpGet("approvers")]
         public async Task<ActionResult> GetApprovers()
@@ -106,21 +116,7 @@ namespace IMK_web.Controllers
         [HttpGet("logs")]
         public async Task<ActionResult> getLogs()
         {
-            var allLogs = await _appRepository.GetLogs();
-            var logs = allLogs.Select(x => new
-            {
-                id = x.SiteVisit.VisitId,
-                date = x.SiteVisit.StartTime,
-                country = x.SiteVisit.Site.Country,
-                site = x.SiteVisit.Site.Name,
-                longitude = x.Longitude,
-                latitude = x.Latitude,
-                rpi = x.SiteVisit.RPIVersion.ToString("0.00"),
-                app = x.SiteVisit.AppVersion.ToString("0.00"),
-                user = x.SiteVisit.User.Name,
-                command = x.Command,
-                result = x.Result
-            }).ToList();
+            var logs = await _appRepository.GetLogs();
             return Ok(logs);
         }
 

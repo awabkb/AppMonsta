@@ -99,7 +99,15 @@ namespace IMK_web.Controllers
                 }                
                 _appRepository.Update(user);
                 await _appRepository.SaveChanges();
-                return Ok("profile updated");
+                UserToReturn userToReturnDto = new UserToReturn();
+                userToReturnDto.AspCompany = user.AspCompany.Name;
+                userToReturnDto.Email = user.Email;
+                userToReturnDto.IsActive = user.IsActive;
+                userToReturnDto.IsAdmin = user.IsAdmin;
+                userToReturnDto.Name = user.Name;
+                userToReturnDto.Phone = user.Phone;
+                userToReturnDto.UserId = user.UserId;
+                return Ok(userToReturnDto);
             }
 
         }

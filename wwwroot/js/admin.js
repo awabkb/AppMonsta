@@ -141,7 +141,6 @@ function getData() {
                         var name = $(tr).find('td').eq(0).text();
                         var email = $(tr).find('td').eq(3).text();
                         var result = confirm("Are you sure you want to activate user?");
-                        console.log(email);
                         if (result) {
                             $.ajax({
                                 url: "api/cms/activate?email=" + email,
@@ -157,6 +156,7 @@ function getData() {
                             });
                         }
                     });
+
                 }
             });
 
@@ -173,6 +173,7 @@ function getData() {
         type: "GET",
         success: function (res) {
             const tableDOM = document.querySelector('#t-approvers');
+            tableDOM.innerHTML = '';
             const table = new eds.Table(tableDOM, {
                 data: res,
                 columns: [
@@ -200,25 +201,27 @@ function getData() {
                 sortable: true,
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-check"></i></button>`;
+                    td.innerHTML = `<button class="btn-icon delete"><i class="icon icon-trashcan"></i></button>`;
 
-                    td.querySelector('button.activate').addEventListener('click', (evt) => {
+                    td.querySelector('button.delete').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(0).text();
-                        var email = $(tr).find('td').eq(3).text();
-
-                        // $.ajax({
-                        //     url: "api/cms/activate?email=" + email,
-                        //     type: "PUT",
-                        //     success: function (res) {
-                        //         const notification = new eds.Notification({
-                        //             title: "User Activated",
-                        //             description: name + ' has been activated',
-                        //         });
-                        //         notification.init();
-                        //         getData()
-                        //     }
-                        // });
+                        var name = $(tr).find('td').eq(1).text();
+                        var email = $(tr).find('td').eq(2).text();
+                        var result = confirm("Are you sure you want to delete approver?");
+                        if (result) {
+                            $.ajax({
+                                url: "api/cms/approver?email=" + email,
+                                type: "DELETE",
+                                success: function (res) {
+                                    const notification = new eds.Notification({
+                                        title: "Approver Action",
+                                        description: name + ' has been removed',
+                                    });
+                                    notification.init();
+                                    getData()
+                                }
+                            });
+                        }
                     });
                 }
             });
@@ -237,13 +240,8 @@ function getData() {
         success: function (res) {
             const tableDOM = document.querySelector('#t-logs');
             const table = new eds.Table(tableDOM, {
-                data: res,
+                data: res["value"],
                 columns: [
-                    {
-                        key: 'id',
-                        title: 'ID',
-                        sort: 'asc'
-                    },
                     {
                         key: 'date',
                         title: 'Date',
@@ -287,7 +285,7 @@ function getData() {
                 sortable: true,
                 expandable: true,
                 onCreatedDetailsRow: (td, data) => {
-                    td.innerHTML = `<b>Command:</b> ${data['command']}<br><b>Result:</b> ${data['result']}`;
+                    td.innerHTML = `<b>Commands:</b> ${data['command']}<br><b>Results:</b> ${data['result']}`;
                 }
             });
 
@@ -295,11 +293,42 @@ function getData() {
         }
     });
 
-    /// ACTION ///
-    $('#menu li.item').on('click', function () {
-        $('.element').hide();
-        $("#" + $(this).attr('value') + "").show();
-    });
-
 }
+
+/// ACTION ///
+const selectDOM = document.querySelector('#country');
+const select = new eds.Select(selectDOM);
+select.init();
+
+
+
+const dialogs = document.querySelectorAll('.dialog');
+if (dialogs) {
+    Array.from(dialogs).forEach((dialogDOM) => {
+        const dialog = new eds.Dialog(dialogDOM);
+        dialog.init();
+    });
+}
+
+$('#menu li.item').on('click', function () {
+    $('.element').hide();
+    $("#" + $(this).attr('value') + "").show();
+});
+
+$('#submit-approver').on('click', function (e) {
+    var values = "name=" + $("#member-name").val() + "&email=" + $("#member-email").val() + "&role=" + $('input[name="role"]:checked').val() + "&country=" + $('.item.country.active').text();
+    $.ajax({
+        url: "api/cms/approver?" + values,
+        type: "POST",
+        success: function (res) {
+            console.log(res)
+            const notification = new eds.Notification({
+                title: "Approver Action",
+                description: 'New approver has been added',
+            });
+            notification.init();
+            getData();
+        }
+    });
+});
 
