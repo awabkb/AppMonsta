@@ -10,6 +10,7 @@ namespace IMK_web.Repository
 
 	    void Add<T>(T entity) where T: class;
         void Update<T>(T entity) where T: class;
+        void Remove<T>(T entity) where T: class;
         Task<Site> GetSite(string sitename);
         Task<User> GetUser(string userId);
         Task<Country> GetCountryByName(string country);
@@ -23,8 +24,9 @@ namespace IMK_web.Repository
         Task<IEnumerable<AspManager>> GetAspManagers(string country);
         Task<User> GetUserByEmail(string email);
         Task<IEnumerable<User>> GetAllUsers();
-        Task<IEnumerable<Log>> GetLogs();
+        Task<ActionResult> GetLogs();
         Task<IEnumerable<AspManager>> GetApprovers();
+        Task<AspManager> GetApprover(string email);
 
 
 

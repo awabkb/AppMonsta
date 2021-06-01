@@ -59,8 +59,7 @@
               <div class="title">My settings</div>
               <div class="item">
                 <div class="left">
-                  <div class="left"><a type="button" class="btn" asp-controller="Dashboard"
-                      asp-action="Index">Dashboard
+                  <div class="left"><a type="button" class="btn" asp-controller="Dashboard" asp-action="Index">Dashboard
                     </a></div>
                 </div>
                 <div class="right"></div>
@@ -127,6 +126,245 @@
 
         <!-- Application: Content -->
         <div class="appcontent">
+          <div class="dialog" data-trigger="#add-approver" data-type="simple">
+            <div class="content">
+              <form class="eds-form" id="new-approver">
+                <div class="form-header">
+                  <div class="title">Add an approver</div>
+                </div>
+
+                <div class="form-body">
+                  <div class="form-group">
+                    <div class="form-group-title">Member info</div>
+
+                    <div class="form-element">
+                      <label for="name">Name</label>
+                      <input type="text" id="member-name" name="name" placeholder="Enter full name">
+                    </div>
+                    <div class="form-element">
+                      <label for="member-email">Email</label>
+                      <input type="email" id="member-email" name="email" placeholder="Enter email">
+                    </div>
+
+                    <div class="form-element">
+                      <label>Role</label>
+                      <div>
+                        <input id="admin" name="role" type="radio" value="Admin" checked>
+                        <label for="admin">Admin</label>
+                        <input id="manager" name="role" type="radio" value="Manager">
+                        <label for="manager">Manager</label>
+                        <input id="mentor" name="role" type="radio" value="Mentor">
+                        <label for="mentor">Mentor</label>
+                      </div>
+                    </div>
+
+                    <div class="form-element">
+                      <label for="country">Country</label>
+                      <div class="select" data-type="single" id="country" name="country">
+                        <button type="button" class="btn current-options">Select option</button>
+
+                        <div class="options-list">
+                          <div class="item country">Afghanistan</div>
+                          <div class="item country">Albania</div>
+                          <div class="item country">Algeria</div>
+                          <div class="item country">Andorra</div>
+                          <div class="item country">Angola</div>
+                          <div class="item country">Antigua and Barbuda</div>
+                          <div class="item country">Argentina</div>
+                          <div class="item country">Armenia</div>
+                          <div class="item country">Australia</div>
+                          <div class="item country">Austria</div>
+                          <div class="item country">Azerbaijan</div>
+                          <div class="item country">The Bahamas</div>
+                          <div class="item country">Bahrain</div>
+                          <div class="item country">Bangladesh</div>
+                          <div class="item country">Barbados</div>
+                          <div class="item country">Belarus</div>
+                          <div class="item country">Belgium</div>
+                          <div class="item country">Belize</div>
+                          <div class="item country">Benin</div>
+                          <div class="item country">Bhutan</div>
+                          <div class="item country">Bolivia</div>
+                          <div class="item country">Bosnia and Herzegovina</div>
+                          <div class="item country">Botswana</div>
+                          <div class="item country">Brazil</div>
+                          <div class="item country">Brunei</div>
+                          <div class="item country">Bulgaria</div>
+                          <div class="item country">Burundi</div>
+                          <div class="item country">Cambodia</div>
+                          <div class="item country">Cameroon</div>
+                          <div class="item country">Canada</div>
+                          <div class="item country">Central African Republic</div>
+                          <div class="item country">Chad</div>
+                          <div class="item country">Chile</div>
+                          <div class="item country">China</div>
+                          <div class="item country">Colombia</div>
+                          <div class="item country">Comoros</div>
+                          <div class="item country">Congo, Democratic Republic of the</div>
+                          <div class="item country">Congo, Republic of the</div>
+                          <div class="item country">Ivory Coast</div>
+                          <div class="item country">Croatia</div>
+                          <div class="item country">Cuba</div>
+                          <div class="item country">Cyprus</div>
+                          <div class="item country">Czech Republic</div>
+                          <div class="item country">Denmark</div>
+                          <div class="item country">Djibouti</div>
+                          <div class="item country">Dominica</div>
+                          <div class="item country">Dominican Republic</div>
+                          <div class="item country">East Timor</div>
+                          <div class="item country">Ecuador</div>
+                          <div class="item country">Egypt</div>
+                          <div class="item country">El Salvador</div>
+                          <div class="item country">Equatorial Guinea</div>
+                          <div class="item country">Eritrea</div>
+                          <div class="item country">Estonia</div>
+                          <div class="item country">Fiji</div>
+                          <div class="item country">Finland</div>
+                          <div class="item country">France</div>
+                          <div class="item country">Gabon</div>
+                          <div class="item country">The Gambia</div>
+                          <div class="item country">Georgia</div>
+                          <div class="item country">Germany</div>
+                          <div class="item country">Ghana</div>
+                          <div class="item country">Greece</div>
+                          <div class="item country">Grenada</div>
+                          <div class="item country">Guatemala</div>
+                          <div class="item country">Guinea</div>
+                          <div class="item country">Guinea-Bissau</div>
+                          <div class="item country">Guyana</div>
+                          <div class="item country">Haiti</div>
+                          <div class="item country">Honduras</div>
+                          <div class="item country">Hungary</div>
+                          <div class="item country">Iceland</div>
+                          <div class="item country">India</div>
+                          <div class="item country">Indonesia</div>
+                          <div class="item country">Iran</div>
+                          <div class="item country">Iraq</div>
+                          <div class="item country">Ireland</div>
+                          <div class="item country">Israel</div>
+                          <div class="item country">Italy</div>
+                          <div class="item country">Jamaica</div>
+                          <div class="item country">Japan</div>
+                          <div class="item country">Jordan</div>
+                          <div class="item country">Kazakhstan</div>
+                          <div class="item country">Kenya</div>
+                          <div class="item country">Kiribati</div>
+                          <div class="item country">Korea, North</div>
+                          <div class="item country">Korea, South</div>
+                          <div class="item country">Kuwait</div>
+                          <div class="item country">Kyrgyzstan</div>
+                          <div class="item country">Laos</div>
+                          <div class="item country">Latvia</div>
+                          <div class="item country">Lebanon</div>
+                          <div class="item country">Lesotho</div>
+                          <div class="item country">Liberia</div>
+                          <div class="item country">Libya</div>
+                          <div class="item country">Liechtenstein</div>
+                          <div class="item country">Lithuania</div>
+                          <div class="item country">Luxembourg</div>
+                          <div class="item country">Madagascar</div>
+                          <div class="item country">Malawi</div>
+                          <div class="item country">Malaysia</div>
+                          <div class="item country">Maldives</div>
+                          <div class="item country">Mali</div>
+                          <div class="item country">Malta</div>
+                          <div class="item country">Marshall Islands</div>
+                          <div class="item country">Mauritania</div>
+                          <div class="item country">Mauritius</div>
+                          <div class="item country">Mexico</div>
+                          <div class="item country">Micronesia, Federated States of</div>
+                          <div class="item country">Moldova</div>
+                          <div class="item country">Monaco</div>
+                          <div class="item country">Mongolia</div>
+                          <div class="item country">Montenegro</div>
+                          <div class="item country">Morocco</div>
+                          <div class="item country">Mozambique</div>
+                          <div class="item country">Myanmar</div>
+                          <div class="item country">Namibia</div>
+                          <div class="item country">Nauru</div>
+                          <div class="item country">Nepal</div>
+                          <div class="item country">Netherlands</div>
+                          <div class="item country">New Zealand</div>
+                          <div class="item country">Nicaragua</div>
+                          <div class="item country">Niger</div>
+                          <div class="item country">Nigeria</div>
+                          <div class="item country">North Macedonia</div>
+                          <div class="item country">Norway</div>
+                          <div class="item country">Oman</div>
+                          <div class="item country">Pakistan</div>
+                          <div class="item country">Palestinian Territory, Occupied</div>
+                          <div class="item country">Panama</div>
+                          <div class="item country">Papua New Guinea</div>
+                          <div class="item country">Paraguay</div>
+                          <div class="item country">Peru</div>
+                          <div class="item country">Philippines</div>
+                          <div class="item country">Poland</div>
+                          <div class="item country">Portugal</div>
+                          <div class="item country">Qatar</div>
+                          <div class="item country">Romania</div>
+                          <div class="item country">Russia</div>
+                          <div class="item country">Rwanda</div>
+                          <div class="item country">Saint Lucia</div>
+                          <div class="item country">Saint Vincent and the Grenadines</div>
+                          <div class="item country">Samoa</div>
+                          <div class="item country">Sao Tome and Principe</div>
+                          <div class="item country">Saudi Arabia</div>
+                          <div class="item country">Senegal</div>
+                          <div class="item country">Serbia</div>
+                          <div class="item country">Seychelles</div>
+                          <div class="item country">Sierra Leone</div>
+                          <div class="item country">Singapore</div>
+                          <div class="item country">Slovakia</div>
+                          <div class="item country">Slovenia</div>
+                          <div class="item country">Solomon Islands</div>
+                          <div class="item country">Somalia</div>
+                          <div class="item country">South Africa</div>
+                          <div class="item country">Spain</div>
+                          <div class="item country">Sri Lanka</div>
+                          <div class="item country">Sudan</div>
+                          <div class="item country">Sudan, South</div>
+                          <div class="item country">Suriname</div>
+                          <div class="item country">Sweden</div>
+                          <div class="item country">Switzerland</div>
+                          <div class="item country">Syria</div>
+                          <div class="item country">Taiwan</div>
+                          <div class="item country">Tajikistan</div>
+                          <div class="item country">United Reepublic of Tanzania</div>
+                          <div class="item country">Thailand</div>
+                          <div class="item country">Togo</div>
+                          <div class="item country">Tonga</div>
+                          <div class="item country">Trinidad and Tobago</div>
+                          <div class="item country">Tunisia</div>
+                          <div class="item country">Turkey</div>
+                          <div class="item country">Turkmenistan</div>
+                          <div class="item country">Tuvalu</div>
+                          <div class="item country">Uganda</div>
+                          <div class="item country">Ukraine</div>
+                          <div class="item country">United Arab Emirates</div>
+                          <div class="item country">United Kingdom</div>
+                          <div class="item country">United States</div>
+                          <div class="item country">Uruguay</div>
+                          <div class="item country">Uzbekistan</div>
+                          <div class="item country">Vanuatu</div>
+                          <div class="item country">Vatican City</div>
+                          <div class="item country">Venezuela</div>
+                          <div class="item country">Vietnam</div>
+                          <div class="item country">Yemen</div>
+                          <div class="item country">Zambia</div>
+                          <div class="item country">Zimbabwe</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-footer">
+                  <button class="btn ghost" type="button" data-close="true">Cancel</button>
+                  <button type="submit" class="btn primary" id="submit-approver">Add</button>
+                </div>
+              </form>
+            </div>
+          </div>
 
           <!-- Tile 1 -->
           <div class="tile sm-12">
@@ -185,6 +423,9 @@
                 <div class="left">
                   <div class="title">ASP Approvers</div>
                   <div class="subtitle">Managers/Mentors</div>
+                </div>
+                <div class="table-buttons">
+                  <button class="btn" id="add-approver">Add Approver</button>
                 </div>
               </div>
               <div class="content text-sm">
