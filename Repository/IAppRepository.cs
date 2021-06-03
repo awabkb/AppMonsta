@@ -21,7 +21,9 @@ namespace IMK_web.Repository
         Task<Country> GetOperatorByCountry(string country);
         Task<IEnumerable<Country>> GetCountries();
         Task<ImkVersion> GetLatestImkVersion();
-        Task<IEnumerable<AspManager>> GetAspManagers(string country);
+        Task<string []> GetAspManagers(string country);
+        Task<string []> GetAdmins();
+        Task<IEnumerable<SiteVisit>> GetUserSiteVisits(User user);
         Task<User> GetUserByEmail(string email);
         Task<IEnumerable<User>> GetAllUsers();
         Task<ActionResult> GetLogs();
