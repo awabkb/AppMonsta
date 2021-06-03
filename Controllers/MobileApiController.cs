@@ -48,18 +48,20 @@ namespace IMK_web.Controllers
                 user.RegisteredAt = DateTime.Now;
                 user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
 
-                if(!userDto.AspCompany.Equals("N/A"))
+                if (!userDto.AspCompany.Equals("N/A"))
                     user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
-                else {
+                else
+                {
                     var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
-                    if(asp == null) {
+                    if (asp == null)
+                    {
                         AspCompany naAsp = new AspCompany();
                         Country country = await _appRepository.GetCountryByName(userDto.Country);
                         naAsp.Country = country;
                         naAsp.Name = userDto.AspCompany;
                         user.AspCompany = naAsp;
                     }
-                    else 
+                    else
                         user.AspCompany = asp;
                 }
 
@@ -83,20 +85,22 @@ namespace IMK_web.Controllers
                 user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
                 user.Phone = userDto.Phone;
                 user.Email = userDto.Email;
-                if(!userDto.AspCompany.Equals("N/A"))
+                if (!userDto.AspCompany.Equals("N/A"))
                     user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
-                else {
+                else
+                {
                     var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
-                    if(asp == null) {
+                    if (asp == null)
+                    {
                         AspCompany naAsp = new AspCompany();
                         Country country = await _appRepository.GetCountryByName(userDto.Country);
                         naAsp.Country = country;
                         naAsp.Name = userDto.AspCompany;
                         user.AspCompany = naAsp;
                     }
-                    else 
+                    else
                         user.AspCompany = asp;
-                }                
+                }
                 _appRepository.Update(user);
                 await _appRepository.SaveChanges();
                 UserToReturn userToReturnDto = new UserToReturn();
@@ -132,7 +136,7 @@ namespace IMK_web.Controllers
 
             Operator op = new Operator();
             var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.Country);
-            if (ops.Operators.Count()==0)
+            if (ops == null)
                 op = null;
             else
             {
@@ -150,18 +154,19 @@ namespace IMK_web.Controllers
             {
                 site = new Site();
                 site.Country = siteVisitDto.Country;
-                site.Latitude = siteVisitDto.Latitude;
-                site.Longitude = siteVisitDto.Longitude;
+                site.Latitude = Convert.ToDouble(siteVisitDto.Latitude);
+                site.Longitude = Convert.ToDouble(siteVisitDto.Longitude);
                 site.Name = siteVisitDto.SiteName;
                 site.Operator = op;
 
                 _appRepository.Add(site);
             }
 
-            if(site.Latitude == 0 && site.Longitude == 0){
-                site.Latitude = siteVisitDto.Latitude;
-                site.Longitude = siteVisitDto.Longitude;
-                
+            if (site.Latitude == 0 && site.Longitude == 0)
+            {
+                site.Latitude = Convert.ToDouble(siteVisitDto.Latitude);
+                site.Longitude = Convert.ToDouble(siteVisitDto.Longitude);
+
                 _appRepository.Update(site);
             }
 
@@ -240,8 +245,10 @@ namespace IMK_web.Controllers
             _appRepository.Add(siteVisit);
 
 
-            await _appRepository.SaveChanges();
-            return Ok("Created");
+            if (await _appRepository.SaveChanges())
+                return Ok("Created");
+            else
+                return BadRequest("Upload Failed");
 
         }
 
@@ -316,70 +323,118 @@ namespace IMK_web.Controllers
 
         ////////////////////////// Send IMK User approval to admins ////////////////////////////
 
+
         [AllowAnonymous]
         [HttpPost("request")]
-        public async Task<IActionResult> sendAccessRequest(UserDto userDto)
+        public async Task<IActionResult> sendAccessRequest([FromQuery] string AspCompany, [FromQuery] string Email, [FromQuery] string Phone)
         {
-            var aspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
+            var aspCompany = await _appRepository.GetAspCompany(AspCompany);
             var aspManagers = await _appRepository.GetAspManagers(aspCompany.Country.Name);
 
             var url = "https://localhost:5001/api/mobileapi/activate";
-            SmtpClient client = new SmtpClient();
-            client.Host = "smtp.office365.com";
-            client.Port = 587;
-            client.EnableSsl = true;
-            System.Net.NetworkCredential ntcd = new System.Net.NetworkCredential("sara.shoujaa@lau.edu", "L@ucs1357ms");
-            ntcd.UserName = "sara.shoujaa@lau.edu";
-            ntcd.Password = "L@ucs1357ms";
-            client.Credentials = ntcd;
 
-            MailMessage msg = new MailMessage();
-
-            msg.From = new MailAddress("sara.shoujaa@lau.edu", "IMK Tool");
-            foreach (var manager in aspManagers)
-            {
-                msg.To.Add(manager.Email);
-            }
-
-            msg.IsBodyHtml = true;
-            string htmlString = @"<html>
+            string body = @"<html>
                       <body>
                       <p>A new user started using IMK app</p>
-                      <p> Email: " + userDto.Email +
-                         "<br>Phone: " + userDto.Phone +
-                         "<br>AspCompany: " + userDto.AspCompany + @"
+                      <p> Email: " + Email +
+                         "<br>Phone: " + Phone +
+                         "<br>Country: " + Phone +
+                         "<br>AspCompany: " + AspCompany + @"
                         </p>
-                        <a href=" + url + "?email=" + userDto.Email + @">Click here to activate user</a>
+                        <a href=" + url + "?accept=true&email=" + Email + @">Accept</a>
+                        <a href=" + url + "?accept=false&email=" + Email + @">Reject</a>
+                        <br><br>
+                        <p>Please do not reply to this email</p>
                       </body>
                       </html>
                      ";
 
 
-            msg.Body = htmlString;
-            msg.Subject = "IMK Access - Req";
-            client.SendAsync(msg, "msg");
-
+            await sendMail("No Reply - IMK Support", body, aspManagers, true);
             return Ok("sent");
         }
 
         [AllowAnonymous]
         [HttpGet("activate")]
-        public async Task<IActionResult> activateUser(string email)
+        public async Task<IActionResult> activateUser(string email, bool accept)
         {
             User user = await _appRepository.GetUserByEmail(email);
-
-            if (user.IsActive == false)
+            if (user != null)
             {
-                user.IsActive = true;
-                _appRepository.Update(user);
-                await _appRepository.SaveChanges();
-                return Ok("User is activated");
+                if (accept == true)
+                {
+                    if (user.IsActive == false)
+                    {
+                        user.IsActive = true;
+                        _appRepository.Update(user);
+                        await _appRepository.SaveChanges();
+                        return Ok(email + " is now activated");
+                    }
+                    else return Ok(email + " is already active");
+                }
+                else
+                {
+                    if (_appRepository.GetUserSiteVisits(user) == null)
+                    {
+                        _appRepository.Remove(user);
+                        await _appRepository.SaveChanges();
+                        string[] recipients = new string[1];
+                        recipients[0] = email;
+                        var message = @"<html>
+                                        <body>
+                                        <p>Dear IMK User,</p>
+                                        <p>Your account has been rejected by admin.</p>
+                                            <br><br>
+                                            <p>Please do not reply to this email</p>
+                                        </body>
+                                        </html>
+                                        ";
+                        await sendMail("No Reply - IMK Registration", message, recipients, false);
+                        return Ok(email + "profile has been rejected");
+                    }
+                    else return Ok("Rejection Failed. User is already accepted");
+                }
             }
-            else
-            {
-                return Ok("user is already active");
-            }
+            else return Ok("An account with this email is not found or had been removed.");
         }
+
+
+        public async Task<IActionResult> sendMail(string Subject, string Body, string[] Recipients, bool BccAdmins)
+        {
+            SmtpClient client = new SmtpClient();
+            client.Host = "smtp.ericsson.net";
+            client.Port = 587;
+            client.EnableSsl = true;
+            System.Net.NetworkCredential ntcd = new System.Net.NetworkCredential("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
+            ntcd.UserName = "imk@ericsson.com";
+            ntcd.Password = "ad3e13fefa3a288a0546c420190db507";
+            client.Credentials = ntcd;
+
+            MailMessage msg = new MailMessage();
+
+            msg.From = new MailAddress("imk@ericsson.com", "No Reply - IMK Support");
+
+            foreach (var recipient in Recipients)
+            {
+                msg.To.Add(recipient);
+            }
+            if (BccAdmins == true)
+            {
+                var admins = await _appRepository.GetAdmins();
+                foreach (var admin in admins)
+                {
+                    msg.Bcc.Add(admin);
+                }
+            }
+
+            msg.IsBodyHtml = true;
+            msg.Body = Body;
+            msg.Subject = Subject;
+            client.SendAsync(msg, "msg");
+
+            return Ok("sent");
+        }
+
 
         ////////////////////////// Get operator by site name rule for multioperator countries  ////////////////////////////
         public String GetOperatorBySite(string sitename, string country)
@@ -409,6 +464,17 @@ namespace IMK_web.Controllers
                     op = "MarocTel";
             }
             return op;
+        }
+
+
+
+
+        [AllowAnonymous]
+        [HttpGet("test")]
+        public async Task<IActionResult> test()
+        {
+            var version = await _appRepository.GetLatestImkVersion();
+            return Ok(version);
         }
 
 

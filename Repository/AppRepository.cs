@@ -41,7 +41,7 @@ namespace IMK_web.Repository
 
         public async Task<User> GetUser(string userId)
         {
-            return await _context.Users.Include(x=>x.AspCompany).Include(x=>x.AspCompany.Country).FirstOrDefaultAsync(x => x.UserId.Equals(userId));
+            return await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country).FirstOrDefaultAsync(x => x.UserId.Equals(userId));
         }
         public async Task<User> GetUserByEmail(string email)
         {
@@ -87,9 +87,18 @@ namespace IMK_web.Repository
             return await _context.ImkVersions.OrderBy(x => x.DateOfRelease).LastAsync();
         }
 
-        public async Task<IEnumerable<AspManager>> GetAspManagers(string country)
+        public async Task<string []> GetAspManagers(string country)
         {
-            return await _context.AspManagers.Where(x => x.Country.Equals(country)).ToListAsync();
+            return await _context.AspManagers.Where(x => x.Country.Equals(country)).Select(x =>x.Email).ToArrayAsync();
+        }
+
+        public async Task<string []> GetAdmins()
+        {
+            return await _context.AspManagers.Where(x => x.Role.Equals("Admin")).Select(x => x.Email).ToArrayAsync();
+        }
+        public async Task<IEnumerable<SiteVisit>> GetUserSiteVisits(User user)
+        {
+            return await _context.SiteVisits.Where(x => x.User == user).ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetAllUsers()
@@ -102,16 +111,17 @@ namespace IMK_web.Repository
             var allLogs = await _context.Logs.Include(x => x.SiteVisit).Include(x => x.SiteVisit.Site)
             .Include(x => x.SiteVisit.User).OrderBy(x => x.SiteVisit.StartTime).ToListAsync();
 
-            var logs = allLogs.GroupBy(x => x.SiteVisit.VisitId).Select(y => new {
+            var logs = allLogs.GroupBy(x => x.SiteVisit.VisitId).Select(y => new
+            {
                 date = y.Select(i => i.SiteVisit.StartTime).Distinct(),
-                country = y.Select(i =>i.SiteVisit.Site.Country).Distinct(),
-                site = y.Select(i =>i.SiteVisit.Site.Name).Distinct(),
+                country = y.Select(i => i.SiteVisit.Site.Country).Distinct(),
+                site = y.Select(i => i.SiteVisit.Site.Name).Distinct(),
                 longitude = y.Select(i => i.SiteVisit.Site.Longitude).Distinct(),
                 latitude = y.Select(i => i.SiteVisit.Site.Latitude).Distinct(),
                 rpi = y.Select(i => i.SiteVisit.RPIVersion).Distinct(),
                 app = y.Select(i => i.SiteVisit.AppVersion).Distinct(),
                 user = y.Select(i => i.SiteVisit.User.Name).Distinct(),
-                command = y.Select(i=>i.Command),
+                command = y.Select(i => i.Command),
                 result = y.Select(i => i.Result),
             });
             return new JsonResult(logs);

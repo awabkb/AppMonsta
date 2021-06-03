@@ -64,8 +64,8 @@ function getData() {
 
                     td.querySelector('button.activate').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(0).text();
-                        var email = $(tr).find('td').eq(3).text();
+                        var name = $(tr).find('td').eq(1).text();
+                        var email = $(tr).find('td').eq(4).text();
                         var result = confirm("Are you sure you want to deactivate user?");
                         if (result) {
                             $.ajax({
@@ -98,16 +98,16 @@ function getData() {
                             url: "api/cms/deactivate?email=" + email,
                             type: "PUT",
                             success: function (res) {
-                                const notification = new eds.Notification({
-                                    title: "User Action",
-                                    description: 'Selected users have been deactivated',
-                                });
-                                notification.init();
                                 getData();
                             }
                         });
                     });
                 }
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been deactivated',
+                });
+                notification.init();
                 toggleActivateBtn();
             });
 
@@ -182,8 +182,8 @@ function getData() {
 
                     td.querySelector('button.activate').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(0).text();
-                        var email = $(tr).find('td').eq(3).text();
+                        var name = $(tr).find('td').eq(1).text();
+                        var email = $(tr).find('td').eq(4).text();
                         var result = confirm("Are you sure you want to activate user?");
                         if (result) {
                             $.ajax({
@@ -218,16 +218,16 @@ function getData() {
                             url: "api/cms/activate?email=" + email,
                             type: "PUT",
                             success: function (res) {
-                                const notification = new eds.Notification({
-                                    title: "User Action",
-                                    description: 'Selected users have been activated',
-                                });
-                                notification.init();
                                 getData();
                             }
                         });
                     });
                 }
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been activated',
+                });
+                notification.init();
                 toggleActivateBtn();
             });
 
