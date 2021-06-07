@@ -50,33 +50,32 @@ function init() {
 
     getCountries(marketArea);
     // dateFilter();
-    // getOperators();
     getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
     initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
 
 }
 function daterange() {
-$(function () {
-    var start = moment().subtract(29, 'days');
-    var end = moment();
-    function cb(start, end) {
-        $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-        $('#start').attr('value', start.format('YYYY-MM-DD'));
-        $('#end').attr('value', end.format('YYYY-MM-DD'));
-    }
-
-    $('#reportrange').daterangepicker({
-        startDate: start,
-        endDate: end,
-        ranges: {
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            $('#start').attr('value', start.format('YYYY-MM-DD'));
+            $('#end').attr('value', end.format('YYYY-MM-DD'));
         }
-    }, cb);
-    cb(start, end);
-});
+
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    });
 }
 
 
@@ -113,14 +112,14 @@ $('#filter').on('reset', function (e) {
     var c = [];
     var o = [];
     var ma = '';
-    var s =  (moment().subtract(29, 'days')).format('YYYY-MM-DD');
+    var s = (moment().subtract(29, 'days')).format('YYYY-MM-DD');
     var e = (moment()).format('YYYY-MM-DD');
 
-    $('.country[type="checkbox"]').each(function() { 
-        this.checked = false; 
+    $('.country[type="checkbox"]').each(function () {
+        this.checked = false;
     });
-    $('.operator[type="checkbox"]').each(function() { 
-        this.checked = false; 
+    $('.operator[type="checkbox"]').each(function () {
+        this.checked = false;
     });
     $('#market-areas').find("li.active").removeClass("active");
     $('#market-areas li[value=""]').addClass("active");
@@ -155,14 +154,16 @@ function getCountries(ma) {
                 countries +=
                     '<li>' +
                     '<span class="item" tabindex="0">' +
-                    '<input class="country" name=\"countries[]\" type="checkbox" onclick="getOperators()" id="c-' + i + '"value="' + res[i] + '">' +
+                    '<input class="country" name=\"countries[]\" onclick="getOperators()" type="checkbox" id="c-' + i + '"value="' + res[i] + '"checked>' +
                     '<label for="c-' + i + '">' + res[i] + '</label>' +
                     '</span>' +
                     '</li>'
             }
             document.getElementById('countries').innerHTML = countries;
+            getOperators();
         }
     });
+
 }
 
 
@@ -172,26 +173,31 @@ function getOperators() {
     checkedCheckboxes.forEach(element => {
         allcountries.push($(element).attr('value'));
     });
-    $.ajax({
-        url: 'api/dashboardapi/operators',
-        type: 'GET',
-        data: { countries: decodeURIComponent(allcountries) },
-        success: function (res) {
-            var operators = '';
-            for (var i = 0; i < res.length; i++) {
-                for (var j = 0; j < res[i].operators.length; j++) {
-                    operators +=
-                        '<li>' +
-                        '<span class="item" tabindex="0">' +
-                        '<input class="operator" name=\"operators[]\" type="checkbox" id="o-' + i + '' + j + '"value="' + res[i].operators[j]["name"] + '">' +
-                        '<label for="o-' + i + '' + j + '">' + res[i].operators[j]["name"] + '</label>' +
-                        '</span>' +
-                        '</li>'
+    if (allcountries.length === 0)
+        document.getElementById('operators').innerHTML = '';
+    else {
+        console.log(allcountries);
+        $.ajax({
+            url: 'api/dashboardapi/operators',
+            type: 'GET',
+            data: { countries: decodeURIComponent(allcountries) },
+            success: function (res) {
+                var operators = '';
+                for (var i = 0; i < res.length; i++) {
+                    for (var j = 0; j < res[i].operators.length; j++) {
+                        operators +=
+                            '<li>' +
+                            '<span class="item" tabindex="0">' +
+                            '<input class="operator" name=\"operators[]\" type="checkbox" id="o-' + i + '' + j + '"value="' + res[i].operators[j]["name"] + '">' +
+                            '<label for="o-' + i + '' + j + '">' + res[i].operators[j]["name"] + '</label>' +
+                            '</span>' +
+                            '</li>'
+                    }
                 }
+                document.getElementById('operators').innerHTML = operators;
             }
-            document.getElementById('operators').innerHTML = operators;
-        }
-    });
+        });
+    }
 
 }
 
@@ -459,19 +465,19 @@ function getData(startdate, enddate, countries, operators) {
 
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
-                  title: 'Export data',
-                  description: 'Table data is exported to IMK_Dashboard.csv file',
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_Dashboard.csv file',
                 });
                 notification.init();
                 var rows = [];
-                rows.push(['Date','Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP']);
+                rows.push(['Date', 'Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP']);
                 table.data.forEach(row => {
-                    rows.push([row["date"],row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"],row["asp"]]);
+                    rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"]]);
                     console.log(row);
                 });
                 exportToCsv("IMK_Dashboard.csv", rows)
 
-              });
+            });
         }
     });
 }
@@ -953,7 +959,7 @@ function initMap(start, end, m_a) {
 
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
-                polygonTemplate.tooltipText = "{name} IMK Registed Users {customData} ";
+                polygonTemplate.tooltipText = "{name} IMK Registered Users {customData} ";
                 polygonTemplate.fill = am4core.color("fill");
 
                 var graticuleSeries = chart3.series.push(new am4maps.GraticuleSeries());

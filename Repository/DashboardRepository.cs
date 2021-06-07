@@ -82,12 +82,11 @@ namespace IMK_web.Repository
         //get unique site visits by physical location of sites (grouped by country)
         public async Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators)
         {
+
             List<SiteVisit> visits = null;
             if (countries == null)
-            {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site)
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
-            }
+                return new JsonResult(null);
+
             else
             {
                 if (operators == null)
@@ -136,11 +135,8 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators)
         {
             List<SiteVisit> visits = null;
-            if (countries == "[]" || countries == null)
-            {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site)
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -185,10 +181,8 @@ namespace IMK_web.Repository
         {
 
             List<Site> sites = null;
-            if (countries == "[]" || countries == null)
-            {
-                sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)).ToListAsync();
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -284,12 +278,8 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetIMKFunctions(string start, string end, string countries, string operators)
         {
             List<int> sfunctions = null;
-            if (countries == "[]" || countries == null)
-            {
-                sfunctions = await _context.SiteVisits.Include("Site").Include("IMK_Functions")
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .Select(s => s.IMK_Functions.Id).ToListAsync();
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -348,13 +338,8 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetTopEngineers(string start, string end, string countries, string operators)
         {
             List<SiteVisit> allVisits = null;
-            if (countries == "[]" || countries == null)
-            {
-                allVisits = await _context.SiteVisits.Include("Site").Include("User")
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .ToListAsync();
-
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -393,13 +378,8 @@ namespace IMK_web.Repository
         {
 
             List<SiteVisit> allVisits = null;
-            if (countries == "[]" || countries == null)
-            {
-                allVisits = await _context.SiteVisits
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .ToListAsync();
-
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -440,13 +420,8 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetRPIVersion(string start, string end, string countries, string operators)
         {
             List<SiteVisit> allVisits = null;
-            if (countries == "[]" || countries == null)
-            {
-                allVisits = await _context.SiteVisits
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .ToListAsync();
-
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -484,13 +459,8 @@ namespace IMK_web.Repository
         {
 
             List<SiteVisit> allVisits = null;
-
-            if (countries == "[]" || countries == null)
-            {
-                allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany)
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .ToListAsync();
-            }
+            if (countries == null)
+                return new JsonResult(null);
             else
             {
                 if (operators == null)
@@ -596,7 +566,7 @@ namespace IMK_web.Repository
             {
                 country = y.Key.Country,
                 usage = y.Select(i => i.Site.SiteId).Distinct().Count(),
-                percent = ((float)y.Select(i => i.Site.SiteId).Distinct().Count() / (float)unique_visits.Count()) * 100
+                percent = Math.Round(((float)y.Select(i => i.Site.SiteId).Distinct().Count() / (float)unique_visits.Count()) * 100, 1)
 
             });
             return new JsonResult(all_usage);
@@ -632,7 +602,9 @@ namespace IMK_web.Repository
             else
                 countries = await _context.Countries.Where(x => x.MA.Equals(marketArea)).Select(x => x.Name).ToArrayAsync();
 
-            var allusers = await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country).Where(x => countries.Contains(x.AspCompany.Country.Name))
+            var allusers = await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country)
+            .Where(x => x.IsActive == true)
+            .Where(x => countries.Contains(x.AspCompany.Country.Name))
             .Where(x => x.RegisteredAt.Date >= Convert.ToDateTime(start).Date && x.RegisteredAt.Date <= Convert.ToDateTime(end).Date)
             .ToListAsync();
 
@@ -647,7 +619,7 @@ namespace IMK_web.Repository
 
         public string GetRole(string email)
         {
-            var role =  _context.AspManagers.Where(x => x.Email.Equals(email)).Select(x => x.Role).SingleOrDefault();
+            var role = _context.AspManagers.Where(x => x.Email.Equals(email)).Select(x => x.Role).SingleOrDefault();
             return role;
         }
 
