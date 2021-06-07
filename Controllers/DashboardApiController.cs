@@ -46,8 +46,13 @@ namespace IMK_web.Controllers
         [HttpGet("operators")]
         public async Task<ActionResult<IEnumerable<Country>>> getOperatorsByCountry([FromQuery] string countries)
         {
-            var operators = await _dashRepository.GetOperatorsByCountry(countries);
-            return operators.ToList();
+            if (countries == null)
+                return null;
+            else
+            {
+                var operators = await _dashRepository.GetOperatorsByCountry(countries);
+                return operators.ToList();
+            }
         }
 
         ////////////
@@ -61,13 +66,13 @@ namespace IMK_web.Controllers
             var sites = await _dashRepository.GetSiteVisits(start, end, countries, operators);
             return sites;
         }
-        
+
         [AllowAnonymous]
         ////// get # sites per country
         [HttpGet("countryview")]
         public async Task<ActionResult> getSiteByCountry([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var sites = await _dashRepository.GetSitesByCountry(start, end, countries,operators);
+            var sites = await _dashRepository.GetSitesByCountry(start, end, countries, operators);
             return sites;
         }
 
@@ -77,7 +82,7 @@ namespace IMK_web.Controllers
         [HttpGet("revisits")]
         public async Task<ActionResult> getSiteRevisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var revisits = await _dashRepository.GetSiteRevisits(start, end, countries,operators);
+            var revisits = await _dashRepository.GetSiteRevisits(start, end, countries, operators);
             return revisits;
         }
 
@@ -86,7 +91,7 @@ namespace IMK_web.Controllers
         [HttpGet("imkfunctions")]
         public async Task<ActionResult> getIMKFunctions([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var visits = await _dashRepository.GetIMKFunctions(start, end, countries,operators);
+            var visits = await _dashRepository.GetIMKFunctions(start, end, countries, operators);
             return visits;
         }
 
@@ -95,7 +100,7 @@ namespace IMK_web.Controllers
         [HttpGet("topasp")]
         public async Task<ActionResult> getTopEngineers([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var asp = await _dashRepository.GetTopEngineers(start, end, countries,operators);
+            var asp = await _dashRepository.GetTopEngineers(start, end, countries, operators);
             return asp;
         }
 
@@ -104,7 +109,7 @@ namespace IMK_web.Controllers
         [HttpGet("appversion")]
         public async Task<ActionResult> getAppVersion([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var versions = await _dashRepository.GetAppVersion(start, end, countries,operators);
+            var versions = await _dashRepository.GetAppVersion(start, end, countries, operators);
             return versions;
         }
 
@@ -113,7 +118,7 @@ namespace IMK_web.Controllers
         [HttpGet("rpversion")]
         public async Task<ActionResult> getRPVersion([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var versions = await _dashRepository.GetRPIVersion(start, end, countries,operators);
+            var versions = await _dashRepository.GetRPIVersion(start, end, countries, operators);
             return versions;
         }
 
@@ -121,7 +126,7 @@ namespace IMK_web.Controllers
         [HttpGet("site_details")]
         public async Task<ActionResult> getSiteDetails([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var data = await _dashRepository.GetSiteVisitDetails(start, end, countries,operators);
+            var data = await _dashRepository.GetSiteVisitDetails(start, end, countries, operators);
             return data;
         }
 
@@ -135,7 +140,7 @@ namespace IMK_web.Controllers
             var data = await _dashRepository.GetSiteUsage(start, end, marketArea);
             return data;
         }
-        
+
         //get # of active users 
         [HttpGet("active_users")]
         public async Task<ActionResult> getActiveUsers([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
