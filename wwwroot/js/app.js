@@ -43,15 +43,15 @@ var dateend = null;
 function init() {
     daterange();
     marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
-    countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : [];
+    countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : "all";
     operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
     datestart = moment().subtract(29, 'days');
     dateend = moment();
 
     getCountries(marketArea);
     // dateFilter();
-    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
     initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
+    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
 
 }
 function daterange() {
@@ -176,7 +176,6 @@ function getOperators() {
     if (allcountries.length === 0)
         document.getElementById('operators').innerHTML = '';
     else {
-        console.log(allcountries);
         $.ajax({
             url: 'api/dashboardapi/operators',
             type: 'GET',
@@ -282,8 +281,12 @@ function getData(startdate, enddate, countries, operators) {
             element.innerHTML = '';
             var functions = [];
 
-            for (var i in res[0]) {
-                functions.push(res[0][i]);
+            if (res == null)
+                functions.push(0);
+            else {
+                for (var i in res[0]) {
+                    functions.push(res[0][i]);
+                }
             }
             const chart = new eds.HorizontalBarChart({
                 element: element,
@@ -315,9 +318,15 @@ function getData(startdate, enddate, countries, operators) {
             var names = [];
             var sites = [];
 
-            for (var i in res) {
-                names.push(res[i]["name"])
-                sites.push(res[i]["sites"]);
+            if (res == null) {
+                names.push("None");
+                sites.push(0);
+            }
+            else {
+                for (var i in res) {
+                    names.push(res[i]["name"])
+                    sites.push(res[i]["sites"]);
+                }
             }
 
             const chart = new eds.HorizontalBarChart({
@@ -473,7 +482,6 @@ function getData(startdate, enddate, countries, operators) {
                 rows.push(['Date', 'Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP']);
                 table.data.forEach(row => {
                     rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"]]);
-                    console.log(row);
                 });
                 exportToCsv("IMK_Dashboard.csv", rows)
 
