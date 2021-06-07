@@ -68,7 +68,7 @@ namespace IMK_web.Controllers
                 _appRepository.Add(user);
 
                 await _appRepository.SaveChanges();
-                // await this.sendAccessRequest(userDto);
+                //await this.sendAccessRequest(userDto).ConfigureAwait(false);
                 UserToReturn userToReturnDto = new UserToReturn();
                 userToReturnDto.AspCompany = user.AspCompany.Name;
                 userToReturnDto.Email = user.Email;
@@ -246,7 +246,7 @@ namespace IMK_web.Controllers
 
 
             if (await _appRepository.SaveChanges())
-                return Ok("Created");
+                return Ok(siteVisitDto.Id);
             else
                 return BadRequest("Upload Failed");
 
@@ -326,9 +326,9 @@ namespace IMK_web.Controllers
 
         [AllowAnonymous]
         [HttpPost("request")]
-        public async Task<IActionResult> sendAccessRequest([FromQuery] string AspCompany, [FromQuery] string Email, [FromQuery] string Phone)
+        public async Task<IActionResult> sendAccessRequest(UserDto userDto)
         {
-            var aspCompany = await _appRepository.GetAspCompany(AspCompany);
+            var aspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
             var aspManagers = await _appRepository.GetAspManagers(aspCompany.Country.Name);
 
             var url = "https://localhost:5001/api/mobileapi/activate";
@@ -336,13 +336,13 @@ namespace IMK_web.Controllers
             string body = @"<html>
                       <body>
                       <p>A new user started using IMK app</p>
-                      <p> Email: " + Email +
-                         "<br>Phone: " + Phone +
-                         "<br>Country: " + Phone +
-                         "<br>AspCompany: " + AspCompany + @"
+                      <p> Email: " + userDto.Email +
+                         "<br>Phone: " + userDto.Phone +
+                         "<br>Country: " + userDto.Country +
+                         "<br>AspCompany: " + userDto.AspCompany + @"
                         </p>
-                        <a href=" + url + "?accept=true&email=" + Email + @">Accept</a>
-                        <a href=" + url + "?accept=false&email=" + Email + @">Reject</a>
+                        <a href=" + url + "?accept=true&email=" + userDto.Email + @">Accept</a>
+                        <a href=" + url + "?accept=false&email=" + userDto.Email + @">Reject</a>
                         <br><br>
                         <p>Please do not reply to this email</p>
                       </body>
@@ -473,8 +473,21 @@ namespace IMK_web.Controllers
         [HttpGet("test")]
         public async Task<IActionResult> test()
         {
-            var version = await _appRepository.GetLatestImkVersion();
-            return Ok(version);
+            // var version = await _appRepository.GetLatestImkVersion();
+            // return Ok(version);
+            string[] recipients = new string[1];
+            recipients[0] = "sara.shoujaa@ericsson.com";
+            var message = @"<html>
+                            <body>
+                                        <p>Dear IMK User,</p>
+                                        <p>Your account has been rejected by admin.</p>
+                                            <br><br>
+                                            <p>Please do not reply to this email</p>
+                                        </body>
+                                        </html>
+                                        ";
+            await sendMail("No Reply - IMK Registration", message, recipients, false);
+            return Ok("sent");
         }
 
 
