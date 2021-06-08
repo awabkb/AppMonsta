@@ -881,14 +881,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#BB0B02"
+                        data["fill"] = "#ED0E00"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#F78F2D"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] < 10) {
                         var data = [];
@@ -908,14 +908,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#BB0B02"
+                        data["fill"] = "#ED0E00"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#F78F2D"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] < 10) {
                         var data = [];
@@ -1015,14 +1015,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#BB0B02"
+                        data["fill"] = "#ED0E00"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#F78F2D"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1043,14 +1043,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#BB0B02"
+                        data["fill"] = "#ED0E00"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#F78F2D"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1142,14 +1142,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#BB0B02"
+                        data["fill"] = "#ED0E00"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#F78F2D"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1170,14 +1170,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#BB0B02"
+                        data["fill"] = "#ED0E00"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#F78F2D"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
