@@ -109,7 +109,7 @@ $('#filter').on('submit', function (e) {
 
 $('#filter').on('reset', function (e) {
     e.preventDefault();
-    var c = [];
+    var c = "all";
     var o = [];
     var ma = '';
     var s = (moment().subtract(29, 'days')).format('YYYY-MM-DD');
@@ -881,14 +881,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ff0000"
+                        data["fill"] = "#BB0B02"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#FFA500"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] < 10) {
                         var data = [];
@@ -896,7 +896,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ffff00"
+                        data["fill"] = "#CCAC29"
 
                     }
                     mapdata.push(data)
@@ -908,14 +908,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ff0000"
+                        data["fill"] = "#BB0B02"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#FFA500"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] < 10) {
                         var data = [];
@@ -923,7 +923,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ffff00"
+                        data["fill"] = "#CCAC29"
 
                     }
                     mapdata.push(data)
@@ -933,7 +933,7 @@ function initMap(start, end, m_a) {
 
 
                 // Themes begin
-                am4core.useTheme(am4themes_dark);
+                // am4core.useTheme(am4themes_dark);
                 am4core.useTheme(am4themes_animated);
                 // Themes end
 
@@ -968,16 +968,16 @@ function initMap(start, end, m_a) {
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
                 polygonTemplate.tooltipText = "{name} IMK Registered Users {customData} ";
-                polygonTemplate.fill = am4core.color("fill");
+                polygonTemplate.fill = am4core.color("#DCDCDC");
 
                 var graticuleSeries = chart3.series.push(new am4maps.GraticuleSeries());
-                graticuleSeries.mapLines.template.line.stroke = am4core.color("#71749b5");
+                graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");
                 graticuleSeries.mapLines.template.line.strokeOpacity = 0.08;
                 graticuleSeries.fitExtent = false;
 
 
-                chart3.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.1;
-                chart3.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#71749b5");
+                chart3.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.6;
+                chart3.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#4D97ED");
 
                 // // Create hover state and set alternative fill color
                 // var hs = polygonTemplate.states.create("hover");
@@ -1015,14 +1015,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ff0000"
+                        data["fill"] = "#BB0B02"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#FFA500"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1030,7 +1030,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ffff00"
+                        data["fill"] = "#CCAC29"
 
                     }
 
@@ -1043,14 +1043,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ff0000"
+                        data["fill"] = "#BB0B02"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#FFA500"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1058,7 +1058,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ffff00"
+                        data["fill"] = "#CCAC29"
 
                     }
                     mapdata.push(data)
@@ -1068,7 +1068,7 @@ function initMap(start, end, m_a) {
 
 
                 // Themes begin
-                am4core.useTheme(am4themes_dark);
+                // am4core.useTheme(am4themes_dark);
                 am4core.useTheme(am4themes_animated);
                 // Themes end
 
@@ -1102,16 +1102,16 @@ function initMap(start, end, m_a) {
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
                 polygonTemplate.tooltipText = "{name} IMK usage {customData} ";
-                polygonTemplate.fill = am4core.color("fill");
+                polygonTemplate.fill = am4core.color("#DCDCDC");
 
                 var graticuleSeries = chart.series.push(new am4maps.GraticuleSeries());
-                graticuleSeries.mapLines.template.line.stroke = am4core.color("#71749b5");
+                graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");
                 graticuleSeries.mapLines.template.line.strokeOpacity = 0.08;
                 graticuleSeries.fitExtent = false;
 
 
-                chart.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.1;
-                chart.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#71749b5");
+                chart.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.6;
+                chart.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#4D97ED");
 
 
                 polygonSeries.exclude = [];
@@ -1142,14 +1142,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ff0000"
+                        data["fill"] = "#BB0B02"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#FFA500"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1157,7 +1157,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ffff00"
+                        data["fill"] = "#CCAC29"
 
                     }
 
@@ -1170,14 +1170,14 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ff0000"
+                        data["fill"] = "#BB0B02"
                     }
                     if (obj["percent"] > 10 && obj["percent"] < 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#FFA500"
+                        data["fill"] = "#D46617"
                     }
                     if (obj["percent"] <= 10) {
                         var data = [];
@@ -1185,7 +1185,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#ffff00"
+                        data["fill"] = "#CCAC29"
 
                     }
                     mapdata.push(data)
@@ -1193,7 +1193,7 @@ function initMap(start, end, m_a) {
             }
             am4core.ready(function () {
                 // Themes begin
-                am4core.useTheme(am4themes_dark);
+                // am4core.useTheme(am4themes_dark);
                 am4core.useTheme(am4themes_animated);
                 // Themes end
 
@@ -1227,16 +1227,16 @@ function initMap(start, end, m_a) {
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
                 polygonTemplate.tooltipText = "{name} IMK Users {customData} ";
-                polygonTemplate.fill = am4core.color("fill");
+                polygonTemplate.fill = am4core.color("#DCDCDC");
 
                 var graticuleSeries = chart2.series.push(new am4maps.GraticuleSeries());
-                graticuleSeries.mapLines.template.line.stroke = am4core.color("#71749b5");
+                graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");
                 graticuleSeries.mapLines.template.line.strokeOpacity = 0.08;
                 graticuleSeries.fitExtent = false;
 
 
-                chart2.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.1;
-                chart2.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#71749b5");
+                chart2.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.6;
+                chart2.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#4D97ED");
 
                 // // Create hover state and set alternative fill color
                 // var hs = polygonTemplate.states.create("hover");
