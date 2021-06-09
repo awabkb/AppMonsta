@@ -14,6 +14,7 @@ namespace IMK_web.Repository
         Task<Site> GetSite(string sitename);
         Task<User> GetUser(string userId);
         Task<Country> GetCountryByName(string country);
+        Task<Country> GetCountry(string code);
         Task<ImkVersion> GetImkVersion(double rpi,double app);
         Task<bool> SaveChanges();
         Task<AspCompany> GetAspCompanyByCountry(string aspName, string country);
@@ -29,6 +30,7 @@ namespace IMK_web.Repository
         Task<ActionResult> GetLogs();
         Task<IEnumerable<AspManager>> GetApprovers();
         Task<AspManager> GetApprover(string email);
+        Task<IEnumerable<AspCompany>> GetAspCompanies();
 
 
 

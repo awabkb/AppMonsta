@@ -58,7 +58,28 @@ namespace IMK_web.Controllers
         {
             var approvers = await _appRepository.GetApprovers();
             return Ok(approvers);
+        }
 
+        [HttpGet("asps")]
+        public async Task<ActionResult> GetAspCompanies()
+        {
+            var companies = await _appRepository.GetAspCompanies();
+            var asps = companies.GroupBy(x => new {x.Country.Name})
+            .Select(y => new {country = y.Key.Name, asp = y.Select(i => i.Name)});
+            return Ok(asps);
+        }
+        
+        [HttpPost("asp")]
+        public async Task<ActionResult> addAspCompany([FromQuery]string name, [FromQuery]string country)
+        {
+
+            AspCompany asp = new AspCompany();
+            asp.Country = await _appRepository.GetCountryByName(country);
+            asp.Name = name;
+            _appRepository.Add(asp);
+            await _appRepository.SaveChanges();
+
+            return Ok(asp);
         }
 
         [HttpGet("users")]

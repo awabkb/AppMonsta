@@ -332,6 +332,50 @@ function getData() {
     });
 
 
+    ////////////////////////// ASP Companies //////////////////////////
+
+    $.ajax({
+        url: "api/cms/asps",
+        type: "GET",
+        success: function (res) {
+            const tableDOM = document.querySelector('#t-asps');
+            tableDOM.innerHTML = '';
+            const table = new eds.Table(tableDOM, {
+                data: res,
+                columns: [
+                    {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'asp',
+                        title: 'ASP',
+                        sort: 'asc'
+                    },
+                ],
+                actions: true,
+                sortable: true,
+                rowsPerPage: 50,
+            });
+
+            table.init();
+            document.querySelector('#export-asps').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_ASP_Companies.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Country', 'ASP Companies']);
+                table.data.forEach(row => {
+                    rows.push([row["country"], row["asp"]]);
+                });
+                exportToCsv("IMK_ASP_Companies.csv", rows)
+
+            });
+        }
+    });
 
     ////////////////////////// Logs //////////////////////////
 
@@ -411,10 +455,13 @@ function getData() {
 }
 
 /// ACTION ///
-const selectDOM = document.querySelector('#country');
-const select = new eds.Select(selectDOM);
-select.init();
-
+const selects = document.querySelectorAll('#select-country');
+if (selects) {
+    Array.from(selects).forEach((selectDOM) => {
+        const select = new eds.Select(selectDOM);
+        select.init();
+    });
+}
 
 
 const dialogs = document.querySelectorAll('.dialog');
@@ -436,10 +483,25 @@ $('#submit-approver').on('click', function (e) {
         url: "api/cms/approver?" + values,
         type: "POST",
         success: function (res) {
-            console.log(res)
             const notification = new eds.Notification({
                 title: "Approver Action",
                 description: 'New approver has been added',
+            });
+            notification.init();
+            getData();
+        }
+    });
+});
+
+$('#submit-asp').on('click', function (e) {
+    var values = "name=" + $("#asp-name").val() + "&country=" + $('.item.country.active').text();
+    $.ajax({
+        url: "api/cms/asp?" + values,
+        type: "POST",
+        success: function (res) {
+            const notification = new eds.Notification({
+                title: "ASP Action",
+                description: 'New ASP has been added',
             });
             notification.init();
             getData();
