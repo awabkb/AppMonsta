@@ -896,7 +896,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#E3D61E"
+                        data["fill"] = "#CFC000"
 
                     }
                     mapdata.push(data)
@@ -923,7 +923,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#E3D61E"
+                        data["fill"] = "#CFC000"
 
                     }
                     mapdata.push(data)
@@ -968,7 +968,7 @@ function initMap(start, end, m_a) {
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
                 polygonTemplate.tooltipText = "{name} IMK Registered Users {customData} ";
-                polygonTemplate.fill = am4core.color("#DCDCDC");
+                polygonTemplate.fill = am4core.color("#EDEDED");
 
                 var graticuleSeries = chart3.series.push(new am4maps.GraticuleSeries());
                 graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");
@@ -1030,7 +1030,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#E3D61E"
+                        data["fill"] = "#CFC000"
 
                     }
 
@@ -1058,7 +1058,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["usage"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#E3D61E"
+                        data["fill"] = "#CFC000"
 
                     }
                     mapdata.push(data)
@@ -1102,7 +1102,7 @@ function initMap(start, end, m_a) {
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
                 polygonTemplate.tooltipText = "{name} IMK usage {customData} ";
-                polygonTemplate.fill = am4core.color("#DCDCDC");
+                polygonTemplate.fill = am4core.color("#EDEDED");
 
                 var graticuleSeries = chart.series.push(new am4maps.GraticuleSeries());
                 graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");
@@ -1157,7 +1157,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = isocode;
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#E3D61E"
+                        data["fill"] = "#CFC000"
 
                     }
 
@@ -1185,7 +1185,7 @@ function initMap(start, end, m_a) {
                         data["title"] = obj["country"]
                         data["id"] = 'EH';
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
-                        data["fill"] = "#E3D61E"
+                        data["fill"] = "#CFC000"
 
                     }
                     mapdata.push(data)
@@ -1227,7 +1227,7 @@ function initMap(start, end, m_a) {
                 // Configure series
                 var polygonTemplate = polygonSeries.mapPolygons.template;
                 polygonTemplate.tooltipText = "{name} IMK Users {customData} ";
-                polygonTemplate.fill = am4core.color("#DCDCDC");
+                polygonTemplate.fill = am4core.color("#EDEDED");
 
                 var graticuleSeries = chart2.series.push(new am4maps.GraticuleSeries());
                 graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");

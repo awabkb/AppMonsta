@@ -51,6 +51,10 @@ namespace IMK_web.Repository
         {
             return await _context.Countries.FirstOrDefaultAsync(x => x.Name.Equals(country));
         }
+        public async Task<Country> GetCountry(string code)
+        {
+            return await _context.Countries.FirstOrDefaultAsync(x => x.Code.Equals(code));
+        }
 
         public async Task<ImkVersion> GetImkVersion(double rpi, double app)
         {
@@ -137,7 +141,10 @@ namespace IMK_web.Repository
             return await _context.AspManagers.SingleOrDefaultAsync(x => x.Email.Equals(email));
         }
 
-
+        public async Task<IEnumerable<AspCompany>> GetAspCompanies()
+        {
+            return await _context.AspCompanies.Include(x => x.Country).ToListAsync();
+        }        
 
     }
 }
