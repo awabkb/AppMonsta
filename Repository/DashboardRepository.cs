@@ -549,9 +549,20 @@ namespace IMK_web.Repository
                 //contact = x.Site.AspCompany.ApsMentor.Email
             });
             List<VisitDetail> uniqueVisits = new List<VisitDetail>();
+            Dictionary<string, DateTime> siterevisit = new Dictionary<string, DateTime>();
 
             foreach (var vd in visitDetails)
             {
+                var revisit = false;
+                if (siterevisit.ContainsKey(vd.siteName)){
+                    var T = siterevisit[vd.siteName];
+                    if(vd.date.First() >= T.AddHours(12)){
+                        revisit = true;
+                        siterevisit[vd.siteName] = vd.date.First();
+                    }   
+                }
+                else 
+                siterevisit.Add(vd.siteName, vd.date.First());
 
                 if (vd.date.Count() > 1)
                 {
@@ -565,7 +576,9 @@ namespace IMK_web.Repository
                     v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
+                    v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
+
 
                     for (var i = 1; i < d.Length; i++)
                     {
@@ -579,6 +592,7 @@ namespace IMK_web.Repository
                             v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                             v.ASP = vd.asp.First();
                             v.Date = d[i].Date.ToString("yyyy-MM-dd");
+                            v.IsRevisit = revisit;
                             uniqueVisits.Add(v);
                         }
                         T = d[i];
@@ -594,11 +608,14 @@ namespace IMK_web.Repository
                     v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
                     v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
+                    v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
                 }
 
             }
-            return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
+            // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
+            return new JsonResult(uniqueVisits);
+
 
 
 

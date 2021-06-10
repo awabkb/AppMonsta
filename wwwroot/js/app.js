@@ -444,6 +444,15 @@ function getData(startdate, enddate, countries, operators) {
                         title: 'ASP',
                         sort: 'none'
                     },
+                    {
+                        key: 'isRevisit',
+                        title: 'Revisit',
+                        sort: 'none',
+                        onCreatedCell: (td, cellData) => {
+                            if(cellData === true)
+                                td.innerHTML = `<span class="color-green"><i class="icon icon-alarm-level4"></i></span>`;
+                        }
+                    },
                 ],
                 sortable: true,
                 actions: true,
