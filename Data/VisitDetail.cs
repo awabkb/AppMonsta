@@ -11,6 +11,7 @@ namespace Data{
         public string AppVersion { get; set; }
         public String ASP { get; set; }
         public String Date { get; set; }
+        public bool IsRevisit { get; set; }
         
     }
 }
