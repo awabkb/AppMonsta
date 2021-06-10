@@ -410,7 +410,7 @@ function getData(startdate, enddate, countries, operators) {
                 data: res,
                 columns: [
                     {
-                        key: 'date',
+                    key: 'date',
                         title: 'Date',
                         sort: 'none'
                     },
@@ -543,6 +543,24 @@ function mapData(result) {
 
 }
 
+function searchTable() {
+
+    var input = document.getElementById("search-table");
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("site-details");
+    var trs = table.tBodies[0].getElementsByTagName("tr");
+  
+    for (var i = 0; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        trs[i].style.display = "none";
+        for (var i2 = 0; i2 < tds.length; i2++) {
+          if (tds[i2].innerHTML.toUpperCase().indexOf(filter) > -1) {
+            trs[i].style.display = "";
+            continue;
+        }
+      }
+    }
+}
 
 function exportToCsv(filename, rows) {
     var processRow = function (row) {
