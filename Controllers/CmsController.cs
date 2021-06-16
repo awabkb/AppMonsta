@@ -95,9 +95,10 @@ namespace IMK_web.Controllers
                     asp = x.AspCompany.Name,
                     email = x.Email,
                     phone = x.Phone,
+                    lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
                     registeredAt = x.RegisteredAt
                 });
-                return Ok(active_users);
+                 return Ok(active_users);
             }
             else
             {
@@ -108,9 +109,10 @@ namespace IMK_web.Controllers
                     asp = x.AspCompany.Name,
                     email = x.Email,
                     phone = x.Phone,
+                    lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
                     registeredAt = x.RegisteredAt
                 });
-                return Ok(inactive_users);
+                 return Ok(inactive_users);
             }
         }
 

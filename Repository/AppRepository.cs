@@ -107,7 +107,9 @@ namespace IMK_web.Repository
 
         public async Task<IEnumerable<User>> GetAllUsers()
         {
-            return await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country).OrderByDescending(x => x.RegisteredAt).ToListAsync();
+            return await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country)
+            .Include(x => x.SiteVisits)
+            .OrderByDescending(x => x.RegisteredAt).ToListAsync();
         }
 
         public async Task<ActionResult> GetLogs()
