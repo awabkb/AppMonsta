@@ -11,7 +11,7 @@ namespace IMK_web.Repository
 	    void Add<T>(T entity) where T: class;
         void Update<T>(T entity) where T: class;
         void Remove<T>(T entity) where T: class;
-        Task<Site> GetSite(string sitename);
+        Task<Site> GetSite(string sitename, string country);
         Task<User> GetUser(string userId);
         Task<Country> GetCountryByName(string country);
         Task<Country> GetCountry(string code);
