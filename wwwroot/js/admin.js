@@ -28,31 +28,40 @@ function getData() {
                     {
                         key: 'name',
                         title: 'Name',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                     {
                         key: 'country',
                         title: 'Country',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                     {
                         key: 'asp',
                         title: 'ASP',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                     {
                         key: 'email',
                         title: 'Email',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                     {
                         key: 'phone',
                         title: 'Phone',
                     },
                     {
+                        key: 'lastActive',
+                        title: 'Last Active On',
+                        sort: 'none',
+                        onCreatedCell: (td, cellData) => {
+                            if(cellData === "0001-01-01T00:00:00")
+                                td.innerHTML = "Not active yet";
+                        },
+                    },
+                    {
                         key: 'registeredAt',
                         title: 'Registered On',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                 ],
                 actions: true,
@@ -146,31 +155,40 @@ function getData() {
                     {
                         key: 'name',
                         title: 'Name',
-                        sort: 'asc'
+                        sort: 'npne'
                     },
                     {
                         key: 'country',
                         title: 'Country',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                     {
                         key: 'asp',
                         title: 'ASP',
-                        sort: 'asc'
+                        sort: 'npne'
                     },
                     {
                         key: 'email',
                         title: 'Email',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                     {
                         key: 'phone',
                         title: 'Phone',
                     },
                     {
+                        key: 'lastActive',
+                        title: 'Last Active On',
+                        sort: 'none',
+                        onCreatedCell: (td, cellData) => {
+                            if(cellData === "0001-01-01T00:00:00")
+                                td.innerHTML = "Not active yet";
+                        },
+                    },
+                    {
                         key: 'registeredAt',
                         title: 'Registered On',
-                        sort: 'asc'
+                        sort: 'none'
                     },
                 ],
                 actions: true,
