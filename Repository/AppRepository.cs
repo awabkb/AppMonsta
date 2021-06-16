@@ -34,9 +34,9 @@ namespace IMK_web.Repository
             _context.Remove(entity);
         }
 
-        public async Task<Site> GetSite(string sitename)
+        public async Task<Site> GetSite(string sitename, string country)
         {
-            return await _context.Sites.Include(x => x.SiteVisits).FirstOrDefaultAsync(x => x.Name.Equals(sitename));
+            return await _context.Sites.Include(x => x.SiteVisits).FirstOrDefaultAsync(x => x.Name.Equals(sitename) && x.Country.Equals(country));
         }
 
         public async Task<User> GetUser(string userId)
