@@ -114,7 +114,8 @@
                 <span class="title closed item">Users</span>
                 <ul>
                   <li class="item menu-item" value="active-users">Active</li>
-                  <li class="item menu-item" value="inactive-users">InActive</li>
+                  <li class="item menu-item" value="inactive-users">New</li>
+                  <li class="item menu-item" value="deactived-users">Deactivated</li>
                 </ul>
               </li>
               <li class="item menu-item" value="approvers">Approvers</li>
@@ -631,7 +632,7 @@
               <div class="header">
                 <div class="left">
                   <div class="title">Users</div>
-                  <div class="subtitle">Not Active</div>
+                  <div class="subtitle">New</div>
                 </div>
                 <div class="table-buttons">
                   <button class="btn" id="activate-users">Activate</button>
@@ -645,6 +646,34 @@
                   </div>
                 </div>
                 <table id="i-users" class="table"></table>
+                <div class="table-bottom">
+                  <div class="pagination-group">
+                    <ul class="pagination"></ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <!------ Deactived Users ------>
+            <div class="element" id="deactived-users" style="display:none">
+              <div class="header">
+                <div class="left">
+                  <div class="title">Users</div>
+                  <div class="subtitle">Deactivated</div>
+                </div>
+                <div class="table-buttons">
+                  <button class="btn" id="reactivate-users">Activate</button>
+                  <button class="btn" id="export-dusers">Export</button>
+                </div>
+              </div>
+              <div class="content text-sm">
+                <div class="table-top">
+                  <div class="table-top-left">
+                    <div class="table-info"></div>
+                  </div>
+                </div>
+                <table id="d-users" class="table"></table>
                 <div class="table-bottom">
                   <div class="pagination-group">
                     <ul class="pagination"></ul>

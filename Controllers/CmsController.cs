@@ -30,7 +30,7 @@ namespace IMK_web.Controllers
         }
 
         [HttpPost("approver")]
-        public async Task<ActionResult> addAspManager([FromQuery]string name, [FromQuery]string email, [FromQuery]string role, [FromQuery]string country)
+        public async Task<ActionResult> addAspManager([FromQuery] string name, [FromQuery] string email, [FromQuery] string role, [FromQuery] string country)
         {
             AspManager manager = new AspManager();
             manager.Country = country;
@@ -42,7 +42,7 @@ namespace IMK_web.Controllers
 
             return Ok(manager);
         }
-        
+
         [HttpDelete("approver")]
         public async Task<ActionResult> removeApprover([FromQuery] string email)
         {
@@ -64,13 +64,13 @@ namespace IMK_web.Controllers
         public async Task<ActionResult> GetAspCompanies()
         {
             var companies = await _appRepository.GetAspCompanies();
-            var asps = companies.GroupBy(x => new {x.Country.Name})
-            .Select(y => new {country = y.Key.Name, asp = y.Select(i => i.Name)});
+            var asps = companies.GroupBy(x => new { x.Country.Name })
+            .Select(y => new { country = y.Key.Name, asp = y.Select(i => i.Name) });
             return Ok(asps);
         }
-        
+
         [HttpPost("asp")]
-        public async Task<ActionResult> addAspCompany([FromQuery]string name, [FromQuery]string country)
+        public async Task<ActionResult> addAspCompany([FromQuery] string name, [FromQuery] string country)
         {
 
             AspCompany asp = new AspCompany();
@@ -86,34 +86,38 @@ namespace IMK_web.Controllers
         public async Task<ActionResult> getAllUsers([FromQuery] bool active)
         {
             var users = await _appRepository.GetAllUsers();
-            if (active == true)
+
+            var active_users = users.Where(x => x.IsActive == active && x.IsDeactivated==false).Select(x => new
             {
-                var active_users = users.Where(x => x.IsActive == true).Select(x => new
-                {
-                    name = x.Name,
-                    country = x.AspCompany.Country.Name,
-                    asp = x.AspCompany.Name,
-                    email = x.Email,
-                    phone = x.Phone,
-                    lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
-                    registeredAt = x.RegisteredAt
-                });
-                 return Ok(active_users);
-            }
-            else
+                name = x.Name,
+                country = x.AspCompany.Country.Name,
+                asp = x.AspCompany.Name,
+                email = x.Email,
+                phone = x.Phone,
+                lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
+                registeredAt = x.RegisteredAt
+            });
+            return Ok(active_users);
+
+        }
+
+        [HttpGet("deactivated")]
+        public async Task<ActionResult> getDeactivatedUsers()
+        {
+            var users = await _appRepository.GetAllUsers();
+
+            var deactived_users = users.Where(x=>x.IsDeactivated == true).Select(x => new
             {
-                var inactive_users = users.Where(x => x.IsActive == false).Select(x => new
-                {
-                    name = x.Name,
-                    country = x.AspCompany.Country.Name,
-                    asp = x.AspCompany.Name,
-                    email = x.Email,
-                    phone = x.Phone,
-                    lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
-                    registeredAt = x.RegisteredAt
-                });
-                 return Ok(inactive_users);
-            }
+                name = x.Name,
+                country = x.AspCompany.Country.Name,
+                asp = x.AspCompany.Name,
+                email = x.Email,
+                phone = x.Phone,
+                lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
+                registeredAt = x.RegisteredAt
+            });
+            return Ok(deactived_users);
+
         }
 
         [HttpPut("activate")]
@@ -121,15 +125,18 @@ namespace IMK_web.Controllers
         {
             var user = await _appRepository.GetUserByEmail(email);
             user.IsActive = true;
+            user.IsDeactivated = false;
             _appRepository.Update(user);
             await _appRepository.SaveChanges();
             return Ok(user);
         }
 
+
         [HttpPut("deactivate")]
         public async Task<ActionResult> DeactivateUser([FromQuery] string email)
         {
             var user = await _appRepository.GetUserByEmail(email);
+            user.IsDeactivated = true;
             user.IsActive = false;
             _appRepository.Update(user);
             await _appRepository.SaveChanges();

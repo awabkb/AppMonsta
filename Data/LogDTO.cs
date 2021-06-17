@@ -10,6 +10,7 @@ namespace Data
         public double Longitude { get; set; }
         public double Latitude { get; set; }
         public JsonObject[] Result { get; set; }
+        public long ResponseTime { get; set; }
 
     }
 }
