@@ -74,7 +74,7 @@ namespace IMK_web.Controllers
                 userToReturnDto.AspCompany = user.AspCompany.Name;
                 userToReturnDto.Email = user.Email;
                 userToReturnDto.IsActive = user.IsActive;
-                userToReturnDto.IsAdmin = user.IsAdmin;
+                userToReturnDto.IsAdmin = user.IsDeactivated;
                 userToReturnDto.Name = user.Name;
                 userToReturnDto.Phone = user.Phone;
                 userToReturnDto.UserId = user.UserId;
@@ -108,7 +108,7 @@ namespace IMK_web.Controllers
                 userToReturnDto.AspCompany = user.AspCompany.Name;
                 userToReturnDto.Email = user.Email;
                 userToReturnDto.IsActive = user.IsActive;
-                userToReturnDto.IsAdmin = user.IsAdmin;
+                userToReturnDto.IsAdmin = user.IsDeactivated;
                 userToReturnDto.Name = user.Name;
                 userToReturnDto.Phone = user.Phone;
                 userToReturnDto.UserId = user.UserId;
@@ -128,12 +128,14 @@ namespace IMK_web.Controllers
             {
                 return BadRequest("User not found " + userId);
             }
+            if(siteVisitDto.SiteName == null)
+                return BadRequest("Upload Failed");
 
             SiteVisit siteVisit = new SiteVisit();
 
             siteVisit.User = await _appRepository.GetUser(userId);
 
-            Site site = await _appRepository.GetSite(siteVisitDto.SiteName);
+            Site site = await _appRepository.GetSite(siteVisitDto.SiteName, siteVisitDto.Country);
 
             Operator op = new Operator();
             var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.Country);
@@ -403,7 +405,7 @@ namespace IMK_web.Controllers
         public async Task<IActionResult> sendMail(string Subject, string Body, string[] Recipients, bool BccAdmins)
         {
             SmtpClient smtp = new SmtpClient();
-            smtp.Connect("smtp.ericsson.net", 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Connect("smtp.ericsson.net", 587, MailKit.Security.SecureSocketOptions.SslOnConnect);
             smtp.Authenticate("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
             MimeMessage msg = new MimeMessage();
 

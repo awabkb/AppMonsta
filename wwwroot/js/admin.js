@@ -155,7 +155,7 @@ function getData() {
                     {
                         key: 'name',
                         title: 'Name',
-                        sort: 'npne'
+                        sort: 'none'
                     },
                     {
                         key: 'country',
@@ -165,7 +165,7 @@ function getData() {
                     {
                         key: 'asp',
                         title: 'ASP',
-                        sort: 'npne'
+                        sort: 'none'
                     },
                     {
                         key: 'email',
@@ -268,6 +268,141 @@ function getData() {
             });
         }
     });
+
+
+
+
+
+    
+
+    ////////////////////////// Deactived Users //////////////////////////
+
+    $.ajax({
+        url: "api/cms/deactivated",
+        type: "GET",
+        success: function (res) {
+            const tableDOM = document.querySelector('#d-users');
+            tableDOM.innerHTML = '';
+            const table = new eds.Table(tableDOM, {
+                data: res,
+                columns: [
+                    {
+                        key: 'name',
+                        title: 'Name',
+                        sort: 'none'
+                    },
+                    {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'none'
+                    },
+                    {
+                        key: 'asp',
+                        title: 'ASP',
+                        sort: 'none'
+                    },
+                    {
+                        key: 'email',
+                        title: 'Email',
+                        sort: 'none'
+                    },
+                    {
+                        key: 'phone',
+                        title: 'Phone',
+                    },
+                    {
+                        key: 'lastActive',
+                        title: 'Last Active On',
+                        sort: 'none',
+                        onCreatedCell: (td, cellData) => {
+                            if(cellData === "0001-01-01T00:00:00")
+                                td.innerHTML = "Not active yet";
+                        },
+                    },
+                    {
+                        key: 'registeredAt',
+                        title: 'Registered On',
+                        sort: 'none'
+                    },
+                ],
+                actions: true,
+                sortable: true,
+                selectable: 'multi',
+                rowsPerPage: 50,
+                onCreatedActionsCell: (td) => {
+                    td.innerHTML = `<button class="btn-icon reactivate"><i class="icon icon-check"></i></button>`;
+
+                    td.querySelector('button.reactivate').addEventListener('click', (evt) => {
+                        var tr = evt.target.closest('tr');
+                        var name = $(tr).find('td').eq(1).text();
+                        var email = $(tr).find('td').eq(4).text();
+                        var result = confirm("Are you sure you want to reactivate user?");
+                        if (result) {
+                            $.ajax({
+                                url: "api/cms/activate?email=" + email,
+                                type: "PUT",
+                                success: function (res) {
+                                    const notification = new eds.Notification({
+                                        title: "User Action",
+                                        description: name + ' has been reactivated',
+                                    });
+                                    notification.init();
+                                    getData();
+                                }
+                            });
+                        }
+                    });
+
+                }
+            });
+            table.init();
+
+            const toggleActivateBtn = () => {
+                (document.querySelector('#reactivate-users')).style.display =
+                    (table.selected.length === 0) ? 'none' : '';
+            };
+            document.querySelector('#reactivate-users').addEventListener('click', () => {
+                var result = confirm("Are you sure you want to reactivate users?");
+                if (result) {
+                    table.selected.forEach((d) => {
+                        var email = d["email"];
+                        $.ajax({
+                            url: "api/cms/reactivate?email=" + email,
+                            type: "PUT",
+                            success: function (res) {
+                                getData();
+                            }
+                        });
+                    });
+                }
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been reactivated',
+                });
+                notification.init();
+                toggleActivateBtn();
+            });
+
+            tableDOM.addEventListener('toggleSelectRow', toggleActivateBtn);
+            toggleActivateBtn()
+
+            document.querySelector('#export-dusers').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_DeactivatedUsers.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+                table.data.forEach(row => {
+                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                });
+                exportToCsv("IMK_DeactivatedUsers.csv", rows)
+
+            });
+        }
+    });
+
 
 
 
