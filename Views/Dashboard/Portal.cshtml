@@ -614,7 +614,9 @@
               <div class="content text-sm">
                 <div class="table-top">
                   <div class="table-top-left">
-                    <div class="table-info"></div>
+                      <input id="active-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 'a-users')" placeholder="Type to search...">
+                      <div class="suffix icon-inside"><i class="icon icon-search"></i></div>             
+                    <div class="table-info ml-2"></div>
                   </div>
                 </div>
 
@@ -642,7 +644,9 @@
               <div class="content text-sm">
                 <div class="table-top">
                   <div class="table-top-left">
-                    <div class="table-info"></div>
+                      <input id="inactive-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 'i-users')" placeholder="Type to search...">
+                      <div class="suffix icon-inside"><i class="icon icon-search"></i></div>                       
+                    <div class="table-info ml-2"></div>
                   </div>
                 </div>
                 <table id="i-users" class="table"></table>
@@ -670,7 +674,9 @@
               <div class="content text-sm">
                 <div class="table-top">
                   <div class="table-top-left">
-                    <div class="table-info"></div>
+                      <input id="deactivated-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 'd-users')" placeholder="Type to search...">
+                      <div class="suffix icon-inside"><i class="icon icon-search"></i></div>                       
+                    <div class="table-info ml-2"></div>
                   </div>
                 </div>
                 <table id="d-users" class="table"></table>
@@ -697,7 +703,9 @@
               <div class="content text-sm">
                 <div class="table-top">
                   <div class="table-top-left">
-                    <div class="table-info"></div>
+                      <input id="approver-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 't-approvers')" placeholder="Type to search...">
+                      <div class="suffix icon-inside"><i class="icon icon-search"></i></div>                       
+                    <div class="table-info ml-2"></div>
                   </div>
                 </div>
                 <table id="t-approvers" class="table"></table>
@@ -723,7 +731,9 @@
               <div class="content text-sm">
                 <div class="table-top">
                   <div class="table-top-left">
-                    <div class="table-info"></div>
+                      <input id="asp-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 't-asps')" placeholder="Type to search...">
+                      <div class="suffix icon-inside"><i class="icon icon-search"></i></div>                       
+                    <div class="table-info ml-2"></div>
                   </div>
                 </div>
                 <table id="t-asps" class="table split-dashed"></table>
@@ -748,7 +758,9 @@
               <div class="content text-sm">
                 <div class="table-top">
                   <div class="table-top-left">
-                    <div class="table-info"></div>
+                      <input id="logs-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 't-logs')" placeholder="Type to search...">
+                      <div class="suffix icon-inside"><i class="icon icon-search"></i></div>                    
+                    <div class="table-info ml-2"></div>
                   </div>
                 </div>
                 <table id="t-logs" class="table"></table>
