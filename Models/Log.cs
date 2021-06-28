@@ -14,5 +14,8 @@ namespace IMK_web.Models
 	//[Column(TypeName = "json")]
         public string Result { get; set; }
         public SiteVisit SiteVisit { get; set; }
+        public long ResponseTime { get; set; }
+
     }
+
 }
