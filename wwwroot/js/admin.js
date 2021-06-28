@@ -583,7 +583,11 @@ function getData() {
                 sortable: true,
                 expandable: true,
                 onCreatedDetailsRow: (td, data) => {
-                    td.innerHTML = `<b>Commands:</b> ${data['command']}<br><b>Results:</b> ${data['result']}`;
+                    var details = '';
+                    for(var i =0; i< data['command'].length; i++) {
+                        details += `<tr><td> ${data['command'][i]} </td><td> ${data['result'][i]}</td></tr>`;
+                    }
+                    td.innerHTML = '<table><th>Command</th><th>Result</th>' + details+'</table>';
                 }
             });
 
@@ -661,6 +665,25 @@ $('#submit-asp').on('click', function (e) {
         }
     });
 });
+
+function searchTable(search, table)
+{
+    var input = document.getElementById(search);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById(table);
+    var trs = table.tBodies[0].getElementsByTagName("tr");
+
+    for (var i = 0; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        trs[i].style.display = "none";
+        for (var i2 = 0; i2 < tds.length; i2++) {
+            if (tds[i2].innerHTML.toUpperCase().indexOf(filter) > -1) {
+                trs[i].style.display = "";
+                continue;
+            }
+        }
+    }
+}
 
 function exportToCsv(filename, rows) {
     var processRow = function (row) {
