@@ -13,6 +13,7 @@
         integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" media="screen" href="./style/eds.min.css" />
     <link rel="stylesheet" type="text/css" media="screen" href="./style/app.css" />
+
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
@@ -385,8 +386,8 @@
                             <div class="content">
                                 <div class="table-top">
                                     <div class="table-top-left">
-                                        <input id="search-table" type="text" class="with-icon" onkeyup="searchTable()" placeholder="Type to search...">
-                                        <div class="suffix icon-inside"><i class="icon icon-search"></i></div>
+                                        @* <input id="search-table" type="text" class="with-icon" onkeyup="searchTable()" placeholder="Type to search...">
+                                        <div class="suffix icon-inside"><i class="icon icon-search"></i></div> *@
                                         <div class="table-info ml-2"></div>
                                     </div>
 
@@ -394,7 +395,7 @@
 
                                 <table id="site-details" class="table striped text-sm"></table>
 
-                                <div class="table-bottom">
+                                @* <div class="table-bottom">
                                     <div class="pagination-group">
                                         <ul class="pagination"></ul>
 
@@ -404,18 +405,18 @@
 
                                             <label class="left">Show</label>
                                             <div class="select" data-type="single">
-                                                <button class="btn current-options">25</button>
+                                                <button class="btn current-options">All</button>
 
                                                 <div class="options-list">
-                                                    <div class="item active">25</div>
-                                                    <div class="item">50</div>
+                                                    <div class="item active">All</div>
+                                                    <div class="item">10</div>
                                                     <div class="item">100</div>
-                                                    <div class="item">All</div>
+                                                    <div class="item">5</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> *@
                             </div>
                         </div>
 
