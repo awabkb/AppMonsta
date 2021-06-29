@@ -528,12 +528,11 @@ function getData(startdate, enddate, countries, operators) {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
                         if(th.cellIndex!=7 && th.cellIndex!=8)
-                        th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="searchColumn(\'find-'+th.cellIndex+'\','+th.cellIndex+')" class="with-icon" placeholder="search..."></input>';
+                        th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
                     });
                 }
             });
             table.init();
-
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
@@ -551,6 +550,38 @@ function getData(startdate, enddate, countries, operators) {
         }
     });
 }
+
+
+function search() {
+
+    var input0 = document.getElementById("find-0");
+    var input1 = document.getElementById("find-1");
+    var input2 = document.getElementById("find-2");
+    var input3 = document.getElementById("find-3");
+    var input4 = document.getElementById("find-4");
+    var input5 = document.getElementById("find-5");
+    var input6 = document.getElementById("find-6");
+
+    var table = document.getElementById("site-details");
+    var trs = table.tBodies[0].getElementsByTagName("tr");
+
+    for (var i = 0; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        trs[i].style.display = "none";
+        if (tds[0].innerHTML.toUpperCase().indexOf(input0.value.toUpperCase()) > -1 
+            && tds[1].innerHTML.toUpperCase().indexOf(input1.value.toUpperCase()) > -1 
+            && tds[2].innerHTML.toUpperCase().indexOf(input2.value.toUpperCase()) > -1 
+            && tds[3].innerHTML.toUpperCase().indexOf(input3.value.toUpperCase()) > -1 
+            && tds[4].innerHTML.toUpperCase().indexOf(input4.value.toUpperCase()) > -1 
+            && tds[5].innerHTML.toUpperCase().indexOf(input5.value.toUpperCase()) > -1 
+            && tds[6].innerHTML.toUpperCase().indexOf(input6.value.toUpperCase()) > -1 ) {
+            trs[i].style.display = "";
+            continue;
+        }
+
+    }
+}
+
 
 function mapData(result) {
     var dates = [];
@@ -594,25 +625,6 @@ function mapData(result) {
     }
     return [dates, data];
 
-}
-
-function searchColumn(search, pos) {
-    // Hide all table tbody rows
-    //var filtered = false;
-    var input = document.getElementById(search);
-    var filter = input.value.toUpperCase();
-    var table = document.getElementById("site-details");
-    var trs = table.tBodies[0].getElementsByTagName("tr");
-
-    for (var i = 0; i < trs.length; i++) {
-        var tds = trs[i].getElementsByTagName("td");
-        trs[i].style.display = "none";
-        if (tds[pos].innerHTML.toUpperCase().indexOf(filter) > -1) {
-            trs[i].style.display = "";
-            continue;
-        }
-
-    }
 }
 
 
