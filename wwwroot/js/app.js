@@ -524,30 +524,15 @@ function getData(startdate, enddate, countries, operators) {
                     });
                 },
 
-                // onCreatedHead: (thead, headData) => {
-                //     var ths = thead.getElementsByTagName("th");
-                //     ths.forEach(th => {
-                //         th.innerHTML += '<input type="text" id="find-' + th.cellIndex + '" class="with-icon" placeholder="search..."></input>';
-                //     });
-                // }
+                onCreatedHead: (thead, headData) => {
+                    var ths = thead.getElementsByTagName("th");
+                    ths.forEach(th => {
+                        if(th.cellIndex!=7 && th.cellIndex!=8)
+                        th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="searchColumn(\'find-'+th.cellIndex+'\','+th.cellIndex+')" class="with-icon" placeholder="search..."></input>';
+                    });
+                }
             });
             table.init();
-            // $('#site-details').DataTable({
-            //     initComplete: function () {
-            //         // Apply the search
-            //         this.api().columns().every(function () {
-            //             var that = this;
-
-            //             $('input', this.head()).on('keyup change clear', function () {
-            //                 if (that.search() !== this.value) {
-            //                     that
-            //                         .search(this.value)
-            //                         .draw();
-            //                 }
-            //             });
-            //         });
-            //     }
-            // });
 
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
@@ -611,10 +596,10 @@ function mapData(result) {
 
 }
 
-function searchColumn(id, pos) {
+function searchColumn(search, pos) {
     // Hide all table tbody rows
-    var filtered = false;
-    var input = document.getElementById(id);
+    //var filtered = false;
+    var input = document.getElementById(search);
     var filter = input.value.toUpperCase();
     var table = document.getElementById("site-details");
     var trs = table.tBodies[0].getElementsByTagName("tr");
@@ -630,44 +615,6 @@ function searchColumn(id, pos) {
     }
 }
 
-// $(function() {
-
-//     // var input = document.getElementById("search-table");
-//     // var filter = input.value.toUpperCase();
-//     var table = document.getElementById("site-details");
-//     // var trs = table.tBodies[0].getElementsByTagName("tr");
-
-//     // // $('#pages').find("div.item.active").removeClass('active');
-//     // // $('#pages').find("div.item.all").addClass("active");
-
-//     // for (var i = 0; i < trs.length; i++) {
-//     //     var tds = trs[i].getElementsByTagName("td");
-//     //     trs[i].style.display = "none";
-//     //     for (var i2 = 0; i2 < tds.length; i2++) {
-//     //         if (tds[i2].innerHTML.toUpperCase().indexOf(filter) > -1) {
-//     //             trs[i].style.display = "";
-//     //             continue;
-//     //         }
-//     //     }
-//     // }
-
-//     var table = $('#site-details').DataTable({
-//         initComplete: function () {
-//             // Apply the search
-//             this.api().columns().every( function () {
-//                 var that = this;
-
-//                 $( 'input', this.header() ).on( 'keyup change clear', function () {
-//                     if ( that.search() !== this.value ) {
-//                         that
-//                             .search( this.value )
-//                             .draw();
-//                     }
-//                 } );
-//             } );
-//         }
-//     });
-// });
 
 function exportToCsv(filename, rows) {
     var processRow = function (row) {
