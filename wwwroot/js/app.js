@@ -149,12 +149,19 @@ function getCountries(ma) {
         type: 'GET',
         data: { marketArea: ma },
         success: function (res) {
-            var countries = '';
+            var countries =
+                '<li>' +
+                '<span class="item" tabindex="0">' +
+                '<input class="country" name=\"countries[]\" onclick="selectCountries()" type="checkbox" id="all-countries" value="all" checked>' +
+                '<label for="all-countries">Select All</label>' +
+                '</span>' +
+                '</li>';
+
             for (var i = 0; i < res.length; i++) {
                 countries +=
                     '<li>' +
                     '<span class="item" tabindex="0">' +
-                    '<input class="country" name=\"countries[]\" onclick="getOperators()" type="checkbox" id="c-' + i + '"value="' + res[i] + '"checked>' +
+                    '<input class="country" name=\"countries[]\" onclick="getOperators()" type="checkbox" id="c-' + i + '"value="' + res[i] + '" checked>' +
                     '<label for="c-' + i + '">' + res[i] + '</label>' +
                     '</span>' +
                     '</li>'
@@ -166,10 +173,38 @@ function getCountries(ma) {
 
 }
 
+function selectCountries() {
+    var all = document.getElementById('all-countries');
+    const countries = document.querySelectorAll(".country[type='checkbox']");
+    countries.forEach(element => {
+        if (all.checked == true)
+            element.checked = true;
+        if (all.checked == false)
+            element.checked = false;
+    });
+}
+
+function selectOperators() {
+    var all = document.getElementById('all-operators');
+    const operators = document.querySelectorAll(".operator[type='checkbox']");
+    operators.forEach(element => {
+        if (all.checked == true)
+            element.checked = true;
+        if (all.checked == false)
+            element.checked = false;
+    });
+}
+
+function checkOperator() {
+    document.getElementById('all-operators').checked = false;
+
+}
 
 function getOperators() {
+    document.getElementById('all-countries').checked = false;
     var allcountries = [];
     const checkedCheckboxes = document.querySelectorAll(".country[type='checkbox']:checked");
+
     checkedCheckboxes.forEach(element => {
         allcountries.push($(element).attr('value'));
     });
@@ -181,13 +216,20 @@ function getOperators() {
             type: 'GET',
             data: { countries: decodeURIComponent(allcountries) },
             success: function (res) {
-                var operators = '';
+                var operators =
+                    '<li>' +
+                    '<span class="item" tabindex="0">' +
+                    '<input class="operator" name=\"operators[]\" onclick="selectOperators()" type="checkbox" id="all-operators" value="all">' +
+                    '<label for="all-operators">Select All</label>' +
+                    '</span>' +
+                    '</li>'
+                    ;
                 for (var i = 0; i < res.length; i++) {
                     for (var j = 0; j < res[i].operators.length; j++) {
                         operators +=
                             '<li>' +
                             '<span class="item" tabindex="0">' +
-                            '<input class="operator" name=\"operators[]\" type="checkbox" id="o-' + i + '' + j + '"value="' + res[i].operators[j]["name"] + '">' +
+                            '<input class="operator" name=\"operators[]\" onclick="checkOperator()" type="checkbox" id="o-' + i + '' + j + '"value="' + res[i].operators[j]["name"] + '">' +
                             '<label for="o-' + i + '' + j + '">' + res[i].operators[j]["name"] + '</label>' +
                             '</span>' +
                             '</li>'
@@ -199,6 +241,8 @@ function getOperators() {
     }
 
 }
+
+
 
 function filter(s, e, ma, c, o) {
     getData(s, e, c, o);
@@ -410,9 +454,9 @@ function getData(startdate, enddate, countries, operators) {
                 data: res,
                 columns: [
                     {
-                    key: 'date',
+                        key: 'date',
                         title: 'Date',
-                        sort: 'none'
+                        sort: 'desc'
                     },
                     {
                         key: 'siteName',
@@ -449,9 +493,10 @@ function getData(startdate, enddate, countries, operators) {
                         title: 'Revisit',
                         sort: 'none',
                         onCreatedCell: (td, cellData) => {
-                            if(cellData === true)
+                            if (cellData === true)
                                 td.innerHTML = `<span class="color-green"><i class="icon icon-alarm-level4"></i></span>`;
-                        }
+                        },
+
                     },
                 ],
                 sortable: true,
@@ -477,9 +522,32 @@ function getData(startdate, enddate, countries, operators) {
                             }
                         });
                     });
-                }
+                },
+
+                // onCreatedHead: (thead, headData) => {
+                //     var ths = thead.getElementsByTagName("th");
+                //     ths.forEach(th => {
+                //         th.innerHTML += '<input type="text" id="find-' + th.cellIndex + '" class="with-icon" placeholder="search..."></input>';
+                //     });
+                // }
             });
             table.init();
+            // $('#site-details').DataTable({
+            //     initComplete: function () {
+            //         // Apply the search
+            //         this.api().columns().every(function () {
+            //             var that = this;
+
+            //             $('input', this.head()).on('keyup change clear', function () {
+            //                 if (that.search() !== this.value) {
+            //                     that
+            //                         .search(this.value)
+            //                         .draw();
+            //                 }
+            //             });
+            //         });
+            //     }
+            // });
 
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
@@ -543,24 +611,63 @@ function mapData(result) {
 
 }
 
-function searchTable() {
-
-    var input = document.getElementById("search-table");
+function searchColumn(id, pos) {
+    // Hide all table tbody rows
+    var filtered = false;
+    var input = document.getElementById(id);
     var filter = input.value.toUpperCase();
     var table = document.getElementById("site-details");
     var trs = table.tBodies[0].getElementsByTagName("tr");
-  
+
     for (var i = 0; i < trs.length; i++) {
         var tds = trs[i].getElementsByTagName("td");
         trs[i].style.display = "none";
-        for (var i2 = 0; i2 < tds.length; i2++) {
-          if (tds[i2].innerHTML.toUpperCase().indexOf(filter) > -1) {
+        if (tds[pos].innerHTML.toUpperCase().indexOf(filter) > -1) {
             trs[i].style.display = "";
             continue;
         }
-      }
+
     }
 }
+
+// $(function() {
+
+//     // var input = document.getElementById("search-table");
+//     // var filter = input.value.toUpperCase();
+//     var table = document.getElementById("site-details");
+//     // var trs = table.tBodies[0].getElementsByTagName("tr");
+
+//     // // $('#pages').find("div.item.active").removeClass('active');
+//     // // $('#pages').find("div.item.all").addClass("active");
+
+//     // for (var i = 0; i < trs.length; i++) {
+//     //     var tds = trs[i].getElementsByTagName("td");
+//     //     trs[i].style.display = "none";
+//     //     for (var i2 = 0; i2 < tds.length; i2++) {
+//     //         if (tds[i2].innerHTML.toUpperCase().indexOf(filter) > -1) {
+//     //             trs[i].style.display = "";
+//     //             continue;
+//     //         }
+//     //     }
+//     // }
+
+//     var table = $('#site-details').DataTable({
+//         initComplete: function () {
+//             // Apply the search
+//             this.api().columns().every( function () {
+//                 var that = this;
+
+//                 $( 'input', this.header() ).on( 'keyup change clear', function () {
+//                     if ( that.search() !== this.value ) {
+//                         that
+//                             .search( this.value )
+//                             .draw();
+//                     }
+//                 } );
+//             } );
+//         }
+//     });
+// });
 
 function exportToCsv(filename, rows) {
     var processRow = function (row) {
