@@ -265,6 +265,11 @@
                                 <div class="left">
                                     <div class="title">Unique Physical Sites</div>
                                 </div>
+                                <div class="right">
+                                    <div class="action">
+                                        <button class="btn clickable" value="unique-sites" onclick="hideLegend(this.value)"><i class="icon icon-resize-down"></i></button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="content">
                                 <div id="unique-sites"></div>
@@ -276,6 +281,11 @@
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Number of Unique Nodes</div>
+                                </div>
+                                <div class="right">
+                                    <div class="action">
+                                        <button class="btn clickable" value="unique-nodes" onclick="hideLegend(this.value)"><i class="icon icon-resize-down"></i></button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="content">
@@ -290,6 +300,11 @@
                                     <div class="title">Number of Node Revisits</div>
                                     <div class="subtitle">(after 12 hours)</div>
                                 </div>
+                                <div class="right">
+                                    <div class="action">
+                                        <button class="btn clickable" value="site-revisits" onclick="hideLegend(this.value)"><i class="icon icon-resize-down"></i></button>
+                                    </div>
+                                </div>                                
                             </div>
                             <div class="content">
                                 <div id="site-revisits"></div>
@@ -405,13 +420,13 @@
 
                                             <label class="left">Show</label>
                                             <div class="select" data-type="single">
-                                                <button class="btn current-options">All</button>
+                                                <button class="btn current-options">5</button>
 
                                                 <div class="options-list">
-                                                    <div class="item active">All</div>
+                                                    <div class="item active">5</div>
                                                     <div class="item">10</div>
                                                     <div class="item">100</div>
-                                                    <div class="item">5</div>
+                                                    <div class="item">All</div>
                                                 </div>
                                             </div>
                                         </div>
