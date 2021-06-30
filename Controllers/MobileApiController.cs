@@ -13,7 +13,8 @@ using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MimeKit;
 using Newtonsoft.Json;
 
 namespace IMK_web.Controllers
@@ -404,41 +405,27 @@ namespace IMK_web.Controllers
         public async Task<IActionResult> sendMail(string Subject, string Body, string[] Recipients, bool BccAdmins)
         {
             SmtpClient smtp = new SmtpClient();
-            // smtp.Connect("smtp.ericsson.net", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            // smtp.Authenticate("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
-            // MimeMessage msg = new MimeMessage();
-            // msg.From.Add(MailboxAddress.Parse("imk@ericsson.com"));
+            smtp.Connect("smtp.ericsson.net", 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
+            MimeMessage msg = new MimeMessage();
 
-            smtp.Host = "smtp.ericsson.net";
-            smtp.Port = 587;
-            smtp.EnableSsl = true;
-            System.Net.NetworkCredential ntcd = new System.Net.NetworkCredential("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
-            ntcd.UserName = "imk@ericsson.com";
-            ntcd.Password = "ad3e13fefa3a288a0546c420190db507";
-            smtp.Credentials = ntcd;
-            MailMessage msg = new MailMessage();
-
-            msg.From = new MailAddress("imk@ericsson.com", "No Reply - IMK Support");
+            msg.From.Add(MailboxAddress.Parse("imk@ericsson.com"));
 
             foreach (var recipient in Recipients)
             {
-                //msg.To.Add(MailboxAddress.Parse(recipient));
-                msg.To.Add(recipient);
+                msg.To.Add(MailboxAddress.Parse(recipient));
             }
             if (BccAdmins == true)
             {
                 var admins = await _appRepository.GetAdmins();
                 foreach (var admin in admins)
                 {
-                   // msg.Bcc.Add(MailboxAddress.Parse(admin));
-                   msg.Bcc.Add(admin);
+                    msg.Bcc.Add(MailboxAddress.Parse(admin));
                 }
             }
-            //msg.Body = new TextPart(MimeKit.Text.TextFormat.Html) {Text = Body};
-            msg.IsBodyHtml = true;
-            msg.Body = Body;
+            msg.Body = new TextPart(MimeKit.Text.TextFormat.Html) {Text = Body};
             msg.Subject = Subject;
-            smtp.SendAsync(msg, "msg");
+            await smtp.SendAsync(msg);
             return Ok("sent");
         }
 
