@@ -677,6 +677,13 @@ function exportToCsv(filename, rows) {
     }
 }
 
+function hideLegend(tile) {
+    if( $('#'+tile+' .chart-legend').css('display') === "block")
+        $('#'+tile+' .chart-legend').css('display','none');
+    else
+        $('#'+tile+' .chart-legend').css('display','block');
+}
+
 /////////////////////////////////////////////// GLOBES 
 var chart = am4core.create(document.getElementById("chartdiv"), am4maps.MapChart);
 var chart2 = am4core.create(document.getElementById("chartdiv2"), am4maps.MapChart);
