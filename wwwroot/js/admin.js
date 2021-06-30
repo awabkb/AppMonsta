@@ -504,7 +504,7 @@ function getData() {
                     {
                         key: 'asp',
                         title: 'ASP',
-                        sort: 'asc'
+                        sort: 'non'
                     },
                 ],
                 actions: true,
@@ -635,6 +635,7 @@ $('#menu li.item').on('click', function () {
 });
 
 $('#submit-approver').on('click', function (e) {
+    e.preventDefault();
     var values = "name=" + $("#member-name").val() + "&email=" + $("#member-email").val() + "&role=" + $('input[name="role"]:checked').val() + "&country=" + $('.item.country.active').text();
     $.ajax({
         url: "api/cms/approver?" + values,
@@ -651,6 +652,7 @@ $('#submit-approver').on('click', function (e) {
 });
 
 $('#submit-asp').on('click', function (e) {
+    e.preventDefault();
     var values = "name=" + $("#asp-name").val() + "&country=" + $('.item.country.active').text();
     $.ajax({
         url: "api/cms/asp?" + values,

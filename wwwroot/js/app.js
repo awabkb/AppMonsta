@@ -161,17 +161,20 @@ function getCountries(ma) {
                 countries +=
                     '<li>' +
                     '<span class="item" tabindex="0">' +
-                    '<input class="country" name=\"countries[]\" onclick="getOperators()" type="checkbox" id="c-' + i + '"value="' + res[i] + '" checked>' +
+                    '<input class="country" name=\"countries[]\" onclick="checkCountry()" type="checkbox" id="c-' + i + '"value="' + res[i] + '" checked>' +
                     '<label for="c-' + i + '">' + res[i] + '</label>' +
                     '</span>' +
                     '</li>'
             }
             document.getElementById('countries').innerHTML = countries;
             getOperators();
+            document.getElementById('all-countries').checked = true;
+
         }
     });
 
 }
+
 
 function selectCountries() {
     var all = document.getElementById('all-countries');
@@ -182,6 +185,12 @@ function selectCountries() {
         if (all.checked == false)
             element.checked = false;
     });
+    getOperators();
+}
+
+function checkCountry() {
+    document.getElementById('all-countries').checked = false;
+    getOperators();
 }
 
 function selectOperators() {
@@ -201,7 +210,6 @@ function checkOperator() {
 }
 
 function getOperators() {
-    document.getElementById('all-countries').checked = false;
     var allcountries = [];
     const checkedCheckboxes = document.querySelectorAll(".country[type='checkbox']:checked");
 
