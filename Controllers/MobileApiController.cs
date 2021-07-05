@@ -128,7 +128,7 @@ namespace IMK_web.Controllers
             {
                 return BadRequest("User not found " + userId);
             }
-            if(siteVisitDto.SiteName == null)
+            if(siteVisitDto.SiteName == null || siteVisitDto.Country == null)
                 return BadRequest("Upload Failed");
 
             SiteVisit siteVisit = new SiteVisit();
@@ -176,6 +176,8 @@ namespace IMK_web.Controllers
             siteVisit.Site = site;
             siteVisit.StartTime = siteVisitDto.StartTime;
             siteVisit.FinishTime = siteVisitDto.FinishTime;
+            siteVisit.Brand = siteVisitDto.Brand;
+            siteVisit.Model = siteVisitDto.Model;
             ICollection<Log> logs = new List<Log>();
             foreach (LogDTO logDto in siteVisitDto.Actions)
             {
@@ -185,7 +187,8 @@ namespace IMK_web.Controllers
                     Command = logDto.Command,
                     Longitude = logDto.Longitude,
                     Latitude = logDto.Latitude,
-                    Result = JsonConvert.SerializeObject(logDto.Result)
+                    Result = JsonConvert.SerializeObject(logDto.Result),
+                    ResponseTime = logDto.ResponseTime
                 });
             }
             siteVisit.Logs = logs;
@@ -405,7 +408,9 @@ namespace IMK_web.Controllers
         public async Task<IActionResult> sendMail(string Subject, string Body, string[] Recipients, bool BccAdmins)
         {
             SmtpClient smtp = new SmtpClient();
-            smtp.Connect("smtp.ericsson.net", 587, MailKit.Security.SecureSocketOptions.StartTls);
+            // smtp.SslProtocols = SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+            smtp.CheckCertificateRevocation = false;
+            smtp.Connect("smtp.ericsson.net", 587, false);
             smtp.Authenticate("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
             MimeMessage msg = new MimeMessage();
 
@@ -456,6 +461,14 @@ namespace IMK_web.Controllers
                     op = "INWI";
                 else
                     op = "MarocTel";
+            }
+
+            if(country.Equals("Egypt"))
+            {
+                if(sitename.StartsWith("CAI") || sitename.StartsWith("DEL") || sitename.StartsWith("UCAI") || sitename.StartsWith("UDEL") || sitename.StartsWith("LCAI") || sitename.StartsWith("LDEL") || sitename.StartsWith("MCAI") || sitename.StartsWith("MDEL"))
+                    op = "Etisalat";
+                else
+                    op = "Vodafone";
             }
             return op;
         }
