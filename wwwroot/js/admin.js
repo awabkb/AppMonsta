@@ -132,7 +132,7 @@ function getData() {
                 var rows = [];
                 rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
                 table.data.forEach(row => {
-                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
                 });
                 exportToCsv("IMK_ActiveUsers.csv", rows)
 
@@ -196,7 +196,8 @@ function getData() {
                 selectable: 'multi',
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-check"></i></button>`;
+                    td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-check"></i></button>
+                                    <button class="ml-2 btn-icon deactivate"><i class="icon icon-cross"></i></button>`;
 
                     td.querySelector('button.activate').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
@@ -211,6 +212,26 @@ function getData() {
                                     const notification = new eds.Notification({
                                         title: "User Action",
                                         description: name + ' has been activated',
+                                    });
+                                    notification.init();
+                                    getData();
+                                }
+                            });
+                        }
+                    });
+                    td.querySelector('button.deactivate').addEventListener('click', (evt) => {
+                        var tr = evt.target.closest('tr');
+                        var name = $(tr).find('td').eq(1).text();
+                        var email = $(tr).find('td').eq(4).text();
+                        var result = confirm("Are you sure you want to deactivate user?");
+                        if (result) {
+                            $.ajax({
+                                url: "api/cms/deactivate?email=" + email,
+                                type: "PUT",
+                                success: function (res) {
+                                    const notification = new eds.Notification({
+                                        title: "User Action",
+                                        description: name + ' has been deactivated',
                                     });
                                     notification.init();
                                     getData();
@@ -261,7 +282,7 @@ function getData() {
                 var rows = [];
                 rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
                 table.data.forEach(row => {
-                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
                 });
                 exportToCsv("IMK_InactiveUsers.csv", rows)
 
@@ -395,7 +416,7 @@ function getData() {
                 var rows = [];
                 rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
                 table.data.forEach(row => {
-                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["registeredAt"]]);
+                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
                 });
                 exportToCsv("IMK_DeactivatedUsers.csv", rows)
 
