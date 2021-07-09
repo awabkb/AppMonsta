@@ -149,13 +149,16 @@ function getCountries(ma) {
         type: 'GET',
         data: { marketArea: ma },
         success: function (res) {
-            var countries =
+            var countries = '';
+            if(res.length != 0) {
+                countries =
                 '<li>' +
                 '<span class="item" tabindex="0">' +
                 '<input class="country" name=\"countries[]\" onclick="selectCountries()" type="checkbox" id="all-countries" value="all" checked>' +
                 '<label for="all-countries">Select All</label>' +
                 '</span>' +
                 '</li>';
+            }
 
             for (var i = 0; i < res.length; i++) {
                 countries +=
