@@ -12,9 +12,22 @@ page.init();
 
 eds.NotificationLog.init();
 
+var datestart = null;
+var dateend = null;
+
+
+function init() {
+    daterange();
+    getData();
+}
 
 function getData() {
+    var startdate = $('#start').attr('value');
+    var enddate = $('#end').attr('value');
 
+    datestart = moment().subtract(29, 'days');
+    dateend = moment();
+    var LogData = { start: decodeURIComponent(datestart.format('YYYY-MM-DD')), end: decodeURIComponent(dateend.format('YYYY-MM-DD')) }
     ////////////////////////// Active Users //////////////////////////
     $.ajax({
         url: "api/cms/users?active=true",
@@ -556,6 +569,7 @@ function getData() {
     $.ajax({
         url: "api/cms/logs",
         type: "GET",
+        data: LogData,
         success: function (res) {
             const tableDOM = document.querySelector('#t-logs');
             const table = new eds.Table(tableDOM, {
@@ -706,6 +720,116 @@ function searchTable(search, table)
             }
         }
     }
+}
+
+function daterange() {
+    $(function () {
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        function cb(start, end) {
+            $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            $('#start').attr('value', start.format('YYYY-MM-DD'));
+            $('#end').attr('value', end.format('YYYY-MM-DD'));
+        }
+
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            ranges: {
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            }
+        }, cb);
+        cb(start, end);
+    });
+
+}
+
+function filterDate() {
+    var startdate = $('#start').attr('value');
+    var enddate = $('#end').attr('value');
+    var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate) }
+    
+    $.ajax({
+        url: "api/cms/logs",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const tableDOM = document.querySelector('#t-logs');
+            tableDOM.innerHTML = '';
+            const table = new eds.Table(tableDOM, {
+                data: res["value"],
+                columns: [
+                    {
+                        key: 'date',
+                        title: 'Date',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'site',
+                        title: 'Site',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'longitude',
+                        title: 'Longitude',
+                    },
+                    {
+                        key: 'latitude',
+                        title: 'Latitude',
+                    },
+                    {
+                        key: 'rpi',
+                        title: 'RPI',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'app',
+                        title: 'APP',
+                        sort: 'asc'
+                    },
+                    {
+                        key: 'user',
+                        title: 'User',
+                        sort: 'asc'
+                    },
+                ],
+                rowsPerPage: 50,
+                sortable: true,
+                expandable: true,
+                onCreatedDetailsRow: (td, data) => {
+                    var details = '';
+                    for(var i =0; i< data['command'].length; i++) {
+                        details += `<tr><td> ${data['command'][i]} </td><td> ${data['result'][i]}</td></tr>`;
+                    }
+                    td.innerHTML = '<table><th>Command</th><th>Result</th>' + details+'</table>';
+                }
+            });
+
+            table.init();
+            document.querySelector('#export-logs').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                    title: 'Export data',
+                    description: 'Table data is exported to IMK_Logs.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Date', 'Country', 'Site', 'Longitude', 'Latitude', 'RPI Version', 'App Version', 'User', 'Commands', 'Results']);
+                table.data.forEach(row => {
+                    rows.push([row["date"], row["country"], row["site"], row["longitude"], row["latitude"], row["rpi"], row["app"], row["user"], row["command"], row["result"]]);
+                });
+                exportToCsv("IMK_Logs.csv", rows)
+
+            });
+        }
+    });
 }
 
 function exportToCsv(filename, rows) {

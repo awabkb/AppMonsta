@@ -144,9 +144,9 @@ namespace IMK_web.Controllers
         }
 
         [HttpGet("logs")]
-        public async Task<ActionResult> getLogs()
+        public async Task<ActionResult> getLogs([FromQuery] string start, [FromQuery] string end)
         {
-            var logs = await _appRepository.GetLogs();
+            var logs = await _appRepository.GetLogs(start, end);
             return Ok(logs);
         }
 

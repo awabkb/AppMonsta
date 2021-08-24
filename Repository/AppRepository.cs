@@ -112,10 +112,11 @@ namespace IMK_web.Repository
             .OrderByDescending(x => x.RegisteredAt).ToListAsync();
         }
 
-        public async Task<ActionResult> GetLogs()
+        public async Task<ActionResult> GetLogs(string start, string end)
         {
-            var allLogs = await _context.Logs.Include(x => x.SiteVisit).Include(x => x.SiteVisit.Site)
-            .Include(x => x.SiteVisit.User).OrderBy(x => x.SiteVisit.StartTime).ToListAsync();
+            var allLogs = await _context.Logs.Include(x => x.SiteVisit).Include(x => x.SiteVisit.Site).Include(x => x.SiteVisit.User)
+            .Where(x => x.SiteVisit.StartTime.Date >= Convert.ToDateTime(start).Date && x.SiteVisit.StartTime.Date <= Convert.ToDateTime(end).Date)
+            .OrderBy(x => x.SiteVisit.StartTime).ToListAsync();
 
             var logs = allLogs.GroupBy(x => x.SiteVisit.VisitId).Select(y => new
             {
