@@ -27,7 +27,7 @@ namespace IMK_web.Repository
         Task<IEnumerable<SiteVisit>> GetUserSiteVisits(User user);
         Task<User> GetUserByEmail(string email);
         Task<IEnumerable<User>> GetAllUsers();
-        Task<ActionResult> GetLogs();
+        Task<ActionResult> GetLogs(string start, string end);
         Task<IEnumerable<AspManager>> GetApprovers();
         Task<AspManager> GetApprover(string email);
         Task<IEnumerable<AspCompany>> GetAspCompanies();
