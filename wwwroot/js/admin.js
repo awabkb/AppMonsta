@@ -25,7 +25,7 @@ function getData() {
     var startdate = $('#start').attr('value');
     var enddate = $('#end').attr('value');
 
-    datestart = moment().subtract(29, 'days');
+    datestart = moment().subtract(6, 'days');
     dateend = moment();
     var LogData = { start: decodeURIComponent(datestart.format('YYYY-MM-DD')), end: decodeURIComponent(dateend.format('YYYY-MM-DD')) }
     ////////////////////////// Active Users //////////////////////////
@@ -724,7 +724,7 @@ function searchTable(search, table)
 
 function daterange() {
     $(function () {
-        var start = moment().subtract(29, 'days');
+        var start = moment().subtract(6, 'days');
         var end = moment();
         function cb(start, end) {
             $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
@@ -737,7 +737,6 @@ function daterange() {
             endDate: end,
             ranges: {
                 'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
                 'This Month': [moment().startOf('month'), moment().endOf('month')],
                 'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
             }
