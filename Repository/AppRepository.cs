@@ -76,9 +76,9 @@ namespace IMK_web.Repository
             return await _context.AspCompanies.Include(x => x.Country).FirstOrDefaultAsync(x => x.Name.Equals(aspName));
         }
 
-        public async Task<Country> GetOperatorByCountry(string country)
+        public async Task<Country> GetOperatorByCountry(string countrycode)
         {
-            return await _context.Countries.Include(x => x.Operators).FirstOrDefaultAsync(x => x.Name.Equals(country));
+            return await _context.Countries.Include(x => x.Operators).FirstOrDefaultAsync(x => x.Code.Equals(countrycode));
         }
 
         public async Task<IEnumerable<Country>> GetCountries()
