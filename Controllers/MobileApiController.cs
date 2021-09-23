@@ -130,6 +130,13 @@ namespace IMK_web.Controllers
             }
             if(siteVisitDto.SiteName == null || siteVisitDto.Country == null)
                 return BadRequest("Upload Failed");
+            
+            if(siteVisitDto.CountryCode == null) {
+                user.IsActive = false;
+                _appRepository.Update(user);
+                await _appRepository.SaveChanges();
+                return BadRequest("Your device is using and old version of IMK please update");
+            }
 
             SiteVisit siteVisit = new SiteVisit();
 
@@ -138,7 +145,7 @@ namespace IMK_web.Controllers
             Site site = await _appRepository.GetSite(siteVisitDto.SiteName, siteVisitDto.Country);
 
             Operator op = new Operator();
-            var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.Country);
+            var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.CountryCode);
             if (ops == null)
                 op = null;
             else
@@ -156,7 +163,7 @@ namespace IMK_web.Controllers
             if (site == null)
             {
                 site = new Site();
-                site.Country = siteVisitDto.Country;
+                site.Country = _appRepository.GetCountry(siteVisitDto.CountryCode).Result.Name;
                 site.Latitude = Convert.ToDouble(siteVisitDto.Latitude);
                 site.Longitude = Convert.ToDouble(siteVisitDto.Longitude);
                 site.Name = siteVisitDto.SiteName;
@@ -427,7 +434,7 @@ namespace IMK_web.Controllers
                 {
                     msg.Bcc.Add(MailboxAddress.Parse(admin));
                 }
-            }
+            }   
             msg.Body = new TextPart(MimeKit.Text.TextFormat.Html) {Text = Body};
             msg.Subject = Subject;
             await smtp.SendAsync(msg);
