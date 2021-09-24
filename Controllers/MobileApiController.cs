@@ -133,6 +133,7 @@ namespace IMK_web.Controllers
             
             if(siteVisitDto.CountryCode == null) {
                 user.IsActive = false;
+                user.IsDeactivated = true;
                 _appRepository.Update(user);
                 await _appRepository.SaveChanges();
                 return BadRequest("Your device is using and old version of IMK please update");
@@ -333,6 +334,26 @@ namespace IMK_web.Controllers
             return Ok(version);
         }
 
+        ////////////////////////// Add new Site Integration ////////////////////////////
+        [HttpPost("integration")]
+        public async Task<IActionResult> CreateSiteIntegration(SiteIntegration siteIntegration)
+        {
+            if(siteIntegration.SiteName == null)
+                return BadRequest("Invalid data");
+
+            _appRepository.Add(new SiteIntegration()
+            {
+                SiteName = siteIntegration.SiteName,
+                InitialTime = siteIntegration.InitialTime,                    
+                FinalTime = siteIntegration.FinalTime,
+                Outcome = siteIntegration.Outcome,
+                UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault()
+            });
+            await _appRepository.SaveChanges();
+            
+            return Ok(siteIntegration);
+            
+        }
 
         ////////////////////////// Send IMK User approval to admins ////////////////////////////
 
@@ -478,6 +499,14 @@ namespace IMK_web.Controllers
                     op = "Vodafone";
             }
             return op;
+
+            if(country.Equals("Oman"))
+            {
+                if(sitename.StartsWith("B01") || sitename.StartsWith("EN") || sitename.StartsWith("GN"))
+                    op = "Vodafone OM";
+                else
+                    op = "Omantel";
+            }
         }
 
 
