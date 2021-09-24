@@ -18,9 +18,12 @@ namespace IMK_web.Repository
         Task<ActionResult> GetAppVersion(string start, string end, string countries, string operators);
         Task<ActionResult> GetRPIVersion(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteVisitDetails(string start, string end, string countries, string operators);
+        Task<ActionResult> GetCommandStatus(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteUsage(string start, string end, string marketArea);
         Task<ActionResult> GetActiveUsers(string start, string end, string marketArea);
         Task<ActionResult> GetNewProfiles(string start, string end, string marketArea);
+        Task<ActionResult> GetTopRevisits(string start, string end, string countries, string operators);
+        Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators);
         string GetRole(string email);
 
 
