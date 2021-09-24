@@ -130,6 +130,38 @@ namespace IMK_web.Controllers
             return data;
         }
 
+        //get all site visits details 
+        [HttpGet("commands")]
+        public async Task<ActionResult> getCommandStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetCommandStatus(start, end, countries, operators);
+            return data;
+        }
+
+        //get top 10 revisits by site name
+        [HttpGet("top-revisits")]
+        public async Task<ActionResult> getTopRevisits([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetTopRevisits(start, end, countries, operators);
+            return data;
+        }
+
+        //get number of resolved failures
+        [HttpGet("resolved")]
+        public async Task<ActionResult> getResolvedFailures([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetResolvedFailures(start, end, countries, operators);
+            return data;
+        }
+
+        [HttpGet("claims")]
+        public List<System.Security.Claims.Claim> getSignum(){
+            var signum = User.Claims.ToList();
+            return signum;
+        }
+        
+
+
 
 
         //////////////////////////////////////////////////////////////////////////////////////////////

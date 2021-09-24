@@ -225,8 +225,6 @@ namespace IMK_web.Repository
                 country = site.First().Country;
                 // List<Dictionary<string,int>> list = new List<Dictionary<string, int>>();
                 Dictionary<string, int> siterevisit = new Dictionary<string, int>();
-                int revisits = 1;
-
 
                 foreach (var s in site)
                 {
@@ -243,10 +241,10 @@ namespace IMK_web.Repository
                             {
                                 revisitedOn = visits[i].StartTime.Date.ToString("yyyy-MM-dd");
                                 if (siterevisit.ContainsKey(revisitedOn))
-                                    siterevisit[revisitedOn] = revisits++;
+                                    siterevisit[revisitedOn]++;
 
                                 else
-                                    siterevisit.Add(revisitedOn, revisits);
+                                    siterevisit.Add(revisitedOn, 1);
 
                             }
                             T = visits[i].StartTime;
@@ -260,8 +258,7 @@ namespace IMK_web.Repository
 
             Dictionary<string, Dictionary<string, int>> bydate = new Dictionary<string, Dictionary<string, int>>();
 
-            var dates = dict.Values.SelectMany(v => v.Keys).Distinct();
-
+            var dates = dict.Values.SelectMany(v => v.Keys).Distinct().OrderBy(x => x);
             foreach (var date in dates)
             {
                 Dictionary<string, int> bycountry = new Dictionary<string, int>();
@@ -284,7 +281,6 @@ namespace IMK_web.Repository
                 else
                     bydate.Add(date, bycountry);
             }
-
 
             return new JsonResult(bydate);
 
@@ -501,6 +497,7 @@ namespace IMK_web.Repository
         }
 
 
+
         // get all site visit details
         public async Task<ActionResult> GetSiteVisitDetails(string start, string end, string countries, string operators)
         {
@@ -537,11 +534,13 @@ namespace IMK_web.Repository
                 }
             }
 
-            var visitDetails = allVisits.OrderBy(y => y.StartTime).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).Select(y => new
+            var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).Select(y => new
             {
                 siteName = y.Key.Name,
                 country = y.Select(i => i.Site.Country),
                 user = y.Select(i => i.User.Name),
+                phone = y.Select(i => i.User.Phone),
+                email = y.Select(i => i.User.Email),
                 androidVersion = y.Select(i => i.AppVersion),
                 rpVersion = y.Select(i => i.RPIVersion),
                 asp = y.Select(i => i.User.AspCompany.Name),
@@ -554,15 +553,17 @@ namespace IMK_web.Repository
             foreach (var vd in visitDetails)
             {
                 var revisit = false;
-                if (siterevisit.ContainsKey(vd.siteName)){
+                if (siterevisit.ContainsKey(vd.siteName))
+                {
                     var T = siterevisit[vd.siteName];
-                    if(vd.date.First() >= T.AddHours(12)){
+                    if (vd.date.First() >= T.AddHours(12))
+                    {
                         revisit = true;
                         siterevisit[vd.siteName] = vd.date.First();
-                    }   
+                    }
                 }
-                else 
-                siterevisit.Add(vd.siteName, vd.date.First());
+                else
+                    siterevisit.Add(vd.siteName, vd.date.First());
 
                 if (vd.date.Count() > 1)
                 {
@@ -572,12 +573,15 @@ namespace IMK_web.Repository
                     v1.SiteName = vd.siteName;
                     v1.Country = vd.country.First();
                     v1.User = vd.user.First();
+                    v1.Phone = vd.phone.First();
+                    v1.Email = vd.email.First();
                     v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
                     v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
+                    
 
 
                     for (var i = 1; i < d.Length; i++)
@@ -588,6 +592,8 @@ namespace IMK_web.Repository
                             v.SiteName = vd.siteName;
                             v.Country = vd.country.First();
                             v.User = vd.user.First();
+                            v.Phone = vd.phone.First();
+                            v.Email = vd.email.First();
                             v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
                             v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                             v.ASP = vd.asp.First();
@@ -604,6 +610,8 @@ namespace IMK_web.Repository
                     v1.SiteName = vd.siteName;
                     v1.Country = vd.country.First();
                     v1.User = vd.user.First();
+                    v1.Phone = vd.phone.First();
+                    v1.Email = vd.email.First();
                     v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
                     v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
@@ -614,12 +622,12 @@ namespace IMK_web.Repository
 
             }
             // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
-            return new JsonResult(uniqueVisits);
-
-
-
+            return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
 
         }
+
+
+
 
         ///////////////////////////////////////////////////// GLOBES /////////////////////////////////////////////////////
 
@@ -633,7 +641,10 @@ namespace IMK_web.Repository
             .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
             .ToListAsync();
 
-            var unique_visits = await _context.SiteVisits.Include("Site").Where(x => c.Contains(x.Site.Country)).Select(x => x.Site.SiteId).Distinct().ToListAsync();
+            var unique_visits = await _context.SiteVisits.Include("Site").Where(x => c.Contains(x.Site.Country))
+            .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+            .Select(x => x.Site.SiteId).Distinct().ToListAsync();
+
             var all_usage = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
@@ -654,7 +665,10 @@ namespace IMK_web.Repository
             .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
             .ToListAsync();
 
-            var site_users = await _context.SiteVisits.Include("User").Where(x => c.Contains(x.Site.Country)).Select(x => x.User.UserId).Distinct().ToListAsync();
+            var site_users = await _context.SiteVisits.Include("User").Where(x => c.Contains(x.Site.Country))
+            .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+            .Select(x => x.User.UserId).Distinct().ToListAsync();
+            
             var active_users = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
@@ -691,9 +705,213 @@ namespace IMK_web.Repository
 
         public string GetRole(string email)
         {
-            var role = _context.AspManagers.Where(x => x.Email.Equals(email)).Select(x => x.Role).SingleOrDefault();
+            var role = _context.AspManagers.Where(x => x.Email.Equals(email)).Select(x => x.Role).FirstOrDefault();
             return role;
         }
 
+
+
+
+
+
+        ///////////////////////////////////////////////////// ANALYTICS /////////////////////////////////////////////////////
+
+        public async Task<ActionResult> GetTopRevisits(string start, string end, string countries, string operators)
+        {
+
+            List<Site> sites = null;
+            if (countries == null)
+                return new JsonResult(null);
+
+            else if (countries == "all")
+            {
+                sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date))
+                .Include(x => x.SiteVisits).ToListAsync();
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date))
+                    .Where(c => arrCountries.Contains(c.Country)).ToListAsync();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+                    sites = await _context.Sites.Include(x => x.SiteVisits.Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date))
+                        .Where(c => arrCountries.Contains(c.Country))
+                        .Where(c => arrOps.Contains(c.Operator.Name)).ToListAsync();
+                }
+            }
+            var res = sites.GroupBy(x => x.Name);
+            Dictionary<string, Dictionary<string, int>> dict = new Dictionary<string, Dictionary<string, int>>();
+            var siteName = "";
+
+            foreach (var site in res)
+            {
+                siteName = site.First().Name;
+                // List<Dictionary<string,int>> list = new List<Dictionary<string, int>>();
+                Dictionary<string, int> siterevisit = new Dictionary<string, int>();
+
+                foreach (var s in site)
+                {
+                    var visits = s.SiteVisits.OrderBy(x => x.StartTime).ToList();
+
+                    if (visits.Count() > 1)
+                    {
+                        var T = visits.FirstOrDefault().StartTime;
+
+                        for (int i = 1; i < visits.Count(); i++)
+                        {
+                            var country = "";
+                            if (visits[i].StartTime >= T.AddHours(12))
+                            {
+                                country = visits[i].Site.Country;
+                                if (siterevisit.ContainsKey(country))
+                                    siterevisit[country]++;
+
+                                else
+                                    siterevisit.Add(country, 1);
+
+                            }
+                            T = visits[i].StartTime;
+
+                        }
+
+                    }
+                }
+                if(siterevisit.Count != 0)
+                  dict.Add(siteName, siterevisit);
+            }
+            
+            // order by number of revisits and return first 10 elements
+            dict = dict.OrderByDescending(x=> x.Value.Values.Sum())
+            .ToDictionary(x => x.Key, x=>x.Value.OrderByDescending(y=>y.Value)
+            .ToDictionary(y=>y.Key, y=>y.Value))
+            .Take(10).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            return new JsonResult(dict);
+
+        }
+        
+        // IMK functions Pass/Fail status 
+        public async Task<ActionResult> GetCommandStatus(string start, string end, string countries, string operators)
+        {
+            List<SiteVisit> visitLogs = null;
+            if (countries == null)
+                return new JsonResult(null);
+
+            else if (countries == "all")
+            {
+                visitLogs = await _context.SiteVisits.Include(x => x.Logs)
+                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                .ToListAsync();
+                
+            }
+            else
+            {
+                if (operators == null)
+                {
+
+                    string[] arrCountries = countries.Split(",");
+                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    .ToListAsync();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs).Include(x => x.Site.Operator)
+                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    .ToListAsync();
+
+                }
+            }
+            return new JsonResult(visitLogs);
+        
+        }
+
+
+        // Number of resolved failures 
+        public async Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators)
+        {
+            List<SiteVisit> visitLogs = null;
+            if (countries == null)
+                return new JsonResult(null);
+
+            else if (countries == "all")
+            {
+                visitLogs = await _context.SiteVisits.Include(x => x.Logs).Include("Site")
+                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                .OrderBy(x => x.StartTime)
+                .ToListAsync();
+                
+            }
+            else
+            {
+                if (operators == null)
+                {
+
+                    string[] arrCountries = countries.Split(",");
+                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    .OrderBy(x => x.StartTime)
+                    .ToListAsync();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs).Include(x => x.Site.Operator)
+                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    .OrderBy(x => x.StartTime)
+                    .ToListAsync();
+
+                }
+            }
+            var visitsPerSite = visitLogs.GroupBy(x => x.Site.SiteId);
+            Dictionary<string, int> resolvedPerCountry = new Dictionary<string, int>();
+
+            var check1 = new List<Object>();
+
+            // calculate resolved per each site (resolved: if passed command follows a failed command on same site)
+            foreach(var site in visitsPerSite)
+            {
+                var country = site.First().Site.Country;
+                foreach(var logs in site)
+                {
+                    foreach(var log in logs.Logs) {
+                        var command = log.Command;
+                        check1.Add(command);
+
+                        var result = JsonConvert.DeserializeObject(log.Result);
+                    }
+
+                }
+            }
+
+
+            var check = new List<Object>();
+
+            foreach(var log in visitLogs)
+            {
+                foreach(var result in log.Logs)
+                {
+                    var value = JsonConvert.DeserializeObject(result.Result);
+                    check.Add(value);
+
+                }
+            }
+            return new JsonResult(visitsPerSite);
+
+        }
     }
+
 }

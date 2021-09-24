@@ -116,7 +116,7 @@ $('#filter').on('reset', function (e) {
     var e = (moment()).format('YYYY-MM-DD');
 
     $('.country[type="checkbox"]').each(function () {
-        this.checked = false;
+        this.checked = true;
     });
     $('.operator[type="checkbox"]').each(function () {
         this.checked = false;
@@ -340,14 +340,15 @@ function getData(startdate, enddate, countries, operators) {
                 functions.push(0);
             else {
                 for (var i in res[0]) {
-                    functions.push(res[0][i]);
+                    if(i != 'sgwStatus') 
+                        functions.push(res[0][i]);
                 }
             }
             const chart = new eds.HorizontalBarChart({
                 element: element,
                 data: {
                     "common": ['FRU Status', 'FRU State', 'FRU Serial', 'FRU Prod No', 'RET Serial', 'TMA', 'RET Antenna', 'VSWR', 'CPRI', 'Transport', 'Transport Routes', 'Transport Interfaces',
-                        'MME Status', 'GSM-TRX', 'GSM-State', 'SGW-Status', 'Traffic-3G', 'Traffic-4G', 'Traffic-5G', 'RSSI UMTS', 'RSSI-LTE FDD', 'RSSI-LTE TDD', 'RSSI-NR', 'External Alarm', 'Alarm'],
+                        'MME Status', 'GSM-TRX', 'GSM-State', 'Traffic-3G', 'Traffic-4G', 'Traffic-5G', 'RSSI UMTS', 'RSSI-LTE FDD', 'RSSI-LTE TDD', 'RSSI-NR', 'External Alarm', 'Alarm'],
                     series: [{ "name": "Functions", "values": functions }],
                 },
                 x: { unit: 'Total' },
@@ -509,45 +510,57 @@ function getData(startdate, enddate, countries, operators) {
                         },
 
                     },
+                    {
+                        key: 'phone',
+                        title: 'Phone',
+                        hidden: true
+                    },
+                    {
+                        key: 'email',
+                        title: 'Email',
+                        hidden: true 
+                    }
                 ],
                 sortable: true,
                 actions: true,
+                height: '500px',
 
                 onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon email"><i class="icon icon-email"></i></button>`;
+                    td.innerHTML = `<button class="btn-icon info"><i class="icon icon-info"></i></button>`;
 
-                    td.querySelector('button.email').addEventListener('click', (evt) => {
+                    td.querySelector('button.info').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
                         var siteEngineer = $(tr).find('td').eq(3).text();
+                        var phone = $(tr).find('td').eq(8).text();
+                        var email = $(tr).find('td').eq(9).text();
 
-                        $.ajax({
-                            url: "api/dashboardapi/unique_sites",
-                            type: "GET",
-                            data: siteEngineer,
-                            success: function (res) {
-                                const notification = new eds.Notification({
-                                    title: "Contact Info",
-                                    description: 'An email has been sent to you',
-                                });
-                                notification.init();
-                            }
+                        const notification = new eds.Notification({
+                            title: "Field Engineer Info",
+                            description: 'Name: '+ siteEngineer + '\nPhone: ' + phone + '\nEmail: ' + email,
                         });
+                        notification.init();
+
                     });
                 },
 
                 onCreatedHead: (thead, headData) => {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
-                        if(th.cellIndex!=7 && th.cellIndex!=8)
+                        if(th.cellIndex!=7 && th.cellIndex!=8 && th.cellIndex!=9 && th.cellIndex!=10)
                         th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
                     });
                 }
             });
             table.init();
+            
+            var today = new Date();
+            var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+            var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+            var dateTime = date+'T'+time;
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
-                    description: 'Table data is exported to IMK_Dashboard.csv file',
+                    description: 'Table data is exported to IMK_Dashboard'+ dateTime + '.csv file',
                 });
                 notification.init();
                 var rows = [];
@@ -555,11 +568,190 @@ function getData(startdate, enddate, countries, operators) {
                 table.data.forEach(row => {
                     rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"]]);
                 });
-                exportToCsv("IMK_Dashboard.csv", rows)
+                exportToCsv(dateTime +"IMK_Dashboard.csv", rows)
 
             });
         }
     });
+
+    
+    ////////////////// Pass / Fail commands //////////////////
+
+    $.ajax({
+        url: "api/dashboardapi/commands",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+
+            const element = document.getElementById('pass-fail');
+            var passed = {"vswr":0, "umts":0, "fdd":0, "tdd":0, "nr":0, "alarm":0};
+            var failed = {"vswr":0, "umts":0, "fdd":0, "tdd":0, "nr":0, "alarm":0};
+            res.forEach(visit => {
+               visit["logs"].forEach(log => {
+                   var command = log["command"];
+                   var result = JSON.parse(log["result"]);
+                   switch(command) {
+                        case "vswr":
+                            var status = 0;
+                            result.every(output => {
+                                if(output["STATUS"] === "PASSED") {
+                                    status = 1;
+                                    return true;
+                                }
+                                else if(output["STATUS"] === "FAILED") {
+                                    status = 0;
+                                    return false;
+                                }
+                            });
+                            if(status)
+                                passed["vswr"] = (passed["vswr"] || 0) + 1;
+                            else
+                                failed["vswr"] = (failed["vswr"] || 0) + 1;
+                        break; 
+
+                        case "rssi_umts":
+                            var status = 0;
+                            result.every(output => {
+                                if(output["CELL"] === "PASSED") {
+                                    status = 1;
+                                    return true;
+                                }
+                                else if(output["CELL"] === "FAILED") {
+                                    status = 0;
+                                    return false;
+                                }
+                            });
+                            if(status)
+                                passed["umts"] = (passed["umts"] || 0) + 1;
+                            else
+                                failed["umts"] = (failed["umts"] || 0) + 1;
+                        break; 
+                        
+                        case "rssi-lte EUtranCellFDD":
+                            var status = 0;
+                            result.every(output => {
+                                if(output["RSSI"] <= -110) {
+                                    status = 1;
+                                    return true;
+                                }
+                                else if(output["RSSI"] > -110) {
+                                    status = 0;
+                                    return false;
+                                }
+                            });
+                            if(status)
+                                passed["fdd"] = (passed["fdd"] || 0) + 1;
+                            else
+                                failed["fdd"] = (failed["fdd"] || 0) + 1;
+                        break; 
+                        
+                        case "rssi-lte EUtranCellTDD":
+                            var status = 0;
+                            result.every(output => {
+                                if(output["RSSI"] <= -110) {
+                                    status = 1;
+                                    return true;
+                                }
+                                else if(output["RSSI"] > -110) {
+                                    status = 0;
+                                    return false;
+                                }
+                            });
+                            if(status)
+                                passed["tdd"] = (passed["tdd"] || 0) + 1;
+                            else
+                                failed["tdd"] = (failed["tdd"] || 0) + 1;
+                        break; 
+
+                        case "rssi-nr":
+                            var status = 0;
+                            result.every(output => {
+                                if(output["RSSI"] <= -110) {
+                                    status = 1;
+                                    return true;
+                                }
+                                else if(output["RSSI"] > -110) {
+                                    status = 0;
+                                    return false;
+                                }
+                            });
+                            if(status)
+                                passed["nr"] = (passed["nr"] || 0) + 1;
+                            else
+                                failed["nr"] = (failed["nr"] || 0) + 1;
+                        break; 
+
+                        case "alarm":
+                            var status = 0;
+                            result.every(output => {
+                                if(output["DESCRIPTION"] === "") {
+                                    status = 1;
+                                    return true;
+                                }
+                                else if(output["DESCRIPTION"] !== "") {
+                                    status = 0;
+                                    return false;
+                                }
+
+                            });
+                            if(status)
+                                passed["alarm"] = (passed["alarm"] || 0) + 1;
+                            else
+                                failed["alarm"] = (failed["alarm"] || 0) + 1;
+                        break; 
+                   }
+               });
+            });
+            element.innerHTML = '';
+            const chart = new eds.HorizontalBarChartStacked({
+                element: element,
+                data: {
+                    "common": ["VSWR", "RSSI UMTS", "LTE-FDD RSSI", "LTE-TDD RSSI", "NR RSSI", "Alarms"],
+                    "series": [{"name": "Failed", "values": Object.values(failed)},{ "name": "Passed", "values": Object.values(passed)}]
+                },
+                x: { unit: 'Commands' }
+            });
+            chart.init();
+        }
+    }); 
+
+    ////////////////// Top Revisits //////////////////
+    $.ajax({
+        url: "api/dashboardapi/top-revisits",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('top-revisits');
+            element.innerHTML = '';
+            var sites = [];
+            var revisits = [];
+            
+            for(var i in res)
+            {
+                for(j in res[i]) {
+                    sites.push(i + " - " + j);
+                    revisits.push(res[i][j]);
+                }
+            }
+            const chart = new eds.HorizontalBarChart({
+                element: element,
+                data: {
+                    "common": sites,
+                    series: [{ "name": "Revisits", "values": revisits }],
+                },
+                x: { unit: 'Total' },
+                thresholds: [
+                    {
+                        "moreThan": 1,
+                        "color": "yellow"
+                    },
+                ]
+            });
+
+            chart.init();
+        }
+    });
+
 }
 
 
@@ -745,7 +937,7 @@ var isoCountries = isoCountries = {
     'Congo, Democratic Republic': 'CD',
     'Cook Islands': 'CK',
     'Costa Rica': 'CR',
-    'Cote D\'Ivoire': 'CI',
+    'Ivory Coast': 'CI',
     'Croatia': 'HR',
     'Cuba': 'CU',
     'Cyprus': 'CY',
