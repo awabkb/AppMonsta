@@ -358,6 +358,11 @@ function getData() {
                         title: 'Registered On',
                         sort: 'none'
                     },
+                    {
+                        key: 'status',
+                        title: 'Status',
+                        sort: 'none'
+                    }
                 ],
                 actions: true,
                 sortable: true,
