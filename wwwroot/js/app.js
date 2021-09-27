@@ -523,6 +523,7 @@ function getData(startdate, enddate, countries, operators) {
                 ],
                 sortable: true,
                 actions: true,
+                resize: true,
                 height: '500px',
 
                 onCreatedActionsCell: (td) => {
@@ -547,7 +548,7 @@ function getData(startdate, enddate, countries, operators) {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
                         if(th.cellIndex!=7 && th.cellIndex!=8 && th.cellIndex!=9 && th.cellIndex!=10)
-                        th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
+                        th.innerHTML += '<br><input type="text" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
                     });
                 }
             });
@@ -564,9 +565,9 @@ function getData(startdate, enddate, countries, operators) {
                 });
                 notification.init();
                 var rows = [];
-                rows.push(['Date', 'Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP']);
+                rows.push(['Date', 'Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP', 'Revisit']);
                 table.data.forEach(row => {
-                    rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"]]);
+                    rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"], row["isRevisit"]]);
                 });
                 exportToCsv(dateTime +"IMK_Dashboard.csv", rows)
 
