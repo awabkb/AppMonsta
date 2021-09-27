@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity;
 using MailKit.Net.Smtp;
 using MimeKit;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace IMK_web.Controllers
 {
@@ -134,6 +135,7 @@ namespace IMK_web.Controllers
             if(siteVisitDto.CountryCode == null) {
                 user.IsActive = false;
                 user.IsDeactivated = true;
+                user.Status = "System deactivation - old version";
                 _appRepository.Update(user);
                 await _appRepository.SaveChanges();
                 return BadRequest("Your device is using and old version of IMK please update");
@@ -498,15 +500,17 @@ namespace IMK_web.Controllers
                 else
                     op = "Vodafone";
             }
-            return op;
 
             if(country.Equals("Oman"))
             {
-                if(sitename.StartsWith("B01") || sitename.StartsWith("EN") || sitename.StartsWith("GN"))
+                if(Regex.IsMatch(sitename, "^B[0-9]{2}") || sitename.StartsWith("EN") || sitename.StartsWith("GN"))
                     op = "Vodafone OM";
                 else
                     op = "Omantel";
             }
+            
+            return op;
+
         }
 
 

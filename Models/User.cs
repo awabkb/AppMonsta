@@ -16,6 +16,7 @@ namespace IMK_web.Models
         public Boolean IsActive { get; set; }
         public DateTime RegisteredAt { get; set; }
         public IEnumerable<SiteVisit> SiteVisits { get; set; }
+        public string Status { get; set; }
         
     }
 }

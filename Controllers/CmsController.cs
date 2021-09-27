@@ -114,7 +114,8 @@ namespace IMK_web.Controllers
                 email = x.Email,
                 phone = x.Phone,
                 lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
-                registeredAt = x.RegisteredAt
+                registeredAt = x.RegisteredAt,
+                status = x.Status
             });
             return Ok(deactived_users);
 
