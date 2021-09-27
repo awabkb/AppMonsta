@@ -17,6 +17,8 @@ using MailKit.Net.Smtp;
 using MimeKit;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace IMK_web.Controllers
 {
@@ -40,7 +42,12 @@ namespace IMK_web.Controllers
         {
             var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
 
+            User tmp_user = await _appRepository.GetUserByEmail(userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email);
+            if(tmp_user != null)
+                return BadRequest("Email already in use.");
+
             User user = await _appRepository.GetUser(userId);
+
             if (user == null)
             {
                 user = new User();
@@ -315,7 +322,7 @@ namespace IMK_web.Controllers
                 user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
                 user.Phone = userDto.Phone;
                 user.Email = userDto.Email;
-                user.AspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
+                user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
                 _appRepository.Update(user);
 
                 await _appRepository.SaveChanges();
@@ -364,7 +371,7 @@ namespace IMK_web.Controllers
         [HttpPost("request")]
         public async Task<IActionResult> sendAccessRequest(UserDto userDto)
         {
-            var aspCompany = await _appRepository.GetAspCompany(userDto.AspCompany);
+            var aspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
             var aspManagers = await _appRepository.GetAspManagers(aspCompany.Country.Name);
 
             var url = "https://localhost:5001/api/mobileapi/activate";
@@ -437,31 +444,21 @@ namespace IMK_web.Controllers
 
         public async Task<IActionResult> sendMail(string Subject, string Body, string[] Recipients, bool BccAdmins)
         {
-            SmtpClient smtp = new SmtpClient();
-            // smtp.SslProtocols = SslProtocols.Ssl3 | SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
-            smtp.CheckCertificateRevocation = false;
-            smtp.Connect("smtp.ericsson.net", 587, false);
-            smtp.Authenticate("imk@ericsson.com", "ad3e13fefa3a288a0546c420190db507");
-            MimeMessage msg = new MimeMessage();
-
-            msg.From.Add(MailboxAddress.Parse("imk@ericsson.com"));
-
+            var apiKey = "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";
+            var client = new SendGridClient(apiKey);
+            var from = new EmailAddress("imk@ericsson.com", "IMK Support");
+            var subject = Subject;
+            var tos = new List<EmailAddress>();
             foreach (var recipient in Recipients)
             {
-                msg.To.Add(MailboxAddress.Parse(recipient));
+                tos.Add(new EmailAddress(recipient));   
             }
-            if (BccAdmins == true)
-            {
-                var admins = await _appRepository.GetAdmins();
-                foreach (var admin in admins)
-                {
-                    msg.Bcc.Add(MailboxAddress.Parse(admin));
-                }
-            }   
-            msg.Body = new TextPart(MimeKit.Text.TextFormat.Html) {Text = Body};
-            msg.Subject = Subject;
-            await smtp.SendAsync(msg);
-            return Ok("sent");
+            var plainTextContent = "New message from IMK Support";
+            var htmlContent = Body;
+            var msg = MailHelper.CreateSingleEmailToMultipleRecipients(from, tos, subject, plainTextContent, htmlContent);
+            var response = await client.SendEmailAsync(msg);
+
+            return Ok(response);
         }
 
 
@@ -513,28 +510,21 @@ namespace IMK_web.Controllers
 
         }
 
-
-
-
         [AllowAnonymous]
         [HttpGet("test")]
         public async Task<IActionResult> test()
-        {
-            // var version = await _appRepository.GetLatestImkVersion();
-            // return Ok(version);
-            string[] recipients = new string[1];
-            recipients[0] = "sara.shoujaa@ericsson.com";
-            var message = @"<html>
-                            <body>
-                                        <p>Dear IMK User,</p>
-                                        <p>Your account has been rejected by admin.</p>
-                                            <br><br>
-                                            <p>Please do not reply to this email</p>
-                                        </body>
-                                        </html>
-                                        ";
-            var res = await sendMail("No Reply - IMK Registration", message, recipients, false);
-            return Ok(res);
+        {   
+            var apiKey = "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";
+            var client = new SendGridClient(apiKey);
+            var from = new EmailAddress("imk@ericsson.com", "IMK Support");
+            var subject = "IMK Email";
+            var to = new EmailAddress("sara.shoujaa@ericsson.com", "User");
+            var plainTextContent = "testing email feature";
+            var htmlContent = "<strong>Test successful</strong>";
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            var response = await client.SendEmailAsync(msg);
+
+            return Ok(response);
         }
 
 
