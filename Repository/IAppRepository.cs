@@ -29,7 +29,7 @@ namespace IMK_web.Repository
         Task<IEnumerable<User>> GetAllUsers();
         Task<ActionResult> GetLogs(string start, string end);
         Task<IEnumerable<AspManager>> GetApprovers();
-        Task<AspManager> GetApprover(string email);
+        Task<AspManager> GetApprover(int id);
         Task<IEnumerable<AspCompany>> GetAspCompanies();
 
 

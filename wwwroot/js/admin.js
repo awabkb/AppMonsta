@@ -457,8 +457,8 @@ function getData() {
                 data: res,
                 columns: [
                     {
-                        key: 'country',
-                        title: 'Country',
+                        key: 'id',
+                        title: 'Id',
                         sort: 'asc'
                     },
                     {
@@ -469,6 +469,11 @@ function getData() {
                     {
                         key: 'email',
                         title: 'Email',
+                    },
+                    {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'asc'
                     },
                     {
                         key: 'role',
@@ -484,12 +489,13 @@ function getData() {
 
                     td.querySelector('button.delete').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
+                        var id = $(tr).find('td').eq(0).text();
                         var name = $(tr).find('td').eq(1).text();
                         var email = $(tr).find('td').eq(2).text();
                         var result = confirm("Are you sure you want to delete approver?");
                         if (result) {
                             $.ajax({
-                                url: "api/cms/approver?email=" + email,
+                                url: "api/cms/approver?id=" + id,
                                 type: "DELETE",
                                 success: function (res) {
                                     const notification = new eds.Notification({

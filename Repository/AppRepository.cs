@@ -68,7 +68,7 @@ namespace IMK_web.Repository
 
         public async Task<AspCompany> GetAspCompanyByCountry(string aspName, string country)
         {
-            return await _context.AspCompanies.FirstOrDefaultAsync(x => x.Name.Equals(aspName) && x.Country.Name.Equals(country));
+            return await _context.AspCompanies.Include(x =>x.Country).FirstOrDefaultAsync(x => x.Name.Equals(aspName) && x.Country.Name.Equals(country));
         }
 
         public async Task<AspCompany> GetAspCompany(string aspName)
@@ -139,9 +139,9 @@ namespace IMK_web.Repository
             return await _context.AspManagers.ToListAsync();
         }
 
-        public async Task<AspManager> GetApprover(string email)
+        public async Task<AspManager> GetApprover(int id)
         {
-            return await _context.AspManagers.SingleOrDefaultAsync(x => x.Email.Equals(email));
+            return await _context.AspManagers.SingleOrDefaultAsync(x => x.Id.Equals(id));
         }
 
         public async Task<IEnumerable<AspCompany>> GetAspCompanies()
