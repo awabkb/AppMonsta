@@ -347,15 +347,19 @@ namespace IMK_web.Controllers
         [HttpPost("integration")]
         public async Task<IActionResult> CreateSiteIntegration(SiteIntegration siteIntegration)
         {
-            if(siteIntegration.SiteName == null)
-                return BadRequest("Invalid data");
+            // if(siteIntegration.SiteName == null)
+            //     return BadRequest("Invalid data");
 
             _appRepository.Add(new SiteIntegration()
             {
                 SiteName = siteIntegration.SiteName,
-                InitialTime = siteIntegration.InitialTime,                    
-                FinalTime = siteIntegration.FinalTime,
+                DownloadStart = siteIntegration.DownloadStart,
+                DownloadEnd = siteIntegration.DownloadEnd,
+                IntegrateStart = siteIntegration.IntegrateStart,
+                IntegrateEnd = siteIntegration.IntegrateEnd,
                 Outcome = siteIntegration.Outcome,
+                Downloading = siteIntegration.Downloading,
+                Integrating = siteIntegration.Integrating,                    
                 UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault()
             });
             await _appRepository.SaveChanges();
