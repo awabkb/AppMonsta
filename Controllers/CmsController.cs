@@ -44,9 +44,9 @@ namespace IMK_web.Controllers
         }
 
         [HttpDelete("approver")]
-        public async Task<ActionResult> removeApprover([FromQuery] string email)
+        public async Task<ActionResult> removeApprover([FromQuery] int id)
         {
-            AspManager approver = await _appRepository.GetApprover(email);
+            AspManager approver = await _appRepository.GetApprover(id);
             _appRepository.Remove(approver);
             await _appRepository.SaveChanges();
             return Ok("Removed");
