@@ -107,6 +107,10 @@ function getData() {
                 }
             });
             table.init();
+
+            $('#a-users').dataTable({
+                "searching": true
+            });
             const toggleActivateBtn = () => {
                 (document.querySelector('#deactivate-users')).style.display =
                     (table.selected.length === 0) ? 'none' : '';
@@ -257,6 +261,10 @@ function getData() {
             });
             table.init();
 
+            $('#i-users').dataTable({
+                "searching": true
+            });
+
             const toggleActivateBtn = () => {
                 (document.querySelector('#activate-users')).style.display =
                     (table.selected.length === 0) ? 'none' : '';
@@ -396,6 +404,10 @@ function getData() {
             });
             table.init();
 
+            $('#d-users').dataTable({
+                "searching": true
+            });
+
             const toggleActivateBtn = () => {
                 (document.querySelector('#reactivate-users')).style.display =
                     (table.selected.length === 0) ? 'none' : '';
@@ -512,6 +524,10 @@ function getData() {
             });
 
             table.init();
+
+            $('#t-approvers').dataTable({
+                "searching": true
+            });
             document.querySelector('#export-approvers').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
@@ -558,6 +574,10 @@ function getData() {
             });
 
             table.init();
+
+            $('#t-asps').dataTable({
+                "searching": true
+            });
             document.querySelector('#export-asps').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
@@ -824,6 +844,7 @@ function filterDate() {
             });
 
             table.init();
+
             document.querySelector('#export-logs').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
@@ -882,5 +903,6 @@ function exportToCsv(filename, rows) {
         }
     }
 }
+
 
 
