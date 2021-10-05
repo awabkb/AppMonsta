@@ -109,7 +109,8 @@ function getData() {
             table.init();
 
             $('#a-users').dataTable({
-                "searching": true
+                "searching": true,
+                "ordering": false
             });
             const toggleActivateBtn = () => {
                 (document.querySelector('#deactivate-users')).style.display =
@@ -262,7 +263,8 @@ function getData() {
             table.init();
 
             $('#i-users').dataTable({
-                "searching": true
+                "searching": true,
+                "ordering": false
             });
 
             const toggleActivateBtn = () => {
@@ -405,7 +407,8 @@ function getData() {
             table.init();
 
             $('#d-users').dataTable({
-                "searching": true
+                "searching": true,
+                "ordering": false
             });
 
             const toggleActivateBtn = () => {
@@ -526,7 +529,8 @@ function getData() {
             table.init();
 
             $('#t-approvers').dataTable({
-                "searching": true
+                "searching": true,
+                "ordering": false
             });
             document.querySelector('#export-approvers').addEventListener('click', () => {
                 const notification = new eds.Notification({
@@ -576,7 +580,8 @@ function getData() {
             table.init();
 
             $('#t-asps').dataTable({
-                "searching": true
+                "searching": true,
+                "ordering": false
             });
             document.querySelector('#export-asps').addEventListener('click', () => {
                 const notification = new eds.Notification({
