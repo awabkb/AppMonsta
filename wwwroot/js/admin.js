@@ -78,7 +78,6 @@ function getData() {
                     },
                 ],
                 actions: true,
-                sortable: true,
                 selectable: 'multi',
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
@@ -110,7 +109,7 @@ function getData() {
 
             $('#a-users').dataTable({
                 "searching": true,
-                "ordering": false
+                "bSort" : false
             });
             const toggleActivateBtn = () => {
                 (document.querySelector('#deactivate-users')).style.display =
@@ -210,7 +209,6 @@ function getData() {
                     },
                 ],
                 actions: true,
-                sortable: true,
                 selectable: 'multi',
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
@@ -264,7 +262,7 @@ function getData() {
 
             $('#i-users').dataTable({
                 "searching": true,
-                "ordering": false
+                "bSort" : false
             });
 
             const toggleActivateBtn = () => {
@@ -375,7 +373,6 @@ function getData() {
                     }
                 ],
                 actions: true,
-                sortable: true,
                 selectable: 'multi',
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
@@ -408,7 +405,7 @@ function getData() {
 
             $('#d-users').dataTable({
                 "searching": true,
-                "ordering": false
+                "bSort" : false
             });
 
             const toggleActivateBtn = () => {
@@ -497,7 +494,6 @@ function getData() {
                     },
                 ],
                 actions: true,
-                sortable: true,
                 rowsPerPage: 50,
                 onCreatedActionsCell: (td) => {
                     td.innerHTML = `<button class="btn-icon delete"><i class="icon icon-trashcan"></i></button>`;
@@ -530,7 +526,7 @@ function getData() {
 
             $('#t-approvers').dataTable({
                 "searching": true,
-                "ordering": false
+                "bSort" : false
             });
             document.querySelector('#export-approvers').addEventListener('click', () => {
                 const notification = new eds.Notification({
@@ -573,7 +569,6 @@ function getData() {
                     },
                 ],
                 actions: true,
-                sortable: true,
                 rowsPerPage: 50,
             });
 
@@ -581,7 +576,7 @@ function getData() {
 
             $('#t-asps').dataTable({
                 "searching": true,
-                "ordering": false
+                "bSort" : false
             });
             document.querySelector('#export-asps').addEventListener('click', () => {
                 const notification = new eds.Notification({
