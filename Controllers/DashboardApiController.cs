@@ -147,10 +147,18 @@ namespace IMK_web.Controllers
         }
 
         //get number of resolved failures
+        [AllowAnonymous]
         [HttpGet("resolved")]
         public async Task<ActionResult> getResolvedFailures([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
             var data = await _dashRepository.GetResolvedFailures(start, end, countries, operators);
+            return data;
+        }
+
+        [HttpGet("site_integrations")]
+        public async Task<ActionResult> getSiteIntegrations([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
         }
 

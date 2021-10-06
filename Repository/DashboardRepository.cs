@@ -846,6 +846,7 @@ namespace IMK_web.Repository
             {
                 foreach(var logs in site.Logs)
                 {
+                    if(logs.Result != null) {
                     var command = logs.Command;
                     dynamic results = JsonConvert.DeserializeObject(logs.Result);
                     var passed = 0;
@@ -853,8 +854,7 @@ namespace IMK_web.Repository
                         case "vswr": 
                             foreach(var result in results)
                             {   
-                                String
-                                 status = result.STATUS;
+                                String status = result.STATUS;
                                 if(status.Equals("PASSED"))
                                     passed = 1;
                                 else if(status.Equals("FAILED")) {
@@ -1005,6 +1005,7 @@ namespace IMK_web.Repository
                     }
 
                 }
+                }
             }
             returnList.Add(pCommands);
             returnList.Add(fCommands);
@@ -1086,6 +1087,23 @@ namespace IMK_web.Repository
                 }
             }
             return new JsonResult(visitsPerSite);
+
+        }
+    
+        // Get LMT Site Integrations
+        public async Task<ActionResult> GetSiteIntegrations(string start, string end, string countries, string operators)
+        {
+            List<SiteIntegration> siteIntegrations = null;
+
+            if (countries == null)
+                return new JsonResult(null);
+
+            else
+            {
+                siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null).ToListAsync();
+            }
+
+            return new JsonResult(siteIntegrations);
 
         }
     }
