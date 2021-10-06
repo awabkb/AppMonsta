@@ -360,7 +360,8 @@ namespace IMK_web.Controllers
                 Outcome = siteIntegration.Outcome,
                 Downloading = siteIntegration.Downloading,
                 Integrating = siteIntegration.Integrating,                    
-                UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault()
+                UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
+                MACAddress = siteIntegration.MACAddress
             });
             await _appRepository.SaveChanges();
             
