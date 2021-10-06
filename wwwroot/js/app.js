@@ -548,7 +548,7 @@ function getData(startdate, enddate, countries, operators) {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
                         if(th.cellIndex!=7 && th.cellIndex!=8 && th.cellIndex!=9 && th.cellIndex!=10)
-                        th.innerHTML += '<br><input type="text" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
+                        th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
                     });
                 }
             });
@@ -575,6 +575,59 @@ function getData(startdate, enddate, countries, operators) {
         }
     });
 
+
+    ////////////////// LMT Details ///////////////////
+    $.ajax({
+        url: "api/dashboardapi/site_integrations",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const tableDOM = document.querySelector('#lmt-details');
+            tableDOM.innerHTML = '';
+            const table = new eds.Table(tableDOM, {
+                data: res,
+                columns: [
+                    {
+                        key: 'siteName',
+                        title: 'Site',
+                        sort: 'desc'
+                    },
+                    {
+                        key: 'integrateStart',
+                        title: 'Integration Start',
+                        sort: 'none'
+                    },
+                    {
+                        key: 'integrateEnd',
+                        title: 'Integration End',
+                        sort: 'none'
+                    },
+                    {
+                        key: 'outcome',
+                        title: 'Outcome',
+                        sort: 'none'
+                    },
+                    // {
+                    //     key: 'outcome',
+                    //     title: 'Outcome',
+                    //     sort: 'none',
+                    //     onCreatedCell: (td, cellData) => {
+                    //         td.innerHTML = `<i class="icon icon-success"></i>`;
+
+                    //         // if (cellData === 'success')
+                    //         //     td.innerHTML = `<span class="color-green"><i class="icon icon-success"></i></span>`;
+                    //         // else
+                    //         //     td.innerHTML = `<span class="color-red"><i class="icon icon-failed"></i></span>`;
+                    //     },
+
+                    // },
+                ],
+                sortable: true,
+                resize: true,
+            });
+            table.init();
+        }
+    });
     
     ////////////////// Pass / Fail commands //////////////////
 
