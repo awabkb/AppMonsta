@@ -605,22 +605,15 @@ function getData(startdate, enddate, countries, operators) {
                     {
                         key: 'outcome',
                         title: 'Outcome',
-                        sort: 'none'
+                        sort: 'none',
+                        onCreatedCell: (td, cellData) => {
+                            if (cellData === 'success')
+                                td.innerHTML = `<span class="color-green"><i class="icon icon-check"></i></span>`;
+                            else
+                                td.innerHTML = `<span class="color-red"><i class="icon icon-cross"></i></span>`;
+                        },
+
                     },
-                    // {
-                    //     key: 'outcome',
-                    //     title: 'Outcome',
-                    //     sort: 'none',
-                    //     onCreatedCell: (td, cellData) => {
-                    //         td.innerHTML = `<i class="icon icon-success"></i>`;
-
-                    //         // if (cellData === 'success')
-                    //         //     td.innerHTML = `<span class="color-green"><i class="icon icon-success"></i></span>`;
-                    //         // else
-                    //         //     td.innerHTML = `<span class="color-red"><i class="icon icon-failed"></i></span>`;
-                    //     },
-
-                    // },
                 ],
                 sortable: true,
                 resize: true,
