@@ -440,9 +440,9 @@ namespace IMK_web.Repository
 
                 }
             }
-            var versions = allVisits.GroupBy(x => new { x.AppVersion }).Select(y => new
+            var versions = allVisits.GroupBy(x => x.AppVersion.ToString("0.00")).Select(y => new
             {
-                name = ((double)y.Key.AppVersion).ToString("0.00"),
+                name = y.Key,
                 values = y.Select(i => i.VisitId).Count()
             });
 
@@ -847,164 +847,167 @@ namespace IMK_web.Repository
                 foreach(var logs in site.Logs)
                 {
                     if(logs.Result != null) {
-                    var command = logs.Command;
-                    dynamic results = JsonConvert.DeserializeObject(logs.Result);
-                    var passed = 0;
-                    switch(command) {
-                        case "vswr": 
-                            foreach(var result in results)
-                            {   
-                                String status = result.STATUS;
-                                if(status.Equals("PASSED"))
-                                    passed = 1;
-                                else if(status.Equals("FAILED")) {
-                                    passed = 0;
-                                    break;
-                                }
+                        var command = logs.Command;
+                        dynamic results = JsonConvert.DeserializeObject(logs.Result);
+                        var passed = 0;
+                        if(results != null)
+                        {
+                            switch(command) {
+                                case "vswr": 
+                                    foreach(var result in results)
+                                    {   
+                                        String status = result.STATUS;
+                                        if(status.Equals("PASSED"))
+                                            passed = 1;
+                                        else if(status.Equals("FAILED")) {
+                                            passed = 0;
+                                            break;
+                                        }
+                                    }
+                                    if(passed == 1)
+                                        if(pCommands.ContainsKey("vswr"))
+                                            pCommands["vswr"] ++;
+                                        else
+                                            pCommands.Add("vswr", 1);
+
+                                    else
+                                        if(fCommands.ContainsKey("vswr"))
+                                            fCommands["vswr"] ++;
+                                        else
+                                            fCommands.Add("vswr", 1);                                
+
+                                break;
+
+                                    case "rssi_umts":
+                                    foreach(var result in results)
+                                    {   
+                                        String status = result.CELL;
+                                        if(status.Equals("PASSED"))
+                                            passed = 1;
+                                        else if(status.Equals("FAILED")) {
+                                            passed = 0;
+                                            break;
+                                        }
+                                    }
+                                    if(passed == 1)
+                                        if(pCommands.ContainsKey("umts"))
+                                            pCommands["umts"] ++;
+                                        else
+                                            pCommands.Add("vswr", 1);
+
+                                    else
+                                        if(fCommands.ContainsKey("umts"))
+                                            fCommands["umts"] ++;
+                                        else
+                                            fCommands.Add("umts", 1);                                
+
+                                break;
+
+                                    case "rssi-lte EUtranCellFDD":
+                                    foreach(var result in results)
+                                    {   double rssi;
+                                        bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                        if(isValue == true && rssi <= -110)
+                                            passed = 1;
+                                        else if(isValue == false || rssi > -110) {
+                                            passed = 0;
+                                            break;
+                                        }
+                                    }
+                                    if(passed == 1)
+                                        if(pCommands.ContainsKey("fdd"))
+                                            pCommands["fdd"] ++;
+                                        else
+                                            pCommands.Add("fdd", 1);
+
+                                    else
+                                        if(fCommands.ContainsKey("fdd"))
+                                            fCommands["fdd"] ++;
+                                        else
+                                            fCommands.Add("fdd", 1);                                
+
+                                break;
+
+                                    case "rssi-lte EUtranCellTDD":
+                                    foreach(var result in results)
+                                    {   
+                                        double rssi;
+                                        bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                        if(isValue == true && rssi <= -110)
+                                            passed = 1;
+                                        else if(isValue == false || rssi > -110) {
+                                            passed = 0;
+                                            break;
+                                        }
+                                    }
+                                    if(passed == 1)
+                                        if(pCommands.ContainsKey("tdd"))
+                                            pCommands["tdd"] ++;
+                                        else
+                                            pCommands.Add("tdd", 1);
+
+                                    else
+                                        if(fCommands.ContainsKey("tdd"))
+                                            fCommands["tdd"] ++;
+                                        else
+                                            fCommands.Add("tdd", 1);                                
+
+                                break;
+
+                                    case "rssi-nr":
+                                    foreach(var result in results)
+                                    {   
+                                        double rssi;
+                                        bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                        if(isValue == true && rssi <= -110)
+                                            passed = 1;
+                                        else if(isValue == false || rssi > -110) {
+                                            passed = 0;
+                                            break;
+                                        }
+                                    }
+                                    if(passed == 1)
+                                        if(pCommands.ContainsKey("nr"))
+                                            pCommands["nr"] ++;
+                                        else
+                                            pCommands.Add("nr", 1);
+
+                                    else
+                                        if(fCommands.ContainsKey("nr"))
+                                            fCommands["nr"] ++;
+                                        else
+                                            fCommands.Add("nr", 1);                                
+
+                                break;
+
+                                    case "alarm":
+                                    foreach(var result in results)
+                                    {   
+                                        String description = result.DESCRIPTION;
+                                        if(description.Equals(""))
+                                            passed = 1;
+                                        else if(!description.Equals("")) {
+                                            passed = 0;
+                                            break;
+                                        }
+                                    }
+                                    if(passed == 1)
+                                        if(pCommands.ContainsKey("alarm"))
+                                            pCommands["alarm"] ++;
+                                        else
+                                            pCommands.Add("alarm", 1);
+
+                                    else
+                                        if(fCommands.ContainsKey("alarm"))
+                                            fCommands["alarm"] ++;
+                                        else
+                                            fCommands.Add("alarm", 1);                                
+
+                                break;
                             }
-                            if(passed == 1)
-                                if(pCommands.ContainsKey("vswr"))
-                                    pCommands["vswr"] ++;
-                                else
-                                    pCommands.Add("vswr", 1);
+                        }
 
-                            else
-                                if(fCommands.ContainsKey("vswr"))
-                                    fCommands["vswr"] ++;
-                                else
-                                    fCommands.Add("vswr", 1);                                
-
-                        break;
-
-                            case "rssi_umts":
-                            foreach(var result in results)
-                            {   
-                                String status = result.CELL;
-                                if(status.Equals("PASSED"))
-                                    passed = 1;
-                                else if(status.Equals("FAILED")) {
-                                    passed = 0;
-                                    break;
-                                }
-                            }
-                            if(passed == 1)
-                                if(pCommands.ContainsKey("umts"))
-                                    pCommands["umts"] ++;
-                                else
-                                    pCommands.Add("vswr", 1);
-
-                            else
-                                if(fCommands.ContainsKey("umts"))
-                                    fCommands["umts"] ++;
-                                else
-                                    fCommands.Add("umts", 1);                                
-
-                        break;
-
-                            case "rssi-lte EUtranCellFDD":
-                            foreach(var result in results)
-                            {   double rssi;
-                                bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                if(isValue == true && rssi <= -110)
-                                    passed = 1;
-                                else if(isValue == false || rssi > -110) {
-                                    passed = 0;
-                                    break;
-                                }
-                            }
-                            if(passed == 1)
-                                if(pCommands.ContainsKey("fdd"))
-                                    pCommands["fdd"] ++;
-                                else
-                                    pCommands.Add("fdd", 1);
-
-                            else
-                                if(fCommands.ContainsKey("fdd"))
-                                    fCommands["fdd"] ++;
-                                else
-                                    fCommands.Add("fdd", 1);                                
-
-                        break;
-
-                            case "rssi-lte EUtranCellTDD":
-                            foreach(var result in results)
-                            {   
-                                double rssi;
-                                bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                if(isValue == true && rssi <= -110)
-                                    passed = 1;
-                                else if(isValue == false || rssi > -110) {
-                                    passed = 0;
-                                    break;
-                                }
-                            }
-                            if(passed == 1)
-                                if(pCommands.ContainsKey("tdd"))
-                                    pCommands["tdd"] ++;
-                                else
-                                    pCommands.Add("tdd", 1);
-
-                            else
-                                if(fCommands.ContainsKey("tdd"))
-                                    fCommands["tdd"] ++;
-                                else
-                                    fCommands.Add("tdd", 1);                                
-
-                        break;
-
-                            case "rssi-nr":
-                            foreach(var result in results)
-                            {   
-                                double rssi;
-                                bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                if(isValue == true && rssi <= -110)
-                                    passed = 1;
-                                else if(isValue == false || rssi > -110) {
-                                    passed = 0;
-                                    break;
-                                }
-                            }
-                            if(passed == 1)
-                                if(pCommands.ContainsKey("nr"))
-                                    pCommands["nr"] ++;
-                                else
-                                    pCommands.Add("nr", 1);
-
-                            else
-                                if(fCommands.ContainsKey("nr"))
-                                    fCommands["nr"] ++;
-                                else
-                                    fCommands.Add("nr", 1);                                
-
-                        break;
-
-                            case "alarm":
-                            foreach(var result in results)
-                            {   
-                                String description = result.DESCRIPTION;
-                                if(description.Equals(""))
-                                    passed = 1;
-                                else if(!description.Equals("")) {
-                                    passed = 0;
-                                    break;
-                                }
-                            }
-                            if(passed == 1)
-                                if(pCommands.ContainsKey("alarm"))
-                                    pCommands["alarm"] ++;
-                                else
-                                    pCommands.Add("alarm", 1);
-
-                            else
-                                if(fCommands.ContainsKey("alarm"))
-                                    fCommands["alarm"] ++;
-                                else
-                                    fCommands.Add("alarm", 1);                                
-
-                        break;
                     }
-
-                }
                 }
             }
             returnList.Add(pCommands);
