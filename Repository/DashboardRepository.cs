@@ -799,7 +799,7 @@ namespace IMK_web.Repository
         // IMK functions Pass/Fail status 
         public async Task<ActionResult> GetCommandStatus(string start, string end, string countries, string operators)
         {
-            List<Dictionary<string,int>> returnList = new List<Dictionary<string, int>>();
+            Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
 
             List<SiteVisit> visitLogs = null;
             if (countries == null)
@@ -1010,8 +1010,8 @@ namespace IMK_web.Repository
                     }
                 }
             }
-            returnList.Add(pCommands);
-            returnList.Add(fCommands);
+            returnList.Add("passed",pCommands);
+            returnList.Add("failed",fCommands);
             return new JsonResult(returnList);
         
         }

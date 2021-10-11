@@ -631,124 +631,24 @@ function getData(startdate, enddate, countries, operators) {
         success: function (res) {
 
             const element = document.getElementById('pass-fail');
-            var passed = {"vswr":0, "umts":0, "fdd":0, "tdd":0, "nr":0, "alarm":0};
-            var failed = {"vswr":0, "umts":0, "fdd":0, "tdd":0, "nr":0, "alarm":0};
-            res.forEach(visit => {
-               visit["logs"].forEach(log => {
-                   var command = log["command"];
-                   var result = JSON.parse(log["result"]);
-                   switch(command) {
-                        case "vswr":
-                            var status = 0;
-                            result.every(output => {
-                                if(output["STATUS"] === "PASSED") {
-                                    status = 1;
-                                    return true;
-                                }
-                                else if(output["STATUS"] === "FAILED") {
-                                    status = 0;
-                                    return false;
-                                }
-                            });
-                            if(status)
-                                passed["vswr"] = (passed["vswr"] || 0) + 1;
-                            else
-                                failed["vswr"] = (failed["vswr"] || 0) + 1;
-                        break; 
-
-                        case "rssi_umts":
-                            var status = 0;
-                            result.every(output => {
-                                if(output["CELL"] === "PASSED") {
-                                    status = 1;
-                                    return true;
-                                }
-                                else if(output["CELL"] === "FAILED") {
-                                    status = 0;
-                                    return false;
-                                }
-                            });
-                            if(status)
-                                passed["umts"] = (passed["umts"] || 0) + 1;
-                            else
-                                failed["umts"] = (failed["umts"] || 0) + 1;
-                        break; 
-                        
-                        case "rssi-lte EUtranCellFDD":
-                            var status = 0;
-                            result.every(output => {
-                                if(output["RSSI"] <= -110) {
-                                    status = 1;
-                                    return true;
-                                }
-                                else if(output["RSSI"] > -110) {
-                                    status = 0;
-                                    return false;
-                                }
-                            });
-                            if(status)
-                                passed["fdd"] = (passed["fdd"] || 0) + 1;
-                            else
-                                failed["fdd"] = (failed["fdd"] || 0) + 1;
-                        break; 
-                        
-                        case "rssi-lte EUtranCellTDD":
-                            var status = 0;
-                            result.every(output => {
-                                if(output["RSSI"] <= -110) {
-                                    status = 1;
-                                    return true;
-                                }
-                                else if(output["RSSI"] > -110) {
-                                    status = 0;
-                                    return false;
-                                }
-                            });
-                            if(status)
-                                passed["tdd"] = (passed["tdd"] || 0) + 1;
-                            else
-                                failed["tdd"] = (failed["tdd"] || 0) + 1;
-                        break; 
-
-                        case "rssi-nr":
-                            var status = 0;
-                            result.every(output => {
-                                if(output["RSSI"] <= -110) {
-                                    status = 1;
-                                    return true;
-                                }
-                                else if(output["RSSI"] > -110) {
-                                    status = 0;
-                                    return false;
-                                }
-                            });
-                            if(status)
-                                passed["nr"] = (passed["nr"] || 0) + 1;
-                            else
-                                failed["nr"] = (failed["nr"] || 0) + 1;
-                        break; 
-
-                        case "alarm":
-                            var status = 0;
-                            result.every(output => {
-                                if(output["DESCRIPTION"] === "") {
-                                    status = 1;
-                                    return true;
-                                }
-                                else if(output["DESCRIPTION"] !== "") {
-                                    status = 0;
-                                    return false;
-                                }
-
-                            });
-                            if(status)
-                                passed["alarm"] = (passed["alarm"] || 0) + 1;
-                            else
-                                failed["alarm"] = (failed["alarm"] || 0) + 1;
-                        break; 
-                   }
-               });
-            });
+            var passedResult = res["passed"];
+            var failedResult = res["failed"];
+            var passed = {
+                "vswr":passedResult["vswr"] ? passedResult["vswr"] : 0 ,
+                "umts":passedResult["umts"] ? passedResult["umts"] : 0 ,
+                "fdd":passedResult["fdd"] ? passedResult["fdd"] : 0,
+                "tdd":passedResult["tdd"] ? passedResult["tdd"] : 0,
+                "nr":passedResult["nr"] ? passedResult["nr"] : 0,
+                "alarm":passedResult["alarm"] ? passedResult["alarm"] : 0
+            };
+            var failed =  {
+                "vswr":failedResult["vswr"] ? failedResult["vswr"] : 0 ,
+                "umts":failedResult["umts"] ? failedResult["umts"] : 0 ,
+                "fdd":failedResult["fdd"] ? failedResult["fdd"] : 0,
+                "tdd":failedResult["tdd"] ? failedResult["tdd"] : 0,
+                "nr":failedResult["nr"] ? failedResult["nr"] : 0,
+                "alarm":failedResult["alarm"] ? failedResult["alarm"] : 0
+            };
             element.innerHTML = '';
             const chart = new eds.HorizontalBarChartStacked({
                 element: element,
