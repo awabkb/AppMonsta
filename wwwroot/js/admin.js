@@ -18,10 +18,10 @@ var dateend = null;
 
 function init() {
     daterange();
-    getData();
+    getData(true);
 }
 
-function getData() {
+function getData(first) {
     var startdate = $('#start').attr('value');
     var enddate = $('#end').attr('value');
 
@@ -98,7 +98,7 @@ function getData() {
                                         description: name + ' has been deactivated',
                                     });
                                     notification.init();
-                                    getData();
+                                    getData(false);
                                 }
                             });
                         }
@@ -106,11 +106,11 @@ function getData() {
                 }
             });
             table.init();
-
-            $('#a-users').dataTable({
-                "searching": true,
-                "bSort" : false
-            });
+            if(first)
+                $('#a-users').dataTable({
+                    "searching": true,
+                    "bSort" : false
+                });
             const toggleActivateBtn = () => {
                 (document.querySelector('#deactivate-users')).style.display =
                     (table.selected.length === 0) ? 'none' : '';
@@ -124,7 +124,7 @@ function getData() {
                             url: "api/cms/deactivate?email=" + email,
                             type: "PUT",
                             success: function (res) {
-                                getData();
+                                getData(false);
                             }
                         });
                     });
@@ -230,7 +230,7 @@ function getData() {
                                         description: name + ' has been activated',
                                     });
                                     notification.init();
-                                    getData();
+                                    getData(false);
                                 }
                             });
                         }
@@ -250,7 +250,7 @@ function getData() {
                                         description: name + ' has been deactivated',
                                     });
                                     notification.init();
-                                    getData();
+                                    getData(false);
                                 }
                             });
                         }
@@ -259,11 +259,11 @@ function getData() {
                 }
             });
             table.init();
-
-            $('#i-users').dataTable({
-                "searching": true,
-                "bSort" : false
-            });
+            if(first)
+                $('#i-users').dataTable({
+                    "searching": true,
+                    "bSort" : false
+                });
 
             const toggleActivateBtn = () => {
                 (document.querySelector('#activate-users')).style.display =
@@ -278,7 +278,7 @@ function getData() {
                             url: "api/cms/activate?email=" + email,
                             type: "PUT",
                             success: function (res) {
-                                getData();
+                                getData(false);
                             }
                         });
                     });
@@ -393,7 +393,7 @@ function getData() {
                                         description: name + ' has been reactivated',
                                     });
                                     notification.init();
-                                    getData();
+                                    getData(false);
                                 }
                             });
                         }
@@ -402,11 +402,11 @@ function getData() {
                 }
             });
             table.init();
-
-            $('#d-users').dataTable({
-                "searching": true,
-                "bSort" : false
-            });
+            if(first)
+                $('#d-users').dataTable({
+                    "searching": true,
+                    "bSort" : false
+                });
 
             const toggleActivateBtn = () => {
                 (document.querySelector('#reactivate-users')).style.display =
@@ -421,7 +421,7 @@ function getData() {
                             url: "api/cms/reactivate?email=" + email,
                             type: "PUT",
                             success: function (res) {
-                                getData();
+                                getData(false);
                             }
                         });
                     });
@@ -514,7 +514,7 @@ function getData() {
                                         description: name + ' has been removed',
                                     });
                                     notification.init();
-                                    getData()
+                                    getData(false)
                                 }
                             });
                         }
@@ -523,11 +523,11 @@ function getData() {
             });
 
             table.init();
-
-            $('#t-approvers').dataTable({
-                "searching": true,
-                "bSort" : false
-            });
+            if(first)
+                $('#t-approvers').dataTable({
+                    "searching": true,
+                    "bSort" : false
+                });
             document.querySelector('#export-approvers').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
@@ -573,11 +573,11 @@ function getData() {
             });
 
             table.init();
-
-            $('#t-asps').dataTable({
-                "searching": true,
-                "bSort" : false
-            });
+            if(first)
+                $('#t-asps').dataTable({
+                    "searching": true,
+                    "bSort" : false
+                });
             document.querySelector('#export-asps').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
@@ -712,7 +712,7 @@ $('#submit-approver').on('click', function (e) {
                 description: 'New approver has been added',
             });
             notification.init();
-            getData();
+            getData(false);
         }
     });
 });
@@ -729,7 +729,7 @@ $('#submit-asp').on('click', function (e) {
                 description: 'New ASP has been added',
             });
             notification.init();
-            getData();
+            getData(false);
         }
     });
 });
