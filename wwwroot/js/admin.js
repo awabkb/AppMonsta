@@ -15,11 +15,716 @@ eds.NotificationLog.init();
 var datestart = null;
 var dateend = null;
 
+var activeData = getActive();
+var inactiveData = getInactive();
+var deactivatedData = getDeactivated();
+var approversData = getApprovers();
+var aspData = getAsps();
+
 
 function init() {
     daterange();
     getData(true);
 }
+
+function getActive() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/users?active=true",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+            }
+        })
+        return tmp;
+    }();
+    return data;
+}
+
+function getInactive() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/users?active=false",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+            }
+        })
+        return tmp;
+    }();
+    return data;
+}
+
+function getDeactivated() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/deactivated",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+            }
+        })
+        return tmp;
+    }();
+    return data;
+}
+
+function getApprovers() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/approvers",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+            }
+        })
+        return tmp;
+    }();
+    return data;
+}
+
+function getAsps() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/asps",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+            }
+        })
+        return tmp;
+    }();
+    return data;
+}
+
+////////////////////////// Active Users //////////////////////////
+
+const tableDOM1 = document.querySelector('#a-users');
+tableDOM1.innerHTML = '';
+const activeTable = new eds.Table(tableDOM1, {
+    data: activeData,
+    columns: [
+        {
+            key: 'name',
+            title: 'Name',
+            sort: 'none'
+        },
+        {
+            key: 'country',
+            title: 'Country',
+            sort: 'none'
+        },
+        {
+            key: 'asp',
+            title: 'ASP',
+            sort: 'none'
+        },
+        {
+            key: 'email',
+            title: 'Email',
+            sort: 'none'
+        },
+        {
+            key: 'phone',
+            title: 'Phone',
+        },
+        {
+            key: 'lastActive',
+            title: 'Last Active On',
+            sort: 'none',
+            onCreatedCell: (td, cellData) => {
+                if (cellData === "0001-01-01T00:00:00")
+                    td.innerHTML = "Not active yet";
+            },
+        },
+        {
+            key: 'registeredAt',
+            title: 'Registered On',
+            sort: 'none'
+        },
+    ],
+    actions: true,
+    selectable: 'multi',
+    rowsPerPage: 50,
+    onCreatedActionsCell: (td) => {
+        td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-cross"></i></button>`;
+
+        td.querySelector('button.activate').addEventListener('click', (evt) => {
+            var tr = evt.target.closest('tr');
+            var name = $(tr).find('td').eq(1).text();
+            var email = [];
+            email.push($(tr).find('td').eq(4).text());
+            var result = confirm("Are you sure you want to deactivate user?");
+            if (result) {
+                $.ajax({
+                    url: "api/cms/deactivate?emails=" + email,
+                    type: "PUT",
+                    success: function (res) {
+                        const notification = new eds.Notification({
+                            title: "User Action",
+                            description: name + ' has been deactivated',
+                        });
+                        notification.init();
+                        $('#a-users').dataTable().fnDestroy();
+                        activeTable.update(getActive());
+                        $('#a-users').dataTable({
+                            "searching": true,
+                            "bSort": false
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+activeTable.init();
+$('#a-users').dataTable({
+    "searching": true,
+    "bSort": false
+});
+const toggleActivateBtn1 = () => {
+    (document.querySelector('#deactivate-users')).style.display =
+        (activeTable.selected.length === 0) ? 'none' : '';
+};
+document.querySelector('#deactivate-users').addEventListener('click', () => {
+    var result = confirm("Are you sure you want to deactivate users?");
+    var emails = [];
+    if (result) {
+        activeTable.selected.forEach((d) => {
+            emails.push(d["email"]);
+        });
+        $.ajax({
+            url: "api/cms/deactivate?emails=" + emails,
+            type: "PUT",
+            success: function (res) {
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been deactivated',
+                });
+                notification.init();
+
+                $('#a-users').dataTable().fnDestroy();
+                activeTable.update(getActive());
+                $('#a-users').dataTable({
+                    "searching": true,
+                    "bSort": false
+                });
+            }
+        });
+    }
+    toggleActivateBtn1();
+});
+
+
+tableDOM1.addEventListener('toggleSelectRow', toggleActivateBtn1);
+toggleActivateBtn1()
+
+document.querySelector('#export-ausers').addEventListener('click', () => {
+    const notification = new eds.Notification({
+        title: 'Export data',
+        description: 'Table data is exported to IMK_ActiveUsers.csv file',
+    });
+    notification.init();
+    var rows = [];
+    rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+    activeTable.data.forEach(row => {
+        rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
+    });
+    exportToCsv("IMK_ActiveUsers.csv", rows)
+
+});
+
+
+
+
+////////////////////////// Inactive //////////////////////////
+
+const tableDOM2 = document.querySelector('#i-users');
+tableDOM2.innerHTML = '';
+const inactiveTable = new eds.Table(tableDOM2, {
+    data: inactiveData,
+    columns: [
+        {
+            key: 'name',
+            title: 'Name',
+            sort: 'none'
+        },
+        {
+            key: 'country',
+            title: 'Country',
+            sort: 'none'
+        },
+        {
+            key: 'asp',
+            title: 'ASP',
+            sort: 'none'
+        },
+        {
+            key: 'email',
+            title: 'Email',
+            sort: 'none'
+        },
+        {
+            key: 'phone',
+            title: 'Phone',
+        },
+        {
+            key: 'lastActive',
+            title: 'Last Active On',
+            sort: 'none',
+            onCreatedCell: (td, cellData) => {
+                if (cellData === "0001-01-01T00:00:00")
+                    td.innerHTML = "Not active yet";
+            },
+        },
+        {
+            key: 'registeredAt',
+            title: 'Registered On',
+            sort: 'none'
+        },
+    ],
+    actions: true,
+    selectable: 'multi',
+    rowsPerPage: 50,
+    onCreatedActionsCell: (td) => {
+        td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-check"></i></button>
+                        <button class="ml-2 btn-icon deactivate"><i class="icon icon-cross"></i></button>`;
+
+        td.querySelector('button.activate').addEventListener('click', (evt) => {
+            var tr = evt.target.closest('tr');
+            var name = $(tr).find('td').eq(1).text();
+            var email = [];
+            email.push($(tr).find('td').eq(4).text());
+            var result = confirm("Are you sure you want to activate user?");
+            if (result) {
+                $.ajax({
+                    url: "api/cms/activate?emails=" + email,
+                    type: "PUT",
+                    success: function (res) {
+                        const notification = new eds.Notification({
+                            title: "User Action",
+                            description: name + ' has been activated',
+                        });
+                        notification.init();
+                        $('#i-users').dataTable().fnDestroy();
+                        inactiveTable.update(getInactive());
+                        $('#i-users').dataTable({
+                            "searching": true,
+                            "bSort": false
+                        });                    
+                    }
+                });
+            }
+        });
+        td.querySelector('button.deactivate').addEventListener('click', (evt) => {
+            var tr = evt.target.closest('tr');
+            var name = $(tr).find('td').eq(1).text();
+            var email = $(tr).find('td').eq(4).text();
+            var result = confirm("Are you sure you want to deactivate user?");
+            if (result) {
+                $.ajax({
+                    url: "api/cms/deactivate?emails=" + email,
+                    type: "PUT",
+                    success: function (res) {
+                        const notification = new eds.Notification({
+                            title: "User Action",
+                            description: name + ' has been deactivated',
+                        });
+                        notification.init();
+                        $('#i-users').dataTable().fnDestroy();
+                        inactiveTable.update(getInactive());
+                        $('#i-users').dataTable({
+                            "searching": true,
+                            "bSort": false
+                        });                    
+                    }
+                });
+            }
+        });
+
+    }
+});
+inactiveTable.init();
+$('#i-users').dataTable({
+    "searching": true,
+    "bSort": false
+});
+
+const toggleActivateBtn2 = () => {
+    (document.querySelector('#activate-users')).style.display =
+        (inactiveTable.selected.length === 0) ? 'none' : '';
+    
+        (document.querySelector('#deactivate-iusers')).style.display =
+        (inactiveTable.selected.length === 0) ? 'none' : '';
+};
+document.querySelector('#activate-users').addEventListener('click', () => {
+    var result = confirm("Are you sure you want to activate users?");
+    var emails = [];
+    if (result) {
+        inactiveTable.selected.forEach((d) => {
+            emails.push(d["email"]);
+
+        });
+        $.ajax({
+            url: "api/cms/activate?emails=" + emails,
+            type: "PUT",
+            success: function (res) {
+                $('#i-users').dataTable().fnDestroy();
+                inactiveTable.update(getInactive());
+                $('#i-users').dataTable({
+                    "searching": true,
+                    "bSort": false
+                });   
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been activated',
+                });
+                notification.init();
+            }
+        });
+    }
+    toggleActivateBtn2();
+});
+
+document.querySelector('#deactivate-iusers').addEventListener('click', () => {
+    var result = confirm("Are you sure you want to deactivate users?");
+    var emails = [];
+    if (result) {
+        inactiveTable.selected.forEach((d) => {
+            emails.push(d["email"]);
+        });
+        $.ajax({
+            url: "api/cms/deactivate?emails=" + emails,
+            type: "PUT",
+            success: function (res) {
+                $('#i-users').dataTable().fnDestroy();
+                inactiveTable.update(getInactive());
+                $('#i-users').dataTable({
+                    "searching": true,
+                    "bSort": false
+                });   
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been deactivated',
+                });
+                notification.init();
+            }
+        });
+    }
+    toggleActivateBtn2();
+});
+
+tableDOM2.addEventListener('toggleSelectRow', toggleActivateBtn2);
+toggleActivateBtn2()
+
+document.querySelector('#export-iusers').addEventListener('click', () => {
+    const notification = new eds.Notification({
+        title: 'Export data',
+        description: 'Table data is exported to IMK_InactiveUsers.csv file',
+    });
+    notification.init();
+    var rows = [];
+    rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+    inactiveTable.data.forEach(row => {
+        rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
+    });
+    exportToCsv("IMK_InactiveUsers.csv", rows)
+
+});
+
+
+
+////////////////////////// Deactived Users //////////////////////////
+
+
+const tableDOM3 = document.querySelector('#d-users');
+tableDOM3.innerHTML = '';
+const deactivatedTable = new eds.Table(tableDOM3, {
+    data: deactivatedData,
+    columns: [
+        {
+            key: 'name',
+            title: 'Name',
+            sort: 'none'
+        },
+        {
+            key: 'country',
+            title: 'Country',
+            sort: 'none'
+        },
+        {
+            key: 'asp',
+            title: 'ASP',
+            sort: 'none'
+        },
+        {
+            key: 'email',
+            title: 'Email',
+            sort: 'none'
+        },
+        {
+            key: 'phone',
+            title: 'Phone',
+        },
+        {
+            key: 'lastActive',
+            title: 'Last Active On',
+            sort: 'none',
+            onCreatedCell: (td, cellData) => {
+                if (cellData === "0001-01-01T00:00:00")
+                    td.innerHTML = "Not active yet";
+            },
+        },
+        {
+            key: 'registeredAt',
+            title: 'Registered On',
+            sort: 'none'
+        },
+        {
+            key: 'status',
+            title: 'Status',
+            sort: 'none'
+        }
+    ],
+    actions: true,
+    selectable: 'multi',
+    rowsPerPage: 50,
+    onCreatedActionsCell: (td) => {
+        td.innerHTML = `<button class="btn-icon reactivate"><i class="icon icon-check"></i></button>`;
+
+        td.querySelector('button.reactivate').addEventListener('click', (evt) => {
+            var tr = evt.target.closest('tr');
+            var name = $(tr).find('td').eq(1).text();
+            var email = [];
+            email.push($(tr).find('td').eq(4).text());
+            var result = confirm("Are you sure you want to reactivate user?");
+            if (result) {
+                $.ajax({
+                    url: "api/cms/activate?emails=" + email,
+                    type: "PUT",
+                    success: function (res) {
+                        const notification = new eds.Notification({
+                            title: "User Action",
+                            description: name + ' has been reactivated',
+                        });
+                        notification.init();
+                        $('#d-users').dataTable().fnDestroy();
+                        deactivatedTable.update(getDeactivated());
+                        $('#d-users').dataTable({
+                            "searching": true,
+                            "bSort": false
+                        });                             
+                    }
+                });
+            }
+        });
+
+    }
+});
+deactivatedTable.init();
+$('#d-users').dataTable({
+    "searching": true,
+    "bSort": false
+});
+
+const toggleActivateBtn3 = () => {
+    (document.querySelector('#reactivate-users')).style.display =
+        (deactivatedTable.selected.length === 0) ? 'none' : '';
+};
+document.querySelector('#reactivate-users').addEventListener('click', () => {
+    var result = confirm("Are you sure you want to reactivate users?");
+    var emails = [];
+    if (result) {
+        deactivatedTable.selected.forEach((d) => {
+            emails.push(d["email"]);
+        });
+        $.ajax({
+            url: "api/cms/activate?emails=" + emails,
+            type: "PUT",
+            success: function (res) {
+                $('#d-users').dataTable().fnDestroy();
+                deactivatedTable.update(getDeactivated());
+                $('#d-users').dataTable({
+                    "searching": true,
+                    "bSort": false
+                });
+                const notification = new eds.Notification({
+                    title: "User Action",
+                    description: 'Selected users have been reactivated',
+                });
+                notification.init();   
+            }
+        });
+    }
+    toggleActivateBtn3();
+});
+
+tableDOM3.addEventListener('toggleSelectRow', toggleActivateBtn3);
+toggleActivateBtn3()
+
+document.querySelector('#export-dusers').addEventListener('click', () => {
+    const notification = new eds.Notification({
+        title: 'Export data',
+        description: 'Table data is exported to IMK_DeactivatedUsers.csv file',
+    });
+    notification.init();
+    var rows = [];
+    rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
+    deactivatedTable.data.forEach(row => {
+        rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
+    });
+    exportToCsv("IMK_DeactivatedUsers.csv", rows)
+
+});
+
+
+
+
+
+////////////////////////// Approvers //////////////////////////
+
+
+const tableDOM4 = document.querySelector('#t-approvers');
+tableDOM4.innerHTML = '';
+const approverTable = new eds.Table(tableDOM4, {
+    data: approversData,
+    columns: [
+        {
+            key: 'id',
+            title: 'Id',
+            sort: 'asc'
+        },
+        {
+            key: 'name',
+            title: 'Name',
+            sort: 'asc'
+        },
+        {
+            key: 'email',
+            title: 'Email',
+        },
+        {
+            key: 'country',
+            title: 'Country',
+            sort: 'asc'
+        },
+        {
+            key: 'role',
+            title: 'Role',
+            sort: 'asc'
+        },
+    ],
+    actions: true,
+    rowsPerPage: 50,
+    onCreatedActionsCell: (td) => {
+        td.innerHTML = `<button class="btn-icon delete"><i class="icon icon-trashcan"></i></button>`;
+
+        td.querySelector('button.delete').addEventListener('click', (evt) => {
+            var tr = evt.target.closest('tr');
+            var id = $(tr).find('td').eq(0).text();
+            var name = $(tr).find('td').eq(1).text();
+            var email = $(tr).find('td').eq(2).text();
+            var result = confirm("Are you sure you want to delete approver?");
+            if (result) {
+                $.ajax({
+                    url: "api/cms/approver?id=" + id,
+                    type: "DELETE",
+                    success: function (res) {
+                        const notification = new eds.Notification({
+                            title: "Approver Action",
+                            description: name + ' has been removed',
+                        });
+                        notification.init();
+                        $('#t-approvers').dataTable().fnDestroy();
+                        approverTable.update(getApprovers());
+                        $('#t-approvers').dataTable({
+                            "searching": true,
+                            "bSort": false
+                        });                             
+                    }
+                });
+            }
+        });
+    }
+});
+
+approverTable.init();
+$('#t-approvers').dataTable({
+    "searching": true,
+    "bSort": false
+});
+document.querySelector('#export-approvers').addEventListener('click', () => {
+    const notification = new eds.Notification({
+        title: 'Export data',
+        description: 'Table data is exported to IMK_Approvers.csv file',
+    });
+    notification.init();
+    var rows = [];
+    rows.push(['Country', 'Name', 'Email', 'Role']);
+    approverTable.data.forEach(row => {
+        rows.push([row["country"], row["name"], row["email"], row["role"]]);
+    });
+    exportToCsv("IMK_Approvers.csv", rows)
+
+});
+
+
+
+////////////////////////// ASP Companies //////////////////////////
+
+
+const tableDOM5 = document.querySelector('#t-asps');
+tableDOM5.innerHTML = '';
+const aspTable = new eds.Table(tableDOM5, {
+    data: aspData,
+    columns: [
+        {
+            key: 'country',
+            title: 'Country',
+            sort: 'asc'
+        },
+        {
+            key: 'asp',
+            title: 'ASP',
+            sort: 'non'
+        },
+    ],
+    actions: true,
+    rowsPerPage: 50,
+});
+
+aspTable.init();
+$('#t-asps').dataTable({
+    "searching": true,
+    "bSort": false
+});
+document.querySelector('#export-asps').addEventListener('click', () => {
+    const notification = new eds.Notification({
+        title: 'Export data',
+        description: 'Table data is exported to IMK_ASP_Companies.csv file',
+    });
+    notification.init();
+    var rows = [];
+    rows.push(['Country', 'ASP Companies']);
+    aspTable.data.forEach(row => {
+        rows.push([row["country"], row["asp"]]);
+    });
+    exportToCsv("IMK_ASP_Companies.csv", rows)
+
+});
+
+
+
 
 function getData(first) {
     var startdate = $('#start').attr('value');
@@ -28,572 +733,7 @@ function getData(first) {
     datestart = moment().subtract(6, 'days');
     dateend = moment();
     var LogData = { start: decodeURIComponent(datestart.format('YYYY-MM-DD')), end: decodeURIComponent(dateend.format('YYYY-MM-DD')) }
-    ////////////////////////// Active Users //////////////////////////
-    $.ajax({
-        url: "api/cms/users?active=true",
-        type: "GET",
-        success: function (res) {
-            const tableDOM = document.querySelector('#a-users');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'name',
-                        title: 'Name',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'email',
-                        title: 'Email',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'phone',
-                        title: 'Phone',
-                    },
-                    {
-                        key: 'lastActive',
-                        title: 'Last Active On',
-                        sort: 'none',
-                        onCreatedCell: (td, cellData) => {
-                            if(cellData === "0001-01-01T00:00:00")
-                                td.innerHTML = "Not active yet";
-                        },
-                    },
-                    {
-                        key: 'registeredAt',
-                        title: 'Registered On',
-                        sort: 'none'
-                    },
-                ],
-                actions: true,
-                selectable: 'multi',
-                rowsPerPage: 50,
-                onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-cross"></i></button>`;
 
-                    td.querySelector('button.activate').addEventListener('click', (evt) => {
-                        var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var email = $(tr).find('td').eq(4).text();
-                        var result = confirm("Are you sure you want to deactivate user?");
-                        if (result) {
-                            $.ajax({
-                                url: "api/cms/deactivate?email=" + email,
-                                type: "PUT",
-                                success: function (res) {
-                                    const notification = new eds.Notification({
-                                        title: "User Action",
-                                        description: name + ' has been deactivated',
-                                    });
-                                    notification.init();
-                                    getData(false);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-            table.init();
-            if(first)
-                $('#a-users').dataTable({
-                    "searching": true,
-                    "bSort" : false
-                });
-            const toggleActivateBtn = () => {
-                (document.querySelector('#deactivate-users')).style.display =
-                    (table.selected.length === 0) ? 'none' : '';
-            };
-            document.querySelector('#deactivate-users').addEventListener('click', () => {
-                var result = confirm("Are you sure you want to deactivate users?");
-                if (result) {
-                    table.selected.forEach((d) => {
-                        var email = d["email"];
-                        $.ajax({
-                            url: "api/cms/deactivate?email=" + email,
-                            type: "PUT",
-                            success: function (res) {
-                                getData(false);
-                            }
-                        });
-                    });
-                }
-                const notification = new eds.Notification({
-                    title: "User Action",
-                    description: 'Selected users have been deactivated',
-                });
-                notification.init();
-                toggleActivateBtn();
-            });
-
-            tableDOM.addEventListener('toggleSelectRow', toggleActivateBtn);
-            toggleActivateBtn()
-
-            document.querySelector('#export-ausers').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'Table data is exported to IMK_ActiveUsers.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
-                table.data.forEach(row => {
-                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
-                });
-                exportToCsv("IMK_ActiveUsers.csv", rows)
-
-            });
-        }
-    });
-
-
-    ////////////////////////// Inactive //////////////////////////
-
-    $.ajax({
-        url: "api/cms/users?active=false",
-        type: "GET",
-        success: function (res) {
-            const tableDOM = document.querySelector('#i-users');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'name',
-                        title: 'Name',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'email',
-                        title: 'Email',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'phone',
-                        title: 'Phone',
-                    },
-                    {
-                        key: 'lastActive',
-                        title: 'Last Active On',
-                        sort: 'none',
-                        onCreatedCell: (td, cellData) => {
-                            if(cellData === "0001-01-01T00:00:00")
-                                td.innerHTML = "Not active yet";
-                        },
-                    },
-                    {
-                        key: 'registeredAt',
-                        title: 'Registered On',
-                        sort: 'none'
-                    },
-                ],
-                actions: true,
-                selectable: 'multi',
-                rowsPerPage: 50,
-                onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon activate"><i class="icon icon-check"></i></button>
-                                    <button class="ml-2 btn-icon deactivate"><i class="icon icon-cross"></i></button>`;
-
-                    td.querySelector('button.activate').addEventListener('click', (evt) => {
-                        var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var email = $(tr).find('td').eq(4).text();
-                        var result = confirm("Are you sure you want to activate user?");
-                        if (result) {
-                            $.ajax({
-                                url: "api/cms/activate?email=" + email,
-                                type: "PUT",
-                                success: function (res) {
-                                    const notification = new eds.Notification({
-                                        title: "User Action",
-                                        description: name + ' has been activated',
-                                    });
-                                    notification.init();
-                                    getData(false);
-                                }
-                            });
-                        }
-                    });
-                    td.querySelector('button.deactivate').addEventListener('click', (evt) => {
-                        var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var email = $(tr).find('td').eq(4).text();
-                        var result = confirm("Are you sure you want to deactivate user?");
-                        if (result) {
-                            $.ajax({
-                                url: "api/cms/deactivate?email=" + email,
-                                type: "PUT",
-                                success: function (res) {
-                                    const notification = new eds.Notification({
-                                        title: "User Action",
-                                        description: name + ' has been deactivated',
-                                    });
-                                    notification.init();
-                                    getData(false);
-                                }
-                            });
-                        }
-                    });
-
-                }
-            });
-            table.init();
-            if(first)
-                $('#i-users').dataTable({
-                    "searching": true,
-                    "bSort" : false
-                });
-
-            const toggleActivateBtn = () => {
-                (document.querySelector('#activate-users')).style.display =
-                    (table.selected.length === 0) ? 'none' : '';
-            };
-            document.querySelector('#activate-users').addEventListener('click', () => {
-                var result = confirm("Are you sure you want to activate users?");
-                if (result) {
-                    table.selected.forEach((d) => {
-                        var email = d["email"];
-                        $.ajax({
-                            url: "api/cms/activate?email=" + email,
-                            type: "PUT",
-                            success: function (res) {
-                                getData(false);
-                            }
-                        });
-                    });
-                }
-                const notification = new eds.Notification({
-                    title: "User Action",
-                    description: 'Selected users have been activated',
-                });
-                notification.init();
-                toggleActivateBtn();
-            });
-
-            tableDOM.addEventListener('toggleSelectRow', toggleActivateBtn);
-            toggleActivateBtn()
-
-            document.querySelector('#export-iusers').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'Table data is exported to IMK_InactiveUsers.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
-                table.data.forEach(row => {
-                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
-                });
-                exportToCsv("IMK_InactiveUsers.csv", rows)
-
-            });
-        }
-    });
-
-
-
-
-
-    
-
-    ////////////////////////// Deactived Users //////////////////////////
-
-    $.ajax({
-        url: "api/cms/deactivated",
-        type: "GET",
-        success: function (res) {
-            const tableDOM = document.querySelector('#d-users');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'name',
-                        title: 'Name',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'email',
-                        title: 'Email',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'phone',
-                        title: 'Phone',
-                    },
-                    {
-                        key: 'lastActive',
-                        title: 'Last Active On',
-                        sort: 'none',
-                        onCreatedCell: (td, cellData) => {
-                            if(cellData === "0001-01-01T00:00:00")
-                                td.innerHTML = "Not active yet";
-                        },
-                    },
-                    {
-                        key: 'registeredAt',
-                        title: 'Registered On',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'status',
-                        title: 'Status',
-                        sort: 'none'
-                    }
-                ],
-                actions: true,
-                selectable: 'multi',
-                rowsPerPage: 50,
-                onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon reactivate"><i class="icon icon-check"></i></button>`;
-
-                    td.querySelector('button.reactivate').addEventListener('click', (evt) => {
-                        var tr = evt.target.closest('tr');
-                        var name = $(tr).find('td').eq(1).text();
-                        var email = $(tr).find('td').eq(4).text();
-                        var result = confirm("Are you sure you want to reactivate user?");
-                        if (result) {
-                            $.ajax({
-                                url: "api/cms/activate?email=" + email,
-                                type: "PUT",
-                                success: function (res) {
-                                    const notification = new eds.Notification({
-                                        title: "User Action",
-                                        description: name + ' has been reactivated',
-                                    });
-                                    notification.init();
-                                    getData(false);
-                                }
-                            });
-                        }
-                    });
-
-                }
-            });
-            table.init();
-            if(first)
-                $('#d-users').dataTable({
-                    "searching": true,
-                    "bSort" : false
-                });
-
-            const toggleActivateBtn = () => {
-                (document.querySelector('#reactivate-users')).style.display =
-                    (table.selected.length === 0) ? 'none' : '';
-            };
-            document.querySelector('#reactivate-users').addEventListener('click', () => {
-                var result = confirm("Are you sure you want to reactivate users?");
-                if (result) {
-                    table.selected.forEach((d) => {
-                        var email = d["email"];
-                        $.ajax({
-                            url: "api/cms/reactivate?email=" + email,
-                            type: "PUT",
-                            success: function (res) {
-                                getData(false);
-                            }
-                        });
-                    });
-                }
-                const notification = new eds.Notification({
-                    title: "User Action",
-                    description: 'Selected users have been reactivated',
-                });
-                notification.init();
-                toggleActivateBtn();
-            });
-
-            tableDOM.addEventListener('toggleSelectRow', toggleActivateBtn);
-            toggleActivateBtn()
-
-            document.querySelector('#export-dusers').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'Table data is exported to IMK_DeactivatedUsers.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Name', 'Country', 'ASP', 'Email', 'Phone', 'Registered On']);
-                table.data.forEach(row => {
-                    rows.push([row["name"], row["country"], row["asp"], row["email"], row["phone"], row["lastActive"], row["registeredAt"]]);
-                });
-                exportToCsv("IMK_DeactivatedUsers.csv", rows)
-
-            });
-        }
-    });
-
-
-
-
-    ////////////////////////// Approvers //////////////////////////
-
-    $.ajax({
-        url: "api/cms/approvers",
-        type: "GET",
-        success: function (res) {
-            const tableDOM = document.querySelector('#t-approvers');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'id',
-                        title: 'Id',
-                        sort: 'asc'
-                    },
-                    {
-                        key: 'name',
-                        title: 'Name',
-                        sort: 'asc'
-                    },
-                    {
-                        key: 'email',
-                        title: 'Email',
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'asc'
-                    },
-                    {
-                        key: 'role',
-                        title: 'Role',
-                        sort: 'asc'
-                    },
-                ],
-                actions: true,
-                rowsPerPage: 50,
-                onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon delete"><i class="icon icon-trashcan"></i></button>`;
-
-                    td.querySelector('button.delete').addEventListener('click', (evt) => {
-                        var tr = evt.target.closest('tr');
-                        var id = $(tr).find('td').eq(0).text();
-                        var name = $(tr).find('td').eq(1).text();
-                        var email = $(tr).find('td').eq(2).text();
-                        var result = confirm("Are you sure you want to delete approver?");
-                        if (result) {
-                            $.ajax({
-                                url: "api/cms/approver?id=" + id,
-                                type: "DELETE",
-                                success: function (res) {
-                                    const notification = new eds.Notification({
-                                        title: "Approver Action",
-                                        description: name + ' has been removed',
-                                    });
-                                    notification.init();
-                                    getData(false)
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-
-            table.init();
-            if(first)
-                $('#t-approvers').dataTable({
-                    "searching": true,
-                    "bSort" : false
-                });
-            document.querySelector('#export-approvers').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'Table data is exported to IMK_Approvers.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Country', 'Name', 'Email', 'Role']);
-                table.data.forEach(row => {
-                    rows.push([row["country"], row["name"], row["email"], row["role"]]);
-                });
-                exportToCsv("IMK_Approvers.csv", rows)
-
-            });
-        }
-    });
-
-
-    ////////////////////////// ASP Companies //////////////////////////
-
-    $.ajax({
-        url: "api/cms/asps",
-        type: "GET",
-        success: function (res) {
-            const tableDOM = document.querySelector('#t-asps');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'asc'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'non'
-                    },
-                ],
-                actions: true,
-                rowsPerPage: 50,
-            });
-
-            table.init();
-            if(first)
-                $('#t-asps').dataTable({
-                    "searching": true,
-                    "bSort" : false
-                });
-            document.querySelector('#export-asps').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'Table data is exported to IMK_ASP_Companies.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Country', 'ASP Companies']);
-                table.data.forEach(row => {
-                    rows.push([row["country"], row["asp"]]);
-                });
-                exportToCsv("IMK_ASP_Companies.csv", rows)
-
-            });
-        }
-    });
 
     ////////////////////////// Logs //////////////////////////
 
@@ -650,10 +790,10 @@ function getData(first) {
                 expandable: true,
                 onCreatedDetailsRow: (td, data) => {
                     var details = '';
-                    for(var i =0; i< data['command'].length; i++) {
+                    for (var i = 0; i < data['command'].length; i++) {
                         details += `<tr><td> ${data['command'][i]} </td><td> ${data['result'][i]}</td></tr>`;
                     }
-                    td.innerHTML = '<table><th>Command</th><th>Result</th>' + details+'</table>';
+                    td.innerHTML = '<table><th>Command</th><th>Result</th>' + details + '</table>';
                 }
             });
 
@@ -686,7 +826,6 @@ if (selects) {
     });
 }
 
-
 const dialogs = document.querySelectorAll('.dialog');
 if (dialogs) {
     Array.from(dialogs).forEach((dialogDOM) => {
@@ -698,6 +837,50 @@ if (dialogs) {
 $('#menu li.item').on('click', function () {
     $('.element').hide();
     $("#" + $(this).attr('value') + "").show();
+    var table = $("#" + $(this).attr('value') + "").find('table').attr('id');
+
+    switch (table) {
+        case 'a-users':
+            $('#a-users').dataTable().fnDestroy();
+            activeTable.update(getActive());
+            $('#a-users').dataTable({
+                "searching": true,
+                "bSort": false
+            }); 
+        break;
+        case 'i-users':
+            $('#i-users').dataTable().fnDestroy();
+            inactiveTable.update(getInactive());
+            $('#i-users').dataTable({
+                "searching": true,
+                "bSort": false
+            }); 
+        break;
+        case 'd-users':
+            $('#d-users').dataTable().fnDestroy();
+            deactivatedTable.update(getDeactivated());
+            $('#d-users').dataTable({
+                "searching": true,
+                "bSort": false
+            }); 
+        break;
+        case 't-approvers':
+            $('#t-approvers').dataTable().fnDestroy();
+            approverTable.update(getApprovers());
+            $('#t-approvers').dataTable({
+                "searching": true,
+                "bSort": false
+            }); 
+        break;
+        case 't-asps':
+            $('#t-asps').dataTable().fnDestroy();
+            aspTable.update(getAsps());
+            $('#t-asps').dataTable({
+                "searching": true,
+                "bSort": false
+            }); 
+        break;
+    }
 });
 
 $('#submit-approver').on('click', function (e) {
@@ -712,7 +895,12 @@ $('#submit-approver').on('click', function (e) {
                 description: 'New approver has been added',
             });
             notification.init();
-            getData(false);
+            $('#t-approvers').dataTable().fnDestroy();
+            deactivatedTable.update(getApprovers());
+            $('#t-approvers').dataTable({
+                "searching": true,
+                "bSort": false
+            });               
         }
     });
 });
@@ -729,13 +917,17 @@ $('#submit-asp').on('click', function (e) {
                 description: 'New ASP has been added',
             });
             notification.init();
-            getData(false);
+            $('#t-asps').dataTable().fnDestroy();
+            deactivatedTable.update(getAsps());
+            $('#t-asps').dataTable({
+                "searching": true,
+                "bSort": false
+            });               
         }
     });
 });
 
-function searchTable(search, table)
-{
+function searchTable(search, table) {
     var input = document.getElementById(search);
     var filter = input.value.toUpperCase();
     var table = document.getElementById(table);
@@ -781,7 +973,7 @@ function filterDate() {
     var startdate = $('#start').attr('value');
     var enddate = $('#end').attr('value');
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate) }
-    
+
     $.ajax({
         url: "api/cms/logs",
         type: "GET",
@@ -836,10 +1028,10 @@ function filterDate() {
                 expandable: true,
                 onCreatedDetailsRow: (td, data) => {
                     var details = '';
-                    for(var i =0; i< data['command'].length; i++) {
+                    for (var i = 0; i < data['command'].length; i++) {
                         details += `<tr><td> ${data['command'][i]} </td><td> ${data['result'][i]}</td></tr>`;
                     }
-                    td.innerHTML = '<table><th>Command</th><th>Result</th>' + details+'</table>';
+                    td.innerHTML = '<table><th>Command</th><th>Result</th>' + details + '</table>';
                 }
             });
 
