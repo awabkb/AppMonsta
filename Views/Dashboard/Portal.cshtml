@@ -774,45 +774,118 @@
               </div>
               <div class="content text-sm">
                 <div class="table-top">
-                  <div class="table-top-left">
-
-                    <div class="datepicker" id="reportrange">
-                      <input name="date" type="text" placeholder="YYYY-MM-DD" name="datepicker" class="with-icon"
-                        style="width: 95%;">
-                      <div class="suffix icon-inside"><i class="icon icon-calendar"></i></div>
-
-                      <div class="calendar closed">
-                        <div class="head">
-                          <i class="icon icon-chevron-left"></i>
-                          <span class="month"></span>
-                          <i class="icon icon-chevron-right"></i>
-
-                          <i class="icon icon-chevron-left"></i>
-                          <span class="year"></span>
-                          <i class="icon icon-chevron-right"></i>
-                        </div>
-                        <table class="body">
-                          <!-- the body of the calendar is dynamically generated -->
-                        </table>
-                      </div>
-
-                      <input type="hidden" id="start" value="">
-                      <input type="hidden" id="end" value="">
-                    </div>
-                    <button class="btn icon-btn" onclick="filterDate()"><i class="icon icon-filter"></i></button>
-                  </div>
-                </div>
-                <div class="table-top">
-
-                  <div class="table-top-left">
-                    <input id="logs-search" type="text" class="with-icon" onkeyup="searchTable(this.id, 't-logs')"
-                      placeholder="Type to search...">
-                    <div class="suffix icon-inside"><i class="icon icon-search"></i></div>
-                    <div class="table-info ml-2"></div>
+                    <div class="row">
+                      <div class="tile sm-12">
                     
-                  </div>
+                        <div class="header">
+                          <div class="left">
+                            <div class="title">Filter by</div>
+                          </div>
+                          <div class="right">
+                            <div class="action" data-type="collapse">
+                              <span class="pointer">
+                                <i class="icon icon-filter"></i> Filter
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
+                        <div class="content" id="logs-filter" style="display:none">
+                            <div class="column sm-12">
+                              <form class="eds-form horizontal" id="logs-form" style="padding:16px 10px; border:ridge; background-color:white">
+                                <div class="row form-body">
+                                    <div class="column sm-12 md-12 lg-4">
+                                      <!--<div class="filter-group-title">Optional group title</div>-->
+                                      <div class="form-element">
+                                        <label>Site Name</label>
+                                        <input type="text" placeholder="Enter site" class="" name="siteName">
+                                      </div>
+                                      <div class="form-element">
+                                          <label>User</label>
+                                          <input type="text" placeholder="Enter user name" class="" name="userName">
+                                      </div>
+
+                                      <div class="form-element">
+                                        <label>Country</label>
+                                          <input type="text" placeholder="Enter country" class="" name="country">
+                                      </div>
+                                    </div>
+                                    <div class="column sm-12 md-12 lg-4">
+                                      <!--<div class="filter-group-title">Optional group title</div>-->
+                                      <div class="form-element">
+                                        <label>From date</label>
+                                        <div class="datepicker">
+
+                                          <input type="text" placeholder="YYYY-MM-DD" name="datepicker-start" maxlength="10" class="with-icon">
+                                          <div class="suffix icon-inside"><i class="icon icon-calendar"></i></div>
+
+                                          <div class="calendar closed">
+                                            <div class="head">
+                                              <i class="icon icon-chevron-left"></i>
+                                              <span class="month"></span>
+                                              <i class="icon icon-chevron-right"></i>
+
+                                              <i class="icon icon-chevron-left"></i>
+                                              <span class="year"></span>
+                                              <i class="icon icon-chevron-right"></i>
+                                            </div>
+                                            <table class="body">
+                                              <!-- the body of the calendar is dynamically generated -->
+                                            </table>
+                                          </div>
+
+                                          <input type="hidden" name="startDate" value="" id="start">
+                                        </div>
+                                      </div>
+
+                                      <div class="form-element">
+                                        <label>To date</label>
+                                        <div class="datepicker">
+
+                                          <input type="text" placeholder="YYYY-MM-DD" name="datepicker-end" maxlength="10" class="with-icon">
+                                          <div class="suffix icon-inside"><i class="icon icon-calendar"></i></div>
+
+                                          <div class="calendar closed">
+                                            <div class="head">
+                                              <i class="icon icon-chevron-left"></i>
+                                              <span class="month"></span>
+                                              <i class="icon icon-chevron-right"></i>
+
+                                              <i class="icon icon-chevron-left"></i>
+                                              <span class="year"></span>
+                                              <i class="icon icon-chevron-right"></i>
+                                            </div>
+                                            <table class="body">
+                                              <!-- the body of the calendar is dynamically generated -->
+                                            </table>
+                                          </div>
+
+                                          <input type="hidden" name="endDate" value="" id="end">
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="column sm-12 md-12 lg-4">
+                                      <div class="form-element">
+                                        <label>Command</label>
+                                        <input type="text" placeholder="Enter value" class="" name="command">
+                                      </div>
+                                      <div class="form-element">
+                                        <label>Result includes</label>
+                                        <input type="text" placeholder="Enter value" class="" name="result">
+                                      </div>
+                                    </div>  
+                                  </div>
+                                <div class="form-footer">
+                                  <button class="btn" type="reset">Clear filters</button>
+                                  <button class="btn primary" id="filter-btn">Apply filters</button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                      </div>
+                    </div>
                 </div>
+                <div class="loading large" id="loader" style="margin:auto; display:none"></div>
                 <table id="t-logs" class="table"></table>
                 <div class="table-bottom">
                   <div class="pagination-group">
