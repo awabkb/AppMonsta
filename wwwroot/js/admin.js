@@ -741,6 +741,9 @@ function getData(first) {
         url: "api/cms/logs",
         type: "GET",
         data: LogData,
+        beforeSend: function() {
+            $('#loader').show()
+        },
         success: function (res) {
             const tableDOM = document.querySelector('#t-logs');
             const table = new eds.Table(tableDOM, {
@@ -812,13 +815,16 @@ function getData(first) {
                 exportToCsv("IMK_Logs.csv", rows)
 
             });
-        }
+        },
+        complete: function() {
+            $('#loader').hide()
+        },
     });
 
 }
 
 /// ACTION ///
-const selects = document.querySelectorAll('#select-country');
+const selects = document.querySelectorAll('.select');
 if (selects) {
     Array.from(selects).forEach((selectDOM) => {
         const select = new eds.Select(selectDOM);
@@ -833,6 +839,25 @@ if (dialogs) {
         dialog.init();
     });
 }
+
+const datepickers = document.querySelectorAll('.datepicker');
+if (datepickers) {
+  Array.from(datepickers).forEach((datepickerDOM) => {
+    const datepicker = new eds.Datepicker(datepickerDOM);
+    datepicker.init();
+  });
+}
+
+const collapse = document.querySelector('.action');
+const collapsed = function(evt) {
+    const contentDiv = evt.target.closest('.tile').querySelector('#logs-filter');
+    if(contentDiv.style.display == 'none') 
+        contentDiv.style.display = 'block';
+    else 
+        contentDiv.style.display = 'none';
+  }
+collapse.addEventListener('click', collapsed);
+
 
 $('#menu li.item').on('click', function () {
     $('.element').hide();
@@ -946,38 +971,40 @@ function searchTable(search, table) {
 }
 
 function daterange() {
-    $(function () {
-        var start = moment().subtract(6, 'days');
-        var end = moment();
-        function cb(start, end) {
-            $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-            $('#start').attr('value', start.format('YYYY-MM-DD'));
-            $('#end').attr('value', end.format('YYYY-MM-DD'));
-        }
-
-        $('#reportrange').daterangepicker({
-            startDate: start,
-            endDate: end,
-            ranges: {
-                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                'This Month': [moment().startOf('month'), moment().endOf('month')],
-                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-            }
-        }, cb);
-        cb(start, end);
-    });
-
+    
+    var start = moment().subtract(6, 'days');
+    var end = moment();
+    $('#start').attr('value', start.format('YYYY-MM-DD'));
+    $('#end').attr('value', end.format('YYYY-MM-DD'));
+    document.getElementsByName('datepicker-start')[0].placeholder = start.format('YYYY-MM-DD')
+    document.getElementsByName('datepicker-end')[0].placeholder = end.format('YYYY-MM-DD')
+   
 }
 
-function filterDate() {
+$('#filter-btn').on('click', function(e) {
+    e.preventDefault();
+    var inputs = document.getElementById("logs-form").elements;
+
     var startdate = $('#start').attr('value');
     var enddate = $('#end').attr('value');
-    var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate) }
+    var Data ={
+        SiteName: inputs["siteName"].value,
+        UserName: inputs["userName"].value,
+        Country: inputs["country"].value,
+        StartDate : startdate,
+        EndDate: enddate,
+        Command: inputs["command"].value,
+        Result: inputs["result"].value
+    }
 
     $.ajax({
-        url: "api/cms/logs",
+        url: "api/cms/filtered-logs",
         type: "GET",
         data: Data,
+        dataType: "json",
+        beforeSend: function() {
+            $('#loader').show()
+        },
         success: function (res) {
             const tableDOM = document.querySelector('#t-logs');
             tableDOM.innerHTML = '';
@@ -1051,9 +1078,12 @@ function filterDate() {
                 exportToCsv("IMK_Logs.csv", rows)
 
             });
+        },
+        complete: function() {
+            $('#loader').hide()
         }
     });
-}
+});
 
 function exportToCsv(filename, rows) {
     var processRow = function (row) {

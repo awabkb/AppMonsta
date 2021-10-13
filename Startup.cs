@@ -45,6 +45,7 @@ namespace IMK_web
             services.AddTransient<Seed>();
             services.AddScoped<IDashboardRepository,DashboardRepository>();
             services.AddScoped<IAppRepository,AppRepository>();
+            services.AddScoped<IPortalRepository,PortalRepository>();
 
 
             services.AddAuthentication()

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using IMK_web.Data;
+using Data;
 using IMK_web.Models;
 using IMK_web.Repository;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,14 +20,12 @@ namespace IMK_web.Controllers
     [ApiController]
     public class CmsController : Controller
     {
-        private readonly IDashboardRepository _dashRepository;
-        private readonly IAppRepository _appRepository;
+        private readonly IPortalRepository _portalRepository;
 
 
-        public CmsController(IDashboardRepository dashboardRepository, IAppRepository appRepository)
+        public CmsController(IPortalRepository portalRepository)
         {
-            _dashRepository = dashboardRepository;
-            _appRepository = appRepository;
+            _portalRepository = portalRepository;
         }
 
         [HttpPost("approver")]
@@ -37,8 +36,8 @@ namespace IMK_web.Controllers
             manager.Email = email;
             manager.Name = name;
             manager.Role = role;
-            _appRepository.Add(manager);
-            await _appRepository.SaveChanges();
+            _portalRepository.Add(manager);
+            await _portalRepository.SaveChanges();
 
             return Ok(manager);
         }
@@ -46,9 +45,9 @@ namespace IMK_web.Controllers
         [HttpDelete("approver")]
         public async Task<ActionResult> removeApprover([FromQuery] int id)
         {
-            AspManager approver = await _appRepository.GetApprover(id);
-            _appRepository.Remove(approver);
-            await _appRepository.SaveChanges();
+            AspManager approver = await _portalRepository.GetApprover(id);
+            _portalRepository.Remove(approver);
+            await _portalRepository.SaveChanges();
             return Ok("Removed");
         }
 
@@ -56,14 +55,14 @@ namespace IMK_web.Controllers
         [HttpGet("approvers")]
         public async Task<ActionResult> GetApprovers()
         {
-            var approvers = await _appRepository.GetApprovers();
+            var approvers = await _portalRepository.GetApprovers();
             return Ok(approvers);
         }
 
         [HttpGet("asps")]
         public async Task<ActionResult> GetAspCompanies()
         {
-            var companies = await _appRepository.GetAspCompanies();
+            var companies = await _portalRepository.GetAspCompanies();
             var asps = companies.GroupBy(x => new { x.Country.Name })
             .Select(y => new { country = y.Key.Name, asp = y.Select(i => i.Name) });
             return Ok(asps);
@@ -74,10 +73,10 @@ namespace IMK_web.Controllers
         {
 
             AspCompany asp = new AspCompany();
-            asp.Country = await _appRepository.GetCountryByName(country);
+            asp.Country = await _portalRepository.GetCountryByName(country);
             asp.Name = name;
-            _appRepository.Add(asp);
-            await _appRepository.SaveChanges();
+            _portalRepository.Add(asp);
+            await _portalRepository.SaveChanges();
 
             return Ok(asp);
         }
@@ -85,7 +84,7 @@ namespace IMK_web.Controllers
         [HttpGet("users")]
         public async Task<ActionResult> getAllUsers([FromQuery] bool active)
         {
-            var users = await _appRepository.GetAllUsers();
+            var users = await _portalRepository.GetAllUsers();
 
             var active_users = users.Where(x => x.IsActive == active && x.IsDeactivated==false).Select(x => new
             {
@@ -104,7 +103,7 @@ namespace IMK_web.Controllers
         [HttpGet("deactivated")]
         public async Task<ActionResult> getDeactivatedUsers()
         {
-            var users = await _appRepository.GetAllUsers();
+            var users = await _portalRepository.GetAllUsers();
 
             var deactived_users = users.Where(x=>x.IsDeactivated == true).Select(x => new
             {
@@ -127,12 +126,12 @@ namespace IMK_web.Controllers
             string [] allEmails = emails.Split(",");
             foreach(var email in allEmails)
             {
-                var user = await _appRepository.GetUserByEmail(email);
+                var user = await _portalRepository.GetUserByEmail(email);
                 user.IsActive = true;
                 user.IsDeactivated = false;
-                _appRepository.Update(user);
+                _portalRepository.Update(user);
             }
-            await _appRepository.SaveChanges();
+            await _portalRepository.SaveChanges();
             return Ok(allEmails);
         }
 
@@ -143,19 +142,25 @@ namespace IMK_web.Controllers
             string [] allEmails = emails.Split(",");
             foreach(var email in allEmails)
             {
-                var user = await _appRepository.GetUserByEmail(email);
+                var user = await _portalRepository.GetUserByEmail(email);
                 user.IsDeactivated = true;
                 user.IsActive = false;
-                _appRepository.Update(user);
+                _portalRepository.Update(user);
             }
-            await _appRepository.SaveChanges();
+            await _portalRepository.SaveChanges();
             return Ok(allEmails);
         }
 
         [HttpGet("logs")]
         public async Task<ActionResult> getLogs([FromQuery] string start, [FromQuery] string end)
         {
-            var logs = await _appRepository.GetLogs(start, end);
+            var logs = await _portalRepository.GetLogs(start, end);
+            return Ok(logs);
+        }
+        [HttpGet("filtered-logs")]
+        public async Task<ActionResult> FilterLogs([FromQuery] LogsFilter logsFilter)
+        {
+            var logs = await _portalRepository.GetFilteredLogs(logsFilter);
             return Ok(logs);
         }
 
