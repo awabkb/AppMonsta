@@ -602,6 +602,12 @@ const approverTable = new eds.Table(tableDOM4, {
         {
             key: 'id',
             title: 'Id',
+            sort: 'asc',
+            hidden: true
+        },
+        {
+            key: 'country',
+            title: 'Country',
             sort: 'asc'
         },
         {
@@ -612,11 +618,6 @@ const approverTable = new eds.Table(tableDOM4, {
         {
             key: 'email',
             title: 'Email',
-        },
-        {
-            key: 'country',
-            title: 'Country',
-            sort: 'asc'
         },
         {
             key: 'role',
@@ -632,8 +633,8 @@ const approverTable = new eds.Table(tableDOM4, {
         td.querySelector('button.delete').addEventListener('click', (evt) => {
             var tr = evt.target.closest('tr');
             var id = $(tr).find('td').eq(0).text();
-            var name = $(tr).find('td').eq(1).text();
-            var email = $(tr).find('td').eq(2).text();
+            var name = $(tr).find('td').eq(2).text();
+            var email = $(tr).find('td').eq(3).text();
             var result = confirm("Are you sure you want to delete approver?");
             if (result) {
                 $.ajax({
@@ -921,7 +922,7 @@ $('#submit-approver').on('click', function (e) {
             });
             notification.init();
             $('#t-approvers').dataTable().fnDestroy();
-            deactivatedTable.update(getApprovers());
+            approverTable.update(getApprovers());
             $('#t-approvers').dataTable({
                 "searching": true,
                 "bSort": false
@@ -943,7 +944,7 @@ $('#submit-asp').on('click', function (e) {
             });
             notification.init();
             $('#t-asps').dataTable().fnDestroy();
-            deactivatedTable.update(getAsps());
+            aspTable.update(getAsps());
             $('#t-asps').dataTable({
                 "searching": true,
                 "bSort": false

@@ -64,7 +64,8 @@ namespace IMK_web.Controllers
         {
             var companies = await _portalRepository.GetAspCompanies();
             var asps = companies.GroupBy(x => new { x.Country.Name })
-            .Select(y => new { country = y.Key.Name, asp = y.Select(i => i.Name) });
+            .Select(y => new { country = y.Key.Name, asp = y.Select(i => i.Name) })
+            .OrderBy(y => y.country);
             return Ok(asps);
         }
 
@@ -95,7 +96,7 @@ namespace IMK_web.Controllers
                 phone = x.Phone,
                 lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
                 registeredAt = x.RegisteredAt
-            });
+            }).OrderByDescending(y => y.lastActive);
             return Ok(active_users);
 
         }
@@ -115,7 +116,7 @@ namespace IMK_web.Controllers
                 lastActive = x.SiteVisits.OrderByDescending(y => y.StartTime).Select(y => y.StartTime).FirstOrDefault(),
                 registeredAt = x.RegisteredAt,
                 status = x.Status
-            });
+            }).OrderByDescending(y => y.lastActive);
             return Ok(deactived_users);
 
         }
