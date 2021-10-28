@@ -41,86 +41,97 @@ namespace IMK_web.Controllers
         public async Task<IActionResult> CreateUser(UserDto userDto)
         {
             var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
-
             User tmp_user = await _appRepository.GetUserByEmail(userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email);
-            if(tmp_user != null)
-                return BadRequest("Email already in use.");
 
             User user = await _appRepository.GetUser(userId);
 
             if (user == null)
             {
-                user = new User();
-                user.UserId = userId;
-                user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
-                user.Phone = userDto.Phone;
-                user.RegisteredAt = DateTime.Now;
-                user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
-
-                if (!userDto.AspCompany.Equals("N/A"))
-                    user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                if (tmp_user != null)
+                    return BadRequest("Email already in use.");
                 else
                 {
-                    var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
-                    if (asp == null)
-                    {
-                        AspCompany naAsp = new AspCompany();
-                        Country country = await _appRepository.GetCountryByName(userDto.Country);
-                        naAsp.Country = country;
-                        naAsp.Name = userDto.AspCompany;
-                        user.AspCompany = naAsp;
-                    }
+                    user = new User();
+                    user.UserId = userId;
+                    user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
+                    user.Phone = userDto.Phone;
+                    user.RegisteredAt = DateTime.Now;
+                    user.Email = userDto.Email == null ? User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(c => c.Value).SingleOrDefault() : userDto.Email;
+
+                    if (!userDto.AspCompany.Equals("N/A"))
+                        user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
                     else
-                        user.AspCompany = asp;
+                    {
+                        var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                        if (asp == null)
+                        {
+                            AspCompany naAsp = new AspCompany();
+                            Country country = await _appRepository.GetCountryByName(userDto.Country);
+                            naAsp.Country = country;
+                            naAsp.Name = userDto.AspCompany;
+                            user.AspCompany = naAsp;
+                        }
+                        else
+                            user.AspCompany = asp;
+                    }
+
+                    _appRepository.Add(user);
+
+                    await _appRepository.SaveChanges();
+                    //await this.sendAccessRequest(userDto).ConfigureAwait(false);
+                    UserToReturn userToReturnDto = new UserToReturn();
+                    userToReturnDto.AspCompany = user.AspCompany.Name;
+                    userToReturnDto.Email = user.Email;
+                    userToReturnDto.IsActive = user.IsActive;
+                    userToReturnDto.IsAdmin = user.IsDeactivated;
+                    userToReturnDto.Name = user.Name;
+                    userToReturnDto.Phone = user.Phone;
+                    userToReturnDto.UserId = user.UserId;
+                    userToReturnDto.Message = "User has been created";
+
+                    return Ok(userToReturnDto);
                 }
-
-                _appRepository.Add(user);
-
-                await _appRepository.SaveChanges();
-                //await this.sendAccessRequest(userDto).ConfigureAwait(false);
-                UserToReturn userToReturnDto = new UserToReturn();
-                userToReturnDto.AspCompany = user.AspCompany.Name;
-                userToReturnDto.Email = user.Email;
-                userToReturnDto.IsActive = user.IsActive;
-                userToReturnDto.IsAdmin = user.IsDeactivated;
-                userToReturnDto.Name = user.Name;
-                userToReturnDto.Phone = user.Phone;
-                userToReturnDto.UserId = user.UserId;
-
-                return Ok(userToReturnDto);
             }
             else
             {
-                user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
-                user.Phone = userDto.Phone;
-                user.Email = userDto.Email;
-                if (!userDto.AspCompany.Equals("N/A"))
-                    user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                if (!user.Email.Equals(userDto.Email) && tmp_user != null)
+                {
+                    return BadRequest("Email already in use.");
+                }
                 else
                 {
-                    var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
-                    if (asp == null)
-                    {
-                        AspCompany naAsp = new AspCompany();
-                        Country country = await _appRepository.GetCountryByName(userDto.Country);
-                        naAsp.Country = country;
-                        naAsp.Name = userDto.AspCompany;
-                        user.AspCompany = naAsp;
-                    }
+                    user.Name = User.Claims.Where(x => x.Type == ClaimTypes.GivenName).Select(c => c.Value).SingleOrDefault() + " " + User.Claims.Where(x => x.Type == ClaimTypes.Surname).Select(c => c.Value).SingleOrDefault();
+                    user.Phone = userDto.Phone;
+                    user.Email = userDto.Email;
+                    if (!userDto.AspCompany.Equals("N/A"))
+                        user.AspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
                     else
-                        user.AspCompany = asp;
+                    {
+                        var asp = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
+                        if (asp == null)
+                        {
+                            AspCompany naAsp = new AspCompany();
+                            Country country = await _appRepository.GetCountryByName(userDto.Country);
+                            naAsp.Country = country;
+                            naAsp.Name = userDto.AspCompany;
+                            user.AspCompany = naAsp;
+                        }
+                        else
+                            user.AspCompany = asp;
+                    }
+                    _appRepository.Update(user);
+                    await _appRepository.SaveChanges();
+                    UserToReturn userToReturnDto = new UserToReturn();
+                    userToReturnDto.AspCompany = user.AspCompany.Name;
+                    userToReturnDto.Email = user.Email;
+                    userToReturnDto.IsActive = user.IsActive;
+                    userToReturnDto.IsAdmin = user.IsDeactivated;
+                    userToReturnDto.Name = user.Name;
+                    userToReturnDto.Phone = user.Phone;
+                    userToReturnDto.UserId = user.UserId;
+                    userToReturnDto.Message = "User has been updated";
+                    return Ok(userToReturnDto);
                 }
-                _appRepository.Update(user);
-                await _appRepository.SaveChanges();
-                UserToReturn userToReturnDto = new UserToReturn();
-                userToReturnDto.AspCompany = user.AspCompany.Name;
-                userToReturnDto.Email = user.Email;
-                userToReturnDto.IsActive = user.IsActive;
-                userToReturnDto.IsAdmin = user.IsDeactivated;
-                userToReturnDto.Name = user.Name;
-                userToReturnDto.Phone = user.Phone;
-                userToReturnDto.UserId = user.UserId;
-                return Ok(userToReturnDto);
             }
 
         }
@@ -361,7 +372,7 @@ namespace IMK_web.Controllers
                 Downloading = siteIntegration.Downloading,
                 Integrating = siteIntegration.Integrating,                    
                 UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
-                MACAddress = siteIntegration.MACAddress
+                MacAddress = siteIntegration.MacAddress
             });
             await _appRepository.SaveChanges();
             
