@@ -14,6 +14,7 @@ namespace IMK_web.Models
         public string AspCompany {get;set;}
         public Boolean IsAdmin { get; set; }
         public Boolean IsActive { get; set; }
+        public string Message { get; set; }
         
     }
 }
