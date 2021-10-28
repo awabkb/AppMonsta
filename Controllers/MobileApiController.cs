@@ -47,8 +47,11 @@ namespace IMK_web.Controllers
 
             if (user == null)
             {
-                if (tmp_user != null)
-                    return BadRequest("Email already in use.");
+                if (tmp_user != null) {
+                    MessageDTO message = new MessageDTO();
+                    message.Message = "Email already in use";
+                    return BadRequest(message);
+                }
                 else
                 {
                     user = new User();
@@ -96,7 +99,9 @@ namespace IMK_web.Controllers
             {
                 if (!user.Email.Equals(userDto.Email) && tmp_user != null)
                 {
-                    return BadRequest("Email already in use.");
+                    MessageDTO message = new MessageDTO();
+                    message.Message = "Email already in use";
+                    return BadRequest(message);
                 }
                 else
                 {
