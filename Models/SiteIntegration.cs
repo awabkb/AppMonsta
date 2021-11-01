@@ -17,6 +17,6 @@ namespace IMK_web.Models
         public bool Downloading { get; set; }
         public bool Integrating { get; set; }
         public string UserId { get; set; }
-        public string MACAddress { get; set; }
+        public string MacAddress { get; set; }
     }
 }
