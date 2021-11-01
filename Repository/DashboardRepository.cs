@@ -708,7 +708,14 @@ namespace IMK_web.Repository
             var role = _context.AspManagers.Where(x => x.Email.Equals(email)).Select(x => x.Role).FirstOrDefault();
             return role;
         }
-
+        public async Task<User> GetUser(string userId)
+        {
+            return await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country).FirstOrDefaultAsync(x => x.UserId.Equals(userId));
+        }
+        public async Task<Site> GetSite(string sitename, string country)
+        {
+            return await _context.Sites.Include(x => x.Operator).FirstOrDefaultAsync(x => x.Name.Equals(sitename) && x.Country.Equals(country));
+        }
 
 
 
@@ -1016,31 +1023,62 @@ namespace IMK_web.Repository
         
         }
 
+    
+        // Get LMT Site Integrations
+        public async Task<ActionResult> GetSiteIntegrations(string start, string end, string countries, string operators)
+        {
+            List<SiteIntegration> siteIntegrations = null;
+            List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
-        // Number of resolved failures 
+            siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null).OrderBy(x => x.DownloadStart).ToListAsync();
+            var integrations = siteIntegrations.GroupBy(x => new { x.SiteName, x.UserId, Convert.ToDateTime(x.DownloadStart).Date});
+            foreach (var integration in integrations)
+            {
+                
+                User user = await this.GetUser(integration.First().UserId);
+                Site site = await this.GetSite(integration.First().SiteName, user.AspCompany.Country.Name);
+                
+                    IntegrationDetail visit = new IntegrationDetail();
+                    visit.SiteName = integration.First().SiteName;
+                    visit.Country = user.AspCompany.Country.Name;
+                    visit.User = user.Name;
+                    visit.Asp = user.AspCompany.Name;
+                    visit.DownloadStart = integration.First().DownloadStart;
+                    visit.DownloadEnd = integration.Last().DownloadEnd;
+                    visit.IntegrateStart = integration.First().IntegrateStart;
+                    visit.IntegrateEnd = integration.Last().IntegrateEnd;
+                    visit.Outcome = integration.Last().Outcome;
+                    //visit.IntegrationTime = (Convert.ToDateTime(integration.Last().IntegrateEnd) - Convert.ToDateTime(integration.First().DownloadStart)).TotalMinutes.ToString() + " minutes";
+                    lmts.Add(visit);
+
+            }
+
+            //return new JsonResult(lmts.OrderByDescending(x => x.DownloadStart));
+            return new JsonResult(integrations);
+        }
+
+
+        
         public async Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators)
         {
-            List<SiteVisit> visitLogs = null;
+            List<SiteVisit> allVisits = null;
+
             if (countries == null)
                 return new JsonResult(null);
 
             else if (countries == "all")
             {
-                visitLogs = await _context.SiteVisits.Include(x => x.Logs).Include("Site")
+                allVisits = await _context.SiteVisits.Include(x =>x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .OrderBy(x => x.StartTime)
                 .ToListAsync();
-                
             }
             else
             {
                 if (operators == null)
                 {
-
                     string[] arrCountries = countries.Split(",");
-                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs).Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                    .OrderBy(x => x.StartTime)
                     .ToListAsync();
                 }
                 else
@@ -1048,67 +1086,207 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs).Include(x => x.Site.Operator)
-                    .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
-                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                    .OrderBy(x => x.StartTime)
-                    .ToListAsync();
-
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                        .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                        .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                        .ToListAsync();
                 }
             }
-            var visitsPerSite = visitLogs.GroupBy(x => x.Site.SiteId);
-            Dictionary<string, int> resolvedPerCountry = new Dictionary<string, int>();
 
-            var check1 = new List<Object>();
+            var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).ToList();
+            
+            List<Dictionary<string,string>> list= new List<Dictionary<string, string>>();
+            foreach(var visit in visitDetails) {
+                Dictionary<string,string> commands = new Dictionary<string, string>();
 
-            // calculate resolved per each site (resolved: if passed command follows a failed command on same site)
-            foreach(var site in visitsPerSite)
-            {
-                var country = site.First().Site.Country;
-                foreach(var logs in site)
-                {
-                    foreach(var log in logs.Logs) {
-                        var command = log.Command;
-                        check1.Add(command);
+                    var Ti = visit.First().StartTime;
+                    foreach(var session in visit) { //session details
+                        // if(session.StartTime < Ti.AddHours(12)) {
+                            foreach(var log in session.Logs) {
+                                //check if command is in dict -> update to new status
+                                // else add status
+                                var passed = CommandPassed(log.Command, log.Result);
 
-                        var result = JsonConvert.DeserializeObject(log.Result);
+                                    // check if command previously failed and now passed
+                                    if(commands.ContainsKey(log.Command)) { 
+                                        dynamic firstAttempt = JsonConvert.DeserializeObject(commands[log.Command]);
+                                        if(commands[log.Command].Contains("Failed") && passed)
+                                            //commands[log.Command] = passed + "-resolved:" + (session.StartTime - Convert.ToDateTime(firstAttempt)).TotalMinutes;
+                                            commands[log.Command] = JsonConvert.SerializeObject(new {Status = "Resolved", Duration = (session.StartTime - Convert.ToDateTime(firstAttempt.Time)).TotalMinutes});
+
+                                    }
+
+                                    else
+                                        commands[log.Command] = JsonConvert.SerializeObject(new {Status = (passed ? "Passed":"Failed"), Time = session.StartTime});
+
+                                        //commands.Add(log.Command, (passed ? "Passed":"Failed") + "-" + session.StartTime.ToString());
+                            }
+                        //     Ti = session.StartTime;
+                        // }
+                           
                     }
+                if(commands.Count()!=0)
+                    list.Add(commands);
+            }
+            
+            Dictionary<string,List<string>> details = new Dictionary<string, List<string>>();
+            foreach(var item in list) {
+                foreach(var log in item) {
+                    var command = log.Key;
+                    var status = log.Value;
+                    if(details.ContainsKey(command)) {
+                        details[command].Add(status);
+                    }
+                    else {
+                        details.Add(command, new List<string>{status});
+                    }
+                }
+
+            }
+            Dictionary<string, int> vpassed  = new Dictionary<string, int>(); //passed per visit
+            Dictionary<string, int> vfailed  = new Dictionary<string, int>(); //failed per visit
+            Dictionary<string, int> resolved  = new Dictionary<string, int>(); //resolution time
+            
+            foreach(var i in details) {
+                vpassed.Add(i.Key, i.Value.Where(x =>x.Contains("Passed") || x.Contains("Resolved")).Count());
+                vfailed.Add(i.Key, i.Value.Where(x =>x.Contains("Failed")).Count());
+                List<double> avg = new List<double>();
+                foreach(var j in i.Value.Where(x => x.Contains("Resolved"))) {
+                    dynamic info = JsonConvert.DeserializeObject(j);
+                    var time = info.Duration;
+                    avg.Add(Convert.ToDouble(time));
 
                 }
+                resolved.Add(i.Key, avg.Count() == 0 ? 0 : (int) avg.Average());
+
             }
+            Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
+            returnList.Add("passed_per_visit", vpassed);
+            returnList.Add("failed_per_visit", vfailed);
+            returnList.Add("avg_resolution", resolved);
 
-
-            var check = new List<Object>();
-
-            foreach(var log in visitLogs)
-            {
-                foreach(var result in log.Logs)
-                {
-                    var value = JsonConvert.DeserializeObject(result.Result);
-                    check.Add(value);
-
-                }
-            }
-            return new JsonResult(visitsPerSite);
-
+            return new JsonResult(returnList);
         }
-    
-        // Get LMT Site Integrations
-        public async Task<ActionResult> GetSiteIntegrations(string start, string end, string countries, string operators)
+
+
+        public bool CommandPassed(string command, string outcome)
         {
-            List<SiteIntegration> siteIntegrations = null;
-
-            if (countries == null)
-                return new JsonResult(null);
-
-            else
+            dynamic results = JsonConvert.DeserializeObject(outcome);
+            var passed = 0;
+            if (results != null)
             {
-                siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null).ToListAsync();
+                switch (command)
+                {
+                    case "vswr":
+                        foreach (var result in results)
+                        {
+                            String status = result.STATUS;
+                            if (status.Equals("PASSED"))
+                                passed = 1;
+                            else if (status.Equals("FAILED"))
+                            {
+                                passed = 0;
+                                break;
+                            }
+                        }
+                        if (passed == 1)
+                            return true;
+                        else
+                            return false;
+
+                    case "rssi_umts":
+                        foreach (var result in results)
+                        {
+                            String status = result.CELL;
+                            if (status.Equals("PASSED"))
+                                passed = 1;
+                            else if (status.Equals("FAILED"))
+                            {
+                                passed = 0;
+                                break;
+                            }
+                        }
+                        if (passed == 1)
+                            return true;
+                        else
+                            return false;
+
+                    case "rssi-lte EUtranCellFDD":
+                        foreach (var result in results)
+                        {
+                            double rssi;
+                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                            if (isValue == true && rssi <= -110)
+                                passed = 1;
+                            else if (isValue == false || rssi > -110)
+                            {
+                                passed = 0;
+                                break;
+                            }
+                        }
+                        if (passed == 1)
+                            return true;
+                        else
+                            return false;
+
+                    case "rssi-lte EUtranCellTDD":
+                        foreach (var result in results)
+                        {
+                            double rssi;
+                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                            if (isValue == true && rssi <= -110)
+                                passed = 1;
+                            else if (isValue == false || rssi > -110)
+                            {
+                                passed = 0;
+                                break;
+                            }
+                        }
+                        if (passed == 1)
+                            return true;
+                        else
+                            return false;
+
+                    case "rssi-nr":
+                        foreach (var result in results)
+                        {
+                            double rssi;
+                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                            if (isValue == true && rssi <= -110)
+                                passed = 1;
+                            else if (isValue == false || rssi > -110)
+                            {
+                                passed = 0;
+                                break;
+                            }
+                        }
+                        if (passed == 1)
+                            return true;
+                        else
+                            return false;
+
+                    case "alarm":
+                        foreach (var result in results)
+                        {
+                            String description = result.DESCRIPTION;
+                            if (description.Equals(""))
+                                passed = 1;
+                            else if (!description.Equals(""))
+                            {
+                                passed = 0;
+                                break;
+                            }
+                        }
+                        if (passed == 1)
+                            return true;
+                        else
+                            return false;
+                }
             }
-
-            return new JsonResult(siteIntegrations);
-
+            return false;
         }
     }
+
+    
 
 }

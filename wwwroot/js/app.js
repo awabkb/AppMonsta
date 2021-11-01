@@ -590,33 +590,59 @@ function getData(startdate, enddate, countries, operators) {
                     {
                         key: 'siteName',
                         title: 'Site',
-                        sort: 'desc'
+                        sort: 'desc',
+                        headerStyle: 'font-weight:bold',
+                        cellStyle: 'color:steelblue'
                     },
                     {
-                        key: 'integrateStart',
+                        key: 'outcome',
+                        title: 'Status',
+                        sort: 'none',
+                        headerStyle: 'font-weight:bold',
+                        onCreatedCell: (td, cellData) => {
+                            if (cellData === 'success')
+                                td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
+                            else if(cellData === 'Failed')
+                                td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
+                            else
+                                td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
+                        },
+
+                    },
+                    {
+                        key: 'country',
+                        title: 'Country',
+                        sort: 'desc',
+                        headerStyle: 'font-weight:bold'
+                    },
+                    {
+                        key: 'downloadStart',
                         title: 'Integration Start',
-                        sort: 'none'
+                        sort: 'none',
+                        headerStyle: 'font-weight:bold'
                     },
                     {
                         key: 'integrateEnd',
                         title: 'Integration End',
-                        sort: 'none'
+                        sort: 'none',
+                        headerStyle: 'font-weight:bold'
                     },
                     {
-                        key: 'outcome',
-                        title: 'Outcome',
-                        sort: 'none',
-                        onCreatedCell: (td, cellData) => {
-                            if (cellData === 'success')
-                                td.innerHTML = `<span class="color-green"><i class="icon icon-check"></i></span>`;
-                            else
-                                td.innerHTML = `<span class="color-red"><i class="icon icon-cross"></i></span>`;
-                        },
-
+                        key: 'asp',
+                        title: 'ASP',
+                        sort: 'desc',
+                        headerStyle: 'font-weight:bold'
+                    },
+                    {
+                        key: 'user',
+                        title: 'User',
+                        sort: 'desc',
+                        headerStyle: 'font-weight:bold'
                     },
                 ],
                 sortable: true,
                 resize: true,
+                scroll: true
             });
             table.init();
         }
@@ -629,11 +655,14 @@ function getData(startdate, enddate, countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
-
             const element = document.getElementById('pass-fail');
-            var passedResult = res["passed"];
-            var failedResult = res["failed"];
-            var passed = {
+            var passedResult = res[0].value["passed"];
+            var failedResult = res[0].value["failed"];
+            var vpassedResult = res[1].value["passed_per_visit"];
+            var vfailedResult = res[1].value["failed_per_visit"];
+            var resolution = res[1].value["avg_resolution"];
+
+            var total_passed = {
                 "vswr":passedResult["vswr"] ? passedResult["vswr"] : 0 ,
                 "umts":passedResult["umts"] ? passedResult["umts"] : 0 ,
                 "fdd":passedResult["fdd"] ? passedResult["fdd"] : 0,
@@ -641,7 +670,7 @@ function getData(startdate, enddate, countries, operators) {
                 "nr":passedResult["nr"] ? passedResult["nr"] : 0,
                 "alarm":passedResult["alarm"] ? passedResult["alarm"] : 0
             };
-            var failed =  {
+            var total_failed =  {
                 "vswr":failedResult["vswr"] ? failedResult["vswr"] : 0 ,
                 "umts":failedResult["umts"] ? failedResult["umts"] : 0 ,
                 "fdd":failedResult["fdd"] ? failedResult["fdd"] : 0,
@@ -649,12 +678,44 @@ function getData(startdate, enddate, countries, operators) {
                 "nr":failedResult["nr"] ? failedResult["nr"] : 0,
                 "alarm":failedResult["alarm"] ? failedResult["alarm"] : 0
             };
+
+            var passed_per_visit = {
+                "vswr":vpassedResult["vswr"] ? vpassedResult["vswr"] : 0 ,
+                "rssi_umts":vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0 ,
+                "rssi-lte EUtranCellFDD":vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
+                "rssi-lte EUtranCellTDD":vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
+                "rssi-nr":vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
+                "alarm":vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
+            }
+            var failed_per_visit = {
+                "vswr":vfailedResult["vswr"] ? vfailedResult["vswr"] : 0 ,
+                "rssi_umts":vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0 ,
+                "rssi-lte EUtranCellFDD":vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
+                "rssi-lte EUtranCellTDD":vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
+                "rssi-nr":vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
+                "alarm":vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
+            }
+            var resolution_time = {
+                "vswr":resolution["vswr"] ? resolution["vswr"] : 0 ,
+                "rssi_umts":resolution["rssi_umts"] ? resolution["rssi_umts"] : 0 ,
+                "rssi-lte EUtranCellFDD":resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
+                "rssi-lte EUtranCellTDD":resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
+                "rssi-nr":resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
+                "alarm":resolution["alarm"] ? resolution["alarm"] : 0
+            }
+
             element.innerHTML = '';
             const chart = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
                     "common": ["VSWR", "RSSI UMTS", "LTE-FDD RSSI", "LTE-TDD RSSI", "NR RSSI", "Alarms"],
-                    "series": [{"name": "Failed", "values": Object.values(failed)},{ "name": "Passed", "values": Object.values(passed)}]
+                    "series": [
+                        {"name": "Total Failed", "values": Object.values(total_failed)},
+                        { "name": "Total Passed", "values": Object.values(total_passed)},
+                        {"name": "Passed/Visit", "values": Object.values(passed_per_visit)},
+                        {"name": "Failed/Visit", "values": Object.values(failed_per_visit)},
+                        {"name": "Avg Resolution Time (mins)", "values": Object.values(resolution)},
+                    ]
                 },
                 x: { unit: 'Commands' }
             });
@@ -749,6 +810,7 @@ function mapData(result) {
             countries[j].push(j);
         }
     }
+    countries.sort();
     for (var c in countries) {
         unique_sites[c] = [];
 
