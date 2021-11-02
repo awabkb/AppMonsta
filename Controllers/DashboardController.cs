@@ -27,14 +27,15 @@ namespace IMK_web.Controllers
 
             ViewBag.Username = User.Claims.Where(c =>c.Type.Equals("name")).Select(c => c.Value).SingleOrDefault();
             var email = User.Claims.Where(c =>c.Type.Equals("preferred_username")).Select(c => c.Value).SingleOrDefault();
-            if(email != null) {
-                var role = _repo.GetRole(email);
+            var role = _repo.GetRole(email);
+            if(role == null)
+                ViewBag.Role = "User";
+            else {
                 if(role.Equals("Admin"))
                     ViewBag.Role = "Admin";
                 else
                     ViewBag.Role = "User";
             }
-            ViewBag.Role = "User";
             return View();
         }
         
@@ -42,6 +43,11 @@ namespace IMK_web.Controllers
 
             ViewBag.Username = User.Claims.Where(c =>c.Type.Equals("name")).Select(c => c.Value).SingleOrDefault();
             return View("Portal");
+        }
+
+        public IActionResult Test(){
+
+            return View("Test");
         }
 
     }

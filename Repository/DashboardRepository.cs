@@ -1053,8 +1053,7 @@ namespace IMK_web.Repository
 
             }
 
-            //return new JsonResult(lmts.OrderByDescending(x => x.DownloadStart));
-            return new JsonResult(integrations);
+            return new JsonResult(lmts.OrderByDescending(x => x.DownloadStart));
         }
 
 
