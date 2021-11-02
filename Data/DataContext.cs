@@ -16,7 +16,8 @@ namespace IMK_web.Data
         public DbSet<AspCompany> AspCompanies {get;set;}
         public DbSet<ImkVersion> ImkVersions { get; set; }
         public DbSet<Log> Logs { get; set; }
-        public DbSet<AspManager> AspManagers {get; set;}
+        public DbSet<AspManager> AspManagers {get; set;}        
+        public DbSet<SiteIntegration> SiteIntegrations {get; set;}
 
 
     }

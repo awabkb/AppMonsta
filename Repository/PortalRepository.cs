@@ -56,7 +56,7 @@ namespace IMK_web.Repository
       
         public async Task<IEnumerable<AspManager>> GetApprovers()
         {
-            return await _context.AspManagers.OrderByDescending(x => x.Id).ToListAsync();
+            return await _context.AspManagers.OrderBy(x => x.Country).ToListAsync();
         }
 
         public async Task<AspManager> GetApprover(int id)
