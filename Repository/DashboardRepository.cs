@@ -255,7 +255,6 @@ namespace IMK_web.Repository
                 }
                 dict.Add(country, siterevisit);
             }
-            dict.OrderBy(x => x.Key);
             Dictionary<string, Dictionary<string, int>> bydate = new Dictionary<string, Dictionary<string, int>>();
 
             var dates = dict.Values.SelectMany(v => v.Keys).Distinct().OrderBy(x => x);
@@ -1144,11 +1143,14 @@ namespace IMK_web.Repository
             }
             Dictionary<string, int> vpassed  = new Dictionary<string, int>(); //passed per visit
             Dictionary<string, int> vfailed  = new Dictionary<string, int>(); //failed per visit
-            Dictionary<string, int> resolved  = new Dictionary<string, int>(); //resolution time
+            Dictionary<string, int> resolved  = new Dictionary<string, int>(); //resolved per visit
+            Dictionary<string, int> resolvedtime  = new Dictionary<string, int>(); //resolution time
             
             foreach(var i in details) {
                 vpassed.Add(i.Key, i.Value.Where(x =>x.Contains("Passed") || x.Contains("Resolved")).Count());
                 vfailed.Add(i.Key, i.Value.Where(x =>x.Contains("Failed")).Count());
+                resolved.Add(i.Key, i.Value.Where(x =>x.Contains("Resolved")).Count());
+
                 List<double> avg = new List<double>();
                 foreach(var j in i.Value.Where(x => x.Contains("Resolved"))) {
                     dynamic info = JsonConvert.DeserializeObject(j);
@@ -1156,13 +1158,14 @@ namespace IMK_web.Repository
                     avg.Add(Convert.ToDouble(time));
 
                 }
-                resolved.Add(i.Key, avg.Count() == 0 ? 0 : (int) avg.Average());
+                resolvedtime.Add(i.Key, avg.Count() == 0 ? 0 : (int) avg.Average());
 
             }
             Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
             returnList.Add("passed_per_visit", vpassed);
             returnList.Add("failed_per_visit", vfailed);
-            returnList.Add("avg_resolution", resolved);
+            returnList.Add("resolved_per_visit", resolved);
+            returnList.Add("avg_resolution", resolvedtime);
 
             return new JsonResult(returnList);
         }
