@@ -92,17 +92,15 @@
                         <div class="content">
                             <div class="title">My settings</div>
                             <div class="item">
-                                @if(ViewBag.Role.Equals("Admin")){
-                                <div class="left"><a type="button" class="btn" asp-controller="Dashboard" asp-action="Portal">Admin Page</a></div>
+                                @if (ViewBag.Role.Equals("Admin"))
+                                {
+                                    <div class="left"><a type="button" class="btn" asp-controller="Dashboard" asp-action="Portal">Admin Page</a></div>
                                 }
-                                @* <div class="right">@ViewBag.Role</div> *@
                             </div>
                         </div>
 
                         <div class="bottom">
-                            <a type="button" class="btn big"
-                                        asp-area="MicrosoftIdentity" asp-controller="Account"
-                                        asp-action="SignOut"><i class="icon icon-logout"></i>Signout</a>
+                            <a type="button" class="btn big" asp-area="MicrosoftIdentity" asp-controller="Account" asp-action="SignOut"><i class="icon icon-logout"></i>Signout</a>
                         </div>
                     </div>
                 </div>
@@ -195,20 +193,9 @@
                             </div>
                             <div class="ml-2">
                                 <button type="submit" class="btn"><i class="icon icon-filter"></i>Filter</button>
-                                <button type="reset" class="btn"><i
-                                        class="icon icon-undo"></i>Reset</button>
+                                <button type="reset" class="btn"><i class="icon icon-undo"></i>Reset</button>
                             </div>
                         </form>
-                        @* <ul>
-                                <li><span class="item active">Example page</span></li>
-                                <li><span class="item">Standalone example page</span></li> *@
-                        @* <div id="reportrange"
-                                style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width:
-                                100%">
-                                <i class="icon icon-calendar"></i>&nbsp;
-                                <span></span> <i class="icon-chevron-down"></i>
-                                </div>
-                                </ul> *@
                     </div>
                 </div>
 
@@ -304,7 +291,7 @@
                                     <div class="action">
                                         <button class="btn clickable" value="site-revisits" onclick="hideLegend(this.value)"><i class="icon icon-resize-down"></i></button>
                                     </div>
-                                </div>                                
+                                </div>
                             </div>
                             <div class="content">
                                 <div id="site-revisits"></div>
@@ -323,16 +310,6 @@
                                 <div class="left">
                                     <div class="title">IMK Functions</div>
                                 </div>
-                                @* <div class="right">
-                                        <div class="action">
-                                            <div class="dropdown more" data-type="click">
-                                            <button class="btn clickable"><i class="icon icon-more"></i></button>
-                                            <div class="menu">
-                                                <div class="item" tabindex="0"><button id="view" class="btn" value="0" onclick="changeView(this.value)">Change View</button></div>
-                                            </div>
-                                            </div>
-                                        </div>
-                                    </div> *@
                             </div>
                             <div class="content">
                                 <div class="text-sm" id="imk-functions"></div>
@@ -346,7 +323,7 @@
                                     <div class="title">IMK Version</div>
                                 </div>
                             </div>
-                            <div class="content" style="margin: 0 auto;width: 70%;"> 
+                            <div class="content" style="margin: 0 auto;width: 70%;">
                                 <div id="imk-version"></div>
                             </div>
                         </div>
@@ -388,7 +365,7 @@
 
                     <!-- Tile KPI -->
                     <div class="row">
-                        <div class="tile sm-12 lg-6">
+                        <div class="tile sm-12 lg-3">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Pass/Fail Status</div>
@@ -399,7 +376,7 @@
                             </div>
                         </div>
 
-                        <div class="tile sm-12 lg-6">
+                        <div class="tile sm-12 lg-3">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Top Revisited Sites</div>
@@ -407,6 +384,35 @@
                             </div>
                             <div class="content">
                                 <div id="top-revisits"></div>
+                            </div>
+                        </div>
+
+                        <div class="tile sm-12 lg-6">
+                            <div class="header">
+                                <div class="left">
+                                    <div class="title">LMT Details</div>
+                                </div>
+                                <div class="right">
+                                    <div class="action" data-type="maximize">
+                                        <span class="tooltip pointer">
+                                        <i class="icon icon-maximize"></i> <span class="message left black">Maximize tile</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content">
+                                <div class="table-top">
+                                    <div class="table-top-left">
+                                        <div class="table-info ml-2"></div>
+                                    </div>
+                                </div>
+                                <table id="lmt-details" class="table compact striped text-sm"></table>
+
+                                <div class="table-bottom">
+                                    <div class="pagination-group">
+                                        <ul class="pagination"></ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -427,8 +433,6 @@
                             <div class="content">
                                 <div class="table-top">
                                     <div class="table-top-left">
-                                        @* <input id="search-table" type="text" class="with-icon" onkeyup="searchTable()" placeholder="Type to search...">
-                                        <div class="suffix icon-inside"><i class="icon icon-search"></i></div> *@
                                         <div class="table-info ml-2"></div>
                                     </div>
 
@@ -436,7 +440,7 @@
 
                                 <table id="site-details" class="table striped text-sm"></table>
 
-                                @* <div class="table-bottom">
+                                <div class="table-bottom">
                                     <div class="pagination-group">
                                         <ul class="pagination"></ul>
 
@@ -457,7 +461,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div> *@
+                                </div>
                             </div>
                             <div class="dialog" data-trigger="#open-details" data-type="simple">
                                 <div class="content">
