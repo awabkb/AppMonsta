@@ -660,6 +660,7 @@ function getData(startdate, enddate, countries, operators) {
             var failedResult = res[0].value["failed"];
             var vpassedResult = res[1].value["passed_per_visit"];
             var vfailedResult = res[1].value["failed_per_visit"];
+            var resolvedResult = res[1].value["resolved_per_visit"];
             var resolution = res[1].value["avg_resolution"];
 
             var total_passed = {
@@ -695,6 +696,14 @@ function getData(startdate, enddate, countries, operators) {
                 "rssi-nr":vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
                 "alarm":vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
             }
+            var resolved_per_visit = {
+                "vswr":resolvedResult["vswr"] ? resolvedResult["vswr"] : 0 ,
+                "rssi_umts":resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0 ,
+                "rssi-lte EUtranCellFDD":resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
+                "rssi-lte EUtranCellTDD":resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
+                "rssi-nr":resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
+                "alarm":resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
+            }
             var resolution_time = {
                 "vswr":resolution["vswr"] ? resolution["vswr"] : 0 ,
                 "rssi_umts":resolution["rssi_umts"] ? resolution["rssi_umts"] : 0 ,
@@ -714,7 +723,8 @@ function getData(startdate, enddate, countries, operators) {
                         { "name": "Total Passed", "values": Object.values(total_passed)},
                         {"name": "Passed/Visit", "values": Object.values(passed_per_visit)},
                         {"name": "Failed/Visit", "values": Object.values(failed_per_visit)},
-                        {"name": "Avg Resolution Time (mins)", "values": Object.values(resolution)},
+                        {"name": "Resolved/Visit", "values": Object.values(resolved_per_visit)},
+                        {"name": "Avg Resolution Time (mins)", "values": Object.values(resolution_time)},
                     ]
                 },
                 x: { unit: 'Commands' }
@@ -822,7 +832,7 @@ function mapData(result) {
                 unique_sites[c].push(0);
         }
     }
-    for (var i in unique_sites) {
+    for (var i in sortObjectByKeys(unique_sites)) {
         data.push({
             "name": i,
             "values": unique_sites[i]
@@ -838,7 +848,9 @@ function mapData(result) {
     return [dates, data];
 
 }
-
+function sortObjectByKeys(o) {
+    return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+}
 
 function exportToCsv(filename, rows) {
     var processRow = function (row) {
@@ -1109,7 +1121,7 @@ var isoCountries = isoCountries = {
     'Syrian Arab Republic': 'SY',
     'Taiwan': 'TW',
     'Tajikistan': 'TJ',
-    'Tanzania': 'TZ',
+    'United Republic of Tanzania': 'TZ',
     'Thailand': 'TH',
     'Timor-Leste': 'TL',
     'Togo': 'TG',
