@@ -18,5 +18,10 @@ namespace IMK_web.Models
         public bool Integrating { get; set; }
         public string UserId { get; set; }
         public string MacAddress { get; set; }
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
+        public string CountryCode { get; set; }
+        public string CountryName { get; set; }
+        public string AppVersion { get; set; }
     }
 }
