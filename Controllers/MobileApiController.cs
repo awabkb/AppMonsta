@@ -48,9 +48,7 @@ namespace IMK_web.Controllers
             if (user == null)
             {
                 if (tmp_user != null) {
-                    MessageDTO message = new MessageDTO();
-                    message.Message = "Email already in use";
-                    return BadRequest(message);
+                    return BadRequest("Email already in use");
                 }
                 else
                 {
@@ -92,16 +90,14 @@ namespace IMK_web.Controllers
                     userToReturnDto.UserId = user.UserId;
                     userToReturnDto.Message = "User has been created";
 
-                    return Ok(userToReturnDto);
+                    return Ok(new { Message = "User has been created" });
                 }
             }
             else
             {
                 if (!user.Email.Equals(userDto.Email) && tmp_user != null)
                 {
-                    MessageDTO message = new MessageDTO();
-                    message.Message = "Email already in use";
-                    return BadRequest(message);
+                    return BadRequest("Email already in use");
                 }
                 else
                 {
@@ -135,7 +131,8 @@ namespace IMK_web.Controllers
                     userToReturnDto.Phone = user.Phone;
                     userToReturnDto.UserId = user.UserId;
                     userToReturnDto.Message = "User has been updated";
-                    return Ok(userToReturnDto);
+
+                    return Ok(new { Message = "User has been updated" });
                 }
             }
 
@@ -377,7 +374,12 @@ namespace IMK_web.Controllers
                 Downloading = siteIntegration.Downloading,
                 Integrating = siteIntegration.Integrating,                    
                 UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
-                MacAddress = siteIntegration.MacAddress
+                MacAddress = siteIntegration.MacAddress,
+                Longitude = siteIntegration.Longitude,
+                Latitude = siteIntegration.Latitude,
+                CountryCode = siteIntegration.CountryCode,
+                CountryName = siteIntegration.CountryName,
+                AppVersion = siteIntegration.AppVersion,
             });
             await _appRepository.SaveChanges();
             
@@ -438,7 +440,8 @@ namespace IMK_web.Controllers
                 }
                 else
                 {
-                    if (_appRepository.GetUserSiteVisits(user) == null)
+                    var visits = await _appRepository.GetUserSiteVisits(email);
+                    if (visits.Count() == 0)
                     {
                         _appRepository.Remove(user);
                         await _appRepository.SaveChanges();
