@@ -132,12 +132,9 @@ namespace IMK_web.Controllers
 
         //get all site visits details 
         [HttpGet("commands")]
-        public async Task<ActionResult[]> getCommandStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        public async Task<ActionResult> getCommandStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            ActionResult[] data = new ActionResult[2]; 
-            data[0] = await _dashRepository.GetCommandStatus(start, end, countries, operators);
-            data[1] = await _dashRepository.GetResolvedFailures(start, end, countries, operators);
-
+            var data = await _dashRepository.GetCommandStatus(start, end, countries, operators);
             return data;
         }
 

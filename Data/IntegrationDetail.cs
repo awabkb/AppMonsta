@@ -6,6 +6,7 @@ namespace Data{
     public class IntegrationDetail {
         public string SiteName { get; set; }
         public string Country { get; set; }
+        public string Operator { get; set; }
         public string User { get; set; }
         public string Asp { get; set; }
         public string Outcome { get; set; }

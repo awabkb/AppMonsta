@@ -13,6 +13,17 @@ page.init();
 
 eds.NotificationLog.init();
 
+const multiPanelTileDOM = document.querySelector('.multi-panel-tile');
+
+if (multiPanelTileDOM) {
+  const multiPanelTile = new eds.MultiPanelTile(multiPanelTileDOM);
+  multiPanelTile.init();
+}
+
+const commandSelectDOM = document.querySelector('#get-command');
+const select = new eds.Select(commandSelectDOM);
+select.init();
+
 // // Dropdowns
 // const dropdowns = document.querySelectorAll('.dropdown');
 // if (dropdowns) {
@@ -561,7 +572,7 @@ function getData(startdate, enddate, countries, operators) {
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
-                    description: 'Table data is exported to IMK_Dashboard'+ dateTime + '.csv file',
+                    description: 'Site Details data is exported to IMK_Dashboard'+ dateTime + '.csv file',
                 });
                 notification.init();
                 var rows = [];
@@ -590,7 +601,7 @@ function getData(startdate, enddate, countries, operators) {
                     {
                         key: 'siteName',
                         title: 'Site',
-                        sort: 'desc',
+                        sort: 'none',
                         headerStyle: 'font-weight:bold',
                         cellStyle: 'color:steelblue'
                     },
@@ -612,7 +623,7 @@ function getData(startdate, enddate, countries, operators) {
                     {
                         key: 'country',
                         title: 'Country',
-                        sort: 'desc',
+                        sort: 'none',
                         headerStyle: 'font-weight:bold'
                     },
                     {
@@ -628,108 +639,182 @@ function getData(startdate, enddate, countries, operators) {
                         headerStyle: 'font-weight:bold'
                     },
                     {
+                        key: 'integrationTime',
+                        title: 'Duration',
+                        sort: 'none',
+                        headerStyle: 'font-weight:bold'
+                    },
+                    {
                         key: 'asp',
                         title: 'ASP',
-                        sort: 'desc',
+                        sort: 'none',
                         headerStyle: 'font-weight:bold'
                     },
                     {
                         key: 'user',
                         title: 'User',
-                        sort: 'desc',
+                        sort: 'none',
                         headerStyle: 'font-weight:bold'
                     },
                 ],
                 sortable: true,
                 resize: true,
-                scroll: true
+                scroll: true,
+                rowsPerPage: 5,
+
             });
             table.init();
+
+            var today = new Date();
+            var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+            var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+            var dateTime = date+'T'+time;
+            document.querySelector('#export-lmt').addEventListener('click', () => {
+                const notification = new eds.Notification({
+                    title: 'Export data',
+                    description: 'LMT data is exported to IMK_LMT'+ dateTime + '.csv file',
+                });
+                notification.init();
+                var rows = [];
+                rows.push(['Site Name', 'Status','Country', 'Integration Start', 'Integration End', 'Duration', 'ASP', 'User']);
+                table.data.forEach(row => {
+                    rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
+                });
+                exportToCsv(dateTime +"IMK_LMT.csv", rows)
+
+            });
         }
     });
     
-    ////////////////// Pass / Fail commands //////////////////
-
+    ////////////////// Total Pass - Fail ///////////////////
     $.ajax({
         url: "api/dashboardapi/commands",
         type: "GET",
         data: Data,
         success: function (res) {
-            const element = document.getElementById('pass-fail');
-            var passedResult = res[0].value["passed"];
-            var failedResult = res[0].value["failed"];
-            var vpassedResult = res[1].value["passed_per_visit"];
-            var vfailedResult = res[1].value["failed_per_visit"];
-            var resolvedResult = res[1].value["resolved_per_visit"];
-            var resolution = res[1].value["avg_resolution"];
+            var passed = res["passed"];
+            var failed = res["failed"];
 
             var total_passed = {
-                "vswr":passedResult["vswr"] ? passedResult["vswr"] : 0 ,
-                "umts":passedResult["umts"] ? passedResult["umts"] : 0 ,
-                "fdd":passedResult["fdd"] ? passedResult["fdd"] : 0,
-                "tdd":passedResult["tdd"] ? passedResult["tdd"] : 0,
-                "nr":passedResult["nr"] ? passedResult["nr"] : 0,
-                "alarm":passedResult["alarm"] ? passedResult["alarm"] : 0
+                "VSWR":passed["vswr"] ? passed["vswr"] : 0 ,
+                "RSSI UMTS":passed["umts"] ? passed["umts"] : 0 ,
+                "RSSI-LTE FDD":passed["fdd"] ? passed["fdd"] : 0,
+                "RSSI-LTE TDD":passed["tdd"] ? passed["tdd"] : 0,
+                "RSSI-NR":passed["nr"] ? passed["nr"] : 0,
+                "Alarm":passed["alarm"] ? passed["alarm"] : 0
             };
             var total_failed =  {
-                "vswr":failedResult["vswr"] ? failedResult["vswr"] : 0 ,
-                "umts":failedResult["umts"] ? failedResult["umts"] : 0 ,
-                "fdd":failedResult["fdd"] ? failedResult["fdd"] : 0,
-                "tdd":failedResult["tdd"] ? failedResult["tdd"] : 0,
-                "nr":failedResult["nr"] ? failedResult["nr"] : 0,
-                "alarm":failedResult["alarm"] ? failedResult["alarm"] : 0
+                "VSWR":failed["vswr"] ? failed["vswr"] : 0 ,
+                "RSSI UMTS":failed["umts"] ? failed["umts"] : 0 ,
+                "RSSI-LTE FDD":failed["fdd"] ? failed["fdd"] : 0,
+                "RSSI-LTE TDD":failed["tdd"] ? failed["tdd"] : 0,
+                "RSSI-NR":failed["nr"] ? failed["nr"] : 0,
+                "Alarm":failed["alarm"] ? failed["alarm"] : 0
             };
 
+            for (let i = 0; i < 6; i++) {
+                let row = $('<tr>');
+                row.append($('<td >').html(Object.keys(total_passed)[i]));
+                row.append($('<td>').html(Object.values(total_passed)[i]));
+                row.append($('<td>').html(Object.values(total_failed)[i]));
+                $('#total-pf').append(row);
+            }
+        }
+    });
+
+    ////////////////// Pass / Fail status (per visit) //////////////////
+
+    $.ajax({
+        url: "api/dashboardapi/resolved",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('pass-fail');
+            var vpassedResult = res["passed_per_visit"];
+            var vfailedResult = res["failed_per_visit"];
+            var resolvedResult = res["resolved_per_visit"];
+            var resolution = res["avg_resolution"];
+            var medians = res["median_resolution"];
+
             var passed_per_visit = {
-                "vswr":vpassedResult["vswr"] ? vpassedResult["vswr"] : 0 ,
-                "rssi_umts":vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0 ,
-                "rssi-lte EUtranCellFDD":vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
-                "rssi-lte EUtranCellTDD":vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
-                "rssi-nr":vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
-                "alarm":vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
+                "VSWR":vpassedResult["vswr"] ? vpassedResult["vswr"] : 0 ,
+                "RSSI UMTS":vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
+                "Alarm":vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
             }
             var failed_per_visit = {
-                "vswr":vfailedResult["vswr"] ? vfailedResult["vswr"] : 0 ,
-                "rssi_umts":vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0 ,
-                "rssi-lte EUtranCellFDD":vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
-                "rssi-lte EUtranCellTDD":vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
-                "rssi-nr":vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
-                "alarm":vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
+                "VSWR":vfailedResult["vswr"] ? vfailedResult["vswr"] : 0 ,
+                "RSSI UMTS":vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
+                "Alarm":vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
             }
             var resolved_per_visit = {
-                "vswr":resolvedResult["vswr"] ? resolvedResult["vswr"] : 0 ,
-                "rssi_umts":resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0 ,
-                "rssi-lte EUtranCellFDD":resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
-                "rssi-lte EUtranCellTDD":resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
-                "rssi-nr":resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
-                "alarm":resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
+                "VSWR":resolvedResult["vswr"] ? resolvedResult["vswr"] : 0 ,
+                "RSSI UMTS":resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
+                "Alarm":resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
             }
             var resolution_time = {
-                "vswr":resolution["vswr"] ? resolution["vswr"] : 0 ,
-                "rssi_umts":resolution["rssi_umts"] ? resolution["rssi_umts"] : 0 ,
-                "rssi-lte EUtranCellFDD":resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
-                "rssi-lte EUtranCellTDD":resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
-                "rssi-nr":resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
-                "alarm":resolution["alarm"] ? resolution["alarm"] : 0
+                "VSWR":resolution["vswr"] ? resolution["vswr"] : 0 ,
+                "RSSI UMTS":resolution["rssi_umts"] ? resolution["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
+                "Alarm":resolution["alarm"] ? resolution["alarm"] : 0
+            }
+            var medians_time = {
+                "VSWR":medians["vswr"] ? medians["vswr"] : 0 ,
+                "RSSI UMTS":medians["rssi_umts"] ? medians["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":medians["rssi-nr"] ? medians["rssi-nr"] : 0,
+                "Alarm":medians["alarm"] ? medians["alarm"] : 0
             }
 
             element.innerHTML = '';
             const chart = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
-                    "common": ["VSWR", "RSSI UMTS", "LTE-FDD RSSI", "LTE-TDD RSSI", "NR RSSI", "Alarms"],
+                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE TDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
                     "series": [
-                        {"name": "Total Failed", "values": Object.values(total_failed)},
-                        { "name": "Total Passed", "values": Object.values(total_passed)},
-                        {"name": "Passed/Visit", "values": Object.values(passed_per_visit)},
-                        {"name": "Failed/Visit", "values": Object.values(failed_per_visit)},
-                        {"name": "Resolved/Visit", "values": Object.values(resolved_per_visit)},
-                        {"name": "Avg Resolution Time (mins)", "values": Object.values(resolution_time)},
+                        {"name": "Passed FTR", "values": Object.values(passed_per_visit)},
+                        {"name": "Failed", "values": Object.values(failed_per_visit)},
                     ]
                 },
-                x: { unit: 'Commands' }
+                x: { unit: 'Nodes' }
             });
             chart.init();
+
+            commandSelectDOM.addEventListener('selectOption', (evt) => {
+                var selectedValue = $('.item.command.active')[0].innerHTML;
+                if(selectedValue === "Passed / Failed")
+                {
+                    document.getElementById("pass-fail").style.display = 'block';
+                    document.getElementById("resolved").style.display = 'none';
+                }
+                else {
+                    
+                    document.getElementById("pass-fail").style.display = 'none';
+                    document.getElementById("resolved").style.display = 'block';
+
+                    $("#command").text(selectedValue);
+                    $("#resolved-number").text(resolved_per_visit[selectedValue]);
+                    $("#avg-time").text(resolution_time[selectedValue]);
+                    $("#mean-time").text(medians_time[selectedValue]);
+                    var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                    var percentage = (resolved_per_visit[selectedValue] / total) * 100;
+                    $("#total-nodes").text("/ "+total);
+                    $("#progress-bar").val(percentage);
+                    $("#progress-value").text(percentage + " %");
+
+                }
+            });
         }
     }); 
 

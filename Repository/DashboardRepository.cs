@@ -10,6 +10,7 @@ using Data;
 using RestSharp;
 using Newtonsoft.Json;
 using System.Globalization;
+using MathNet.Numerics.Statistics;
 
 namespace IMK_web.Repository
 {
@@ -1030,29 +1031,56 @@ namespace IMK_web.Repository
             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
             siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null).OrderBy(x => x.DownloadStart).ToListAsync();
-            var integrations = siteIntegrations.GroupBy(x => new { x.SiteName, x.UserId, Convert.ToDateTime(x.DownloadStart).Date});
+            var integrations = siteIntegrations.GroupBy(x => new { x.SiteName, x.UserId, 
+            start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date});
             foreach (var integration in integrations)
             {
                 
                 User user = await this.GetUser(integration.First().UserId);
-                Site site = await this.GetSite(integration.First().SiteName, user.AspCompany.Country.Name);
+                Site site = await this.GetSite(integration.First().SiteName, integration.First().CountryName);
                 
                     IntegrationDetail visit = new IntegrationDetail();
                     visit.SiteName = integration.First().SiteName;
-                    visit.Country = user.AspCompany.Country.Name;
+                    visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
                     visit.User = user.Name;
                     visit.Asp = user.AspCompany.Name;
+                    visit.Operator = site == null ? null : site.Operator.Name;
                     visit.DownloadStart = integration.First().DownloadStart;
                     visit.DownloadEnd = integration.Last().DownloadEnd;
                     visit.IntegrateStart = integration.First().IntegrateStart;
                     visit.IntegrateEnd = integration.Last().IntegrateEnd;
                     visit.Outcome = integration.Last().Outcome;
-                    //visit.IntegrationTime = (Convert.ToDateTime(integration.Last().IntegrateEnd) - Convert.ToDateTime(integration.First().DownloadStart)).TotalMinutes.ToString() + " minutes";
+                    visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) && String.IsNullOrEmpty(visit.IntegrateEnd) ? 
+                        "0 mins" : ((Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
                     lmts.Add(visit);
 
             }
+            List<IntegrationDetail> filteredIntegrations = null;
 
-            return new JsonResult(lmts.OrderByDescending(x => x.DownloadStart));
+            if (countries == null)
+                return new JsonResult(null);
+
+            else if (countries == "all")
+            {
+                filteredIntegrations = lmts;
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).ToList();
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).Where(c => arrOps.Contains(c.Operator)).ToList();
+                }
+            }
+
+           return new JsonResult(filteredIntegrations.OrderByDescending(x => x.DownloadStart));
         }
 
 
@@ -1144,21 +1172,23 @@ namespace IMK_web.Repository
             Dictionary<string, int> vpassed  = new Dictionary<string, int>(); //passed per visit
             Dictionary<string, int> vfailed  = new Dictionary<string, int>(); //failed per visit
             Dictionary<string, int> resolved  = new Dictionary<string, int>(); //resolved per visit
-            Dictionary<string, int> resolvedtime  = new Dictionary<string, int>(); //resolution time
+            Dictionary<string, int> resolvedtime  = new Dictionary<string, int>(); //avg resolution time
+            Dictionary<string, int> median  = new Dictionary<string, int>(); //median for resolution time
             
             foreach(var i in details) {
-                vpassed.Add(i.Key, i.Value.Where(x =>x.Contains("Passed") || x.Contains("Resolved")).Count());
+                vpassed.Add(i.Key, i.Value.Where(x =>x.Contains("Passed")).Count());
                 vfailed.Add(i.Key, i.Value.Where(x =>x.Contains("Failed")).Count());
                 resolved.Add(i.Key, i.Value.Where(x =>x.Contains("Resolved")).Count());
 
-                List<double> avg = new List<double>();
+                List<double> duration = new List<double>();
                 foreach(var j in i.Value.Where(x => x.Contains("Resolved"))) {
                     dynamic info = JsonConvert.DeserializeObject(j);
                     var time = info.Duration;
-                    avg.Add(Convert.ToDouble(time));
+                    duration.Add(Convert.ToDouble(time));
 
                 }
-                resolvedtime.Add(i.Key, avg.Count() == 0 ? 0 : (int) avg.Average());
+                resolvedtime.Add(i.Key, duration.Count() == 0 ? 0 : (int) duration.Average());
+                median.Add(i.Key, duration.Count() == 0 ? 0 : (int) duration.Median());             
 
             }
             Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
@@ -1166,6 +1196,7 @@ namespace IMK_web.Repository
             returnList.Add("failed_per_visit", vfailed);
             returnList.Add("resolved_per_visit", resolved);
             returnList.Add("avg_resolution", resolvedtime);
+            returnList.Add("median_resolution", median);
 
             return new JsonResult(returnList);
         }
@@ -1289,6 +1320,6 @@ namespace IMK_web.Repository
         }
     }
 
-    
+   
 
 }
