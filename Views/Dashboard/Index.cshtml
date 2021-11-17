@@ -306,14 +306,51 @@
 
                         <!-- Tile 5 -->
                         <div class="tile sm-12 lg-8">
-                            <div class="header">
-                                <div class="left">
-                                    <div class="title">IMK Functions</div>
-                                </div>
-                            </div>
                             <div class="content">
-                                <div class="text-sm" id="imk-functions"></div>
-                            </div>
+                                <div class="row multi-panel-tile">
+                                    <!-- Middle panel -->
+                                    <div class="mid-panel">
+
+                                        <!-- Header-->
+                                        <div class="header">
+                                            <div class="left">
+                                                <span class="title">IMK Functions</span>
+                                            </div>
+                                            <div class="right">
+                                                @* <button class="btn"><i class="icon icon-lightbulb"></i>Details</button> *@
+                                            </div>
+                                        </div>
+
+                                        <!-- Content -->
+                                        <div class="content">
+                                            <div class="text-sm" id="imk-functions"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right panel -->
+                                    <div class="right-panel">
+                                        <div class="header">
+                                        <div class="left">
+                                            <span class="title">Details of</span>
+                                            <span class="subtitle">Functions</span>
+                                        </div>
+                                        </div>
+                                        <div class="content">
+                                            <!-- Insert total pass fail here -->
+                                            <table class="table compact dashed">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 110px;">Command</th>
+                                                        <th>Total Passed</th>
+                                                        <th>Total Failed</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="total-pf"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                             </div>
                         </div>
 
                         <!-- Tile 6 -->
@@ -368,11 +405,66 @@
                         <div class="tile sm-12 lg-3">
                             <div class="header">
                                 <div class="left">
-                                    <div class="title">Pass/Fail Status</div>
+                                    <div class="title">Pass / Fail Status</div>
+                                </div>
+                                <div class="right">
+                                    <div class="select" data-type="single" id="get-command">
+                                        <button class="btn current-options">Passed / Failed</button>
+
+                                        <div class="options-list">
+                                            <div class="item command">Passed / Failed</div>
+                                            <div class="item command">VSWR</div>
+                                            <div class="item command">RSSI UMTS</div>
+                                            <div class="item command">RSSI-LTE FDD</div>
+                                            <div class="item command">RSSI-LTE TDD</div>
+                                            <div class="item command">RSSI-NR</div>
+                                            <div class="item command">Alarm</div>                                            
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="content">
                                 <div id="pass-fail"></div>
+                                <div id="resolved" style="display: none;">
+                                    <div class="card ml-3">
+                                        <div class="text-xl">
+                                            <kbd class="tag big">
+                                                <i class="icon icon-antenna"></i>
+                                                <span id="command"></span>
+                                            </kbd>
+                                        </div>
+                                        <br>
+                                        <div class="kpi">
+                                            <div class="color-gray">Resolved Nodes</div>
+                                            <div class="item">
+                                                <span class="text-xl" id="resolved-number"></span>
+                                                <span class="item text-lg" id="total-nodes"></span>
+                                                <span class="text-lg color-gray">Nodes</span>
+                                            </div>
+                                            <div class="progress-bar blue thin" style="background-color: #fafafa; width: 160px;">
+                                                <span class="resolved-percentage">
+                                                    <progress id="progress-bar" value="0" min="0" max="100"></progress>
+                                                    <span id="progress-value" style="color: black;"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <div class="kpi">
+                                            <div class="color-gray">Average Resolution time</div>
+                                            <div class="item">
+                                                <span class="text-xl" id="avg-time"></span>
+                                                <span class="text-lg color-gray">mintes</span>
+                                            </div>
+                                            <div class="item">
+                                                <div class="text">
+                                                    <span class="item"><i class="icon icon-chevron-right"></i>Mean</span>
+                                                    <span class="item color-gray" id="mean-time"><b></b></span>
+                                                    <span class="item color-gray">minutes</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -398,6 +490,9 @@
                                         <i class="icon icon-maximize"></i> <span class="message left black">Maximize tile</span>
                                         </span>
                                     </div>
+                                </div>
+                                <div class="table-buttons">
+                                    <button class="btn" id="export-lmt">Export</button>
                                 </div>
                             </div>
                             <div class="content">
@@ -440,7 +535,7 @@
 
                                 <table id="site-details" class="table striped text-sm"></table>
 
-                                <div class="table-bottom">
+                                @* <div class="table-bottom">
                                     <div class="pagination-group">
                                         <ul class="pagination"></ul>
 
@@ -461,7 +556,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> *@
                             </div>
                             <div class="dialog" data-trigger="#open-details" data-type="simple">
                                 <div class="content">
