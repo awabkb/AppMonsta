@@ -13,36 +13,12 @@ page.init();
 
 eds.NotificationLog.init();
 
-const multiPanelTileDOM = document.querySelector('.multi-panel-tile');
+const multiPanelTile = new eds.MultiPanelTile(document.querySelector('.multi-panel-tile'));
 
-if (multiPanelTileDOM) {
-  const multiPanelTile = new eds.MultiPanelTile(multiPanelTileDOM);
-  multiPanelTile.init();
-}
 
-const commandSelectDOM = document.querySelector('#get-command');
-const select = new eds.Select(commandSelectDOM);
-select.init();
-
-// // Dropdowns
-// const dropdowns = document.querySelectorAll('.dropdown');
-// if (dropdowns) {
-//     Array.from(dropdowns).forEach(dropdownDOM => {
-//         const dropdown = new eds.Dropdown(dropdownDOM);
-//         dropdown.init();
-//     });
-// }
 
 ////////////// Graphs //////////////////
 
-// const datepickers = document.querySelectorAll('.datepicker');
-
-// if (datepickers) {
-//   Array.from(datepickers).forEach((datepickerDOM) => {
-//     const datepicker = new eds.Datepicker(datepickerDOM);
-//     datepicker.init();
-//   });
-// }
 
 var countriesFilter = [];
 var operatorsFilter = [];
@@ -659,7 +635,6 @@ function getData(startdate, enddate, countries, operators) {
                 ],
                 sortable: true,
                 resize: true,
-                scroll: true,
                 rowsPerPage: 5,
 
             });
@@ -692,49 +667,17 @@ function getData(startdate, enddate, countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
-            var passed = res["passed"];
-            var failed = res["failed"];
+            
+            const commandSelectDOM = document.querySelector('#get-command');
+            const select = new eds.Select(commandSelectDOM);
+            select.init();
 
-            var total_passed = {
-                "VSWR":passed["vswr"] ? passed["vswr"] : 0 ,
-                "RSSI UMTS":passed["umts"] ? passed["umts"] : 0 ,
-                "RSSI-LTE FDD":passed["fdd"] ? passed["fdd"] : 0,
-                "RSSI-LTE TDD":passed["tdd"] ? passed["tdd"] : 0,
-                "RSSI-NR":passed["nr"] ? passed["nr"] : 0,
-                "Alarm":passed["alarm"] ? passed["alarm"] : 0
-            };
-            var total_failed =  {
-                "VSWR":failed["vswr"] ? failed["vswr"] : 0 ,
-                "RSSI UMTS":failed["umts"] ? failed["umts"] : 0 ,
-                "RSSI-LTE FDD":failed["fdd"] ? failed["fdd"] : 0,
-                "RSSI-LTE TDD":failed["tdd"] ? failed["tdd"] : 0,
-                "RSSI-NR":failed["nr"] ? failed["nr"] : 0,
-                "Alarm":failed["alarm"] ? failed["alarm"] : 0
-            };
-
-            for (let i = 0; i < 6; i++) {
-                let row = $('<tr>');
-                row.append($('<td >').html(Object.keys(total_passed)[i]));
-                row.append($('<td>').html(Object.values(total_passed)[i]));
-                row.append($('<td>').html(Object.values(total_failed)[i]));
-                $('#total-pf').append(row);
-            }
-        }
-    });
-
-    ////////////////// Pass / Fail status (per visit) //////////////////
-
-    $.ajax({
-        url: "api/dashboardapi/resolved",
-        type: "GET",
-        data: Data,
-        success: function (res) {
             const element = document.getElementById('pass-fail');
-            var vpassedResult = res["passed_per_visit"];
-            var vfailedResult = res["failed_per_visit"];
-            var resolvedResult = res["resolved_per_visit"];
-            var resolution = res["avg_resolution"];
-            var medians = res["median_resolution"];
+            var vpassedResult = res[1].value["passed_per_visit"];
+            var vfailedResult = res[1].value["failed_per_visit"];
+            var resolvedResult = res[1].value["resolved_per_visit"];
+            var resolution = res[1].value["avg_resolution"];
+            var medians = res[1].value["median_resolution"];
 
             var passed_per_visit = {
                 "VSWR":vpassedResult["vswr"] ? vpassedResult["vswr"] : 0 ,
@@ -807,16 +750,150 @@ function getData(startdate, enddate, countries, operators) {
                     $("#resolved-number").text(resolved_per_visit[selectedValue]);
                     $("#avg-time").text(resolution_time[selectedValue]);
                     $("#mean-time").text(medians_time[selectedValue]);
-                    var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                    //var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                    var total = 50;
                     var percentage = (resolved_per_visit[selectedValue] / total) * 100;
                     $("#total-nodes").text("/ "+total);
-                    $("#progress-bar").val(percentage);
-                    $("#progress-value").text(percentage + " %");
+                    $("#progress-bar").val(Math.round(percentage));
+                    $("#progress-value").text(Math.round(percentage) + " %");
+
+                }
+            });
+
+            //////////////////////////////////
+
+            $('#total-pf').empty()
+
+            var passed = res[0].value["passed"];
+            var failed = res[0].value["failed"];
+
+            var total_passed = {
+                "VSWR":passed["vswr"] ? passed["vswr"] : 0 ,
+                "RSSI UMTS":passed["umts"] ? passed["umts"] : 0 ,
+                "RSSI-LTE FDD":passed["fdd"] ? passed["fdd"] : 0,
+                "RSSI-LTE TDD":passed["tdd"] ? passed["tdd"] : 0,
+                "RSSI-NR":passed["nr"] ? passed["nr"] : 0,
+                "Alarm":passed["alarm"] ? passed["alarm"] : 0
+            };
+            var total_failed =  {
+                "VSWR":failed["vswr"] ? failed["vswr"] : 0 ,
+                "RSSI UMTS":failed["umts"] ? failed["umts"] : 0 ,
+                "RSSI-LTE FDD":failed["fdd"] ? failed["fdd"] : 0,
+                "RSSI-LTE TDD":failed["tdd"] ? failed["tdd"] : 0,
+                "RSSI-NR":failed["nr"] ? failed["nr"] : 0,
+                "Alarm":failed["alarm"] ? failed["alarm"] : 0
+            };
+
+            for (let i = 0; i < 6; i++) {
+                let row = $('<tr>');
+                row.append($('<td >').html(Object.keys(total_passed)[i]));
+                row.append($('<td>').html(Object.values(total_passed)[i]));
+                row.append($('<td>').html(Object.values(total_failed)[i]));
+                $('#total-pf').append(row);
+            }
+        }
+    });
+
+    ////////////////// Pass / Fail status (per visit) //////////////////
+
+    /*$.ajax({
+        url: "api/dashboardapi/commands",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('pass-fail');
+            var vpassedResult = res[1].value["passed_per_visit"];
+            var vfailedResult = res[1].value["failed_per_visit"];
+            var resolvedResult = res[1].value["resolved_per_visit"];
+            var resolution = res[1].value["avg_resolution"];
+            var medians = res[1].value["median_resolution"];
+
+            var passed_per_visit = {
+                "VSWR":vpassedResult["vswr"] ? vpassedResult["vswr"] : 0 ,
+                "RSSI UMTS":vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
+                "Alarm":vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
+            }
+            var failed_per_visit = {
+                "VSWR":vfailedResult["vswr"] ? vfailedResult["vswr"] : 0 ,
+                "RSSI UMTS":vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
+                "Alarm":vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
+            }
+            var resolved_per_visit = {
+                "VSWR":resolvedResult["vswr"] ? resolvedResult["vswr"] : 0 ,
+                "RSSI UMTS":resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
+                "Alarm":resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
+            }
+            var resolution_time = {
+                "VSWR":resolution["vswr"] ? resolution["vswr"] : 0 ,
+                "RSSI UMTS":resolution["rssi_umts"] ? resolution["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
+                "Alarm":resolution["alarm"] ? resolution["alarm"] : 0
+            }
+            var medians_time = {
+                "VSWR":medians["vswr"] ? medians["vswr"] : 0 ,
+                "RSSI UMTS":medians["rssi_umts"] ? medians["rssi_umts"] : 0 ,
+                "RSSI-LTE FDD":medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD":medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR":medians["rssi-nr"] ? medians["rssi-nr"] : 0,
+                "Alarm":medians["alarm"] ? medians["alarm"] : 0
+            }
+
+            element.innerHTML = '';
+            const chart = new eds.HorizontalBarChartStacked({
+                element: element,
+                data: {
+                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE TDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
+                    "series": [
+                        {"name": "Passed FTR", "values": Object.values(passed_per_visit)},
+                        {"name": "Failed", "values": Object.values(failed_per_visit)},
+                    ]
+                },
+                x: { unit: 'Nodes' }
+            });
+            chart.init();
+
+            const commandSelectDOM = document.querySelector('#get-command');
+            const select = new eds.Select(commandSelectDOM);
+            select.init();
+
+            commandSelectDOM.addEventListener('selectOption', (evt) => {
+                var selectedValue = $('.item.command.active')[0].innerHTML;
+                if(selectedValue === "Passed / Failed")
+                {
+                    document.getElementById("pass-fail").style.display = 'block';
+                    document.getElementById("resolved").style.display = 'none';
+                }
+                else {
+                    
+                    document.getElementById("pass-fail").style.display = 'none';
+                    document.getElementById("resolved").style.display = 'block';
+
+                    $("#command").text(selectedValue);
+                    $("#resolved-number").text(resolved_per_visit[selectedValue]);
+                    $("#avg-time").text(resolution_time[selectedValue]);
+                    $("#mean-time").text(medians_time[selectedValue]);
+                    //var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                    var total = 50;
+                    var percentage = (resolved_per_visit[selectedValue] / total) * 100;
+                    $("#total-nodes").text("/ "+total);
+                    $("#progress-bar").val(Math.round(percentage));
+                    $("#progress-value").text(Math.round(percentage) + " %");
 
                 }
             });
         }
-    }); 
+    }); */
 
     ////////////////// Top Revisits //////////////////
     $.ajax({
