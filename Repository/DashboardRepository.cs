@@ -1030,7 +1030,10 @@ namespace IMK_web.Repository
             List<SiteIntegration> siteIntegrations = null;
             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
-            siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null).OrderBy(x => x.DownloadStart).ToListAsync();
+            siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null)
+            // .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
+            .OrderBy(x => x.DownloadStart).ToListAsync();
+
             var integrations = siteIntegrations.GroupBy(x => new { x.SiteName, x.UserId, 
             start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date});
             foreach (var integration in integrations)
@@ -1050,8 +1053,8 @@ namespace IMK_web.Repository
                     visit.IntegrateStart = integration.First().IntegrateStart;
                     visit.IntegrateEnd = integration.Last().IntegrateEnd;
                     visit.Outcome = integration.Last().Outcome;
-                    visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) && String.IsNullOrEmpty(visit.IntegrateEnd) ? 
-                        "0 mins" : ((Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
+                    visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ? 
+                        "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
                     lmts.Add(visit);
 
             }
