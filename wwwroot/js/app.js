@@ -10,6 +10,14 @@ const bodyDOM = document.querySelector('body');
 const page = new eds.Page(bodyDOM);
 page.init();
 
+const selects = document.querySelectorAll('.select');
+
+if (selects) {
+  Array.from(selects).forEach((selectDOM) => {
+    const select = new eds.Select(selectDOM);
+    select.init();
+  });
+}
 
 eds.NotificationLog.init();
 
@@ -91,6 +99,13 @@ $('#filter').on('submit', function (e) {
     sessionStorage['end'] = e;
 
     filter(s, e, ma, c, o);
+
+    document.getElementById("pass-fail").style.display = 'block';
+    document.getElementById("resolved").style.display = 'none';
+
+    $('#select-command').text("Passed / Failed");
+    $('.item.command.active').removeClass('active');
+    $('#default-passfail').addClass('active');
 });
 
 
@@ -118,6 +133,13 @@ $('#filter').on('reset', function (e) {
     sessionStorage['marketArea'] = ma;
     daterange();
     filter(s, e, ma, c, o);
+
+    document.getElementById("pass-fail").style.display = 'block';
+    document.getElementById("resolved").style.display = 'none';
+
+    $('#select-command').text("Passed / Failed");
+    $('.item.command.active').removeClass('active');
+    $('#default-passfail').addClass('active');
 });
 
 
@@ -668,10 +690,6 @@ function getData(startdate, enddate, countries, operators) {
         data: Data,
         success: function (res) {
             
-            const commandSelectDOM = document.querySelector('#get-command');
-            const select = new eds.Select(commandSelectDOM);
-            select.init();
-
             const element = document.getElementById('pass-fail');
             var vpassedResult = res[1].value["passed_per_visit"];
             var vfailedResult = res[1].value["failed_per_visit"];
@@ -734,7 +752,7 @@ function getData(startdate, enddate, countries, operators) {
             });
             chart.init();
 
-            commandSelectDOM.addEventListener('selectOption', (evt) => {
+            document.querySelector('#get-command').addEventListener('selectOption', (evt) => {
                 var selectedValue = $('.item.command.active')[0].innerHTML;
                 if(selectedValue === "Passed / Failed")
                 {
