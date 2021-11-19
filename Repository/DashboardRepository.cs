@@ -1125,35 +1125,76 @@ namespace IMK_web.Repository
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).ToList();
             
             List<Dictionary<string,string>> list= new List<Dictionary<string, string>>();
+
             foreach(var visit in visitDetails) {
-                Dictionary<string,string> commands = new Dictionary<string, string>();
+                                        
+                // get latest alarm captured just before current visit
+                var lastAlarm = this.GetLatestAlarm(start, visit.First().StartTime.ToString(), visit.First().Site.SiteId);
+                List<string> latestAlarms = new List<string>();
+                if(lastAlarm.Result != null) 
+                {
+                    dynamic latestAlarmResults = JsonConvert.DeserializeObject(lastAlarm.Result.Result);
+                    foreach(var res in latestAlarmResults) {
+                        string type = res.DESCRIPTION;
+                        if(!latestAlarms.Contains(type))
+                            latestAlarms.Add(type);
+                    }
+                }
 
-                    var Ti = visit.First().StartTime;
-                    foreach(var session in visit) { //session details
-                        // if(session.StartTime < Ti.AddHours(12)) {
-                            foreach(var log in session.Logs) {
-                                //check if command is in dict -> update to new status
-                                // else add status
-                                var passed = CommandPassed(log.Command, log.Result);
+                Dictionary<string, string> commands = new Dictionary<string, string>();
+                List<string> alarms = new List<string>();
 
-                                    // check if command previously failed and now passed
-                                    if(commands.ContainsKey(log.Command)) { 
-                                        dynamic firstAttempt = JsonConvert.DeserializeObject(commands[log.Command]);
-                                        if(commands[log.Command].Contains("Failed") && passed)
-                                            //commands[log.Command] = passed + "-resolved:" + (session.StartTime - Convert.ToDateTime(firstAttempt)).TotalMinutes;
-                                            commands[log.Command] = JsonConvert.SerializeObject(new {Status = "Resolved", Duration = (session.StartTime - Convert.ToDateTime(firstAttempt.Time)).TotalMinutes});
+                foreach (var session in visit)
+                {   //session details
+                    foreach (var log in session.Logs)
+                    {
+                        //////////// Alarms
+                        if(log.Command.Equals("alarm"))
+                        {
+                            if (lastAlarm.Result != null && !log.Result.Equals("null"))
+                            {
+                                dynamic results = JsonConvert.DeserializeObject(log.Result);
+                                foreach (var alarm in results)
+                                {
+                                    string alarmType = alarm.DESCRIPTION;
+                                    if(!alarms.Contains(alarmType)) alarms.Add(alarmType);
 
-                                    }
+                                }
+                                
+                                IEnumerable<string> clearedAlarms = latestAlarms.Except(alarms);
+                                IEnumerable<string> newAlarms = alarms.Except(latestAlarms);
+
+                                if(clearedAlarms.Count() > 0) {
+                                    commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - lastAlarm.Result.SiteVisit.StartTime).TotalMinutes });
+                                    foreach(var item in clearedAlarms) alarms.Remove(item);
+                                }
+                                else {
+                                    if(newAlarms.Count() > 0)
+                                        commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = session.StartTime });
 
                                     else
-                                        commands[log.Command] = JsonConvert.SerializeObject(new {Status = (passed ? "Passed":"Failed"), Time = session.StartTime});
-
-                                        //commands.Add(log.Command, (passed ? "Passed":"Failed") + "-" + session.StartTime.ToString());
+                                        commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Time = session.StartTime });
+                                }
                             }
-                        //     Ti = session.StartTime;
-                        // }
-                           
+                        }
+
+                        else 
+                        {
+                            //check if command is in dictionary then update the status, else add new status
+                            var passed = CommandPassed(log.Command, log.Result);
+                            if (commands.ContainsKey(log.Command))
+                            {
+                                dynamic firstAttempt = JsonConvert.DeserializeObject(commands[log.Command]);
+                                // to be resolved check if command previously failed and now passed
+                                if (commands[log.Command].Contains("Failed") && passed)
+                                    commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - Convert.ToDateTime(firstAttempt.Time)).TotalMinutes });
+                                
+                            }
+                            else commands[log.Command] = JsonConvert.SerializeObject(new { Status = (passed ? "Passed" : "Failed"), Time = session.StartTime });
+                        }
                     }
+
+                }
                 if(commands.Count()!=0)
                     list.Add(commands);
             }
@@ -1321,6 +1362,22 @@ namespace IMK_web.Repository
             }
             return false;
         }
+
+
+        public async Task<Log> GetLatestAlarm(string start, string end, int siteId) {
+
+            var alarms = await _context.Logs.Include(x => x.SiteVisit).Include(x => x.SiteVisit.Site)
+            .Where(x => x.SiteVisit.StartTime.Date >= Convert.ToDateTime(start).Date && x.SiteVisit.StartTime < Convert.ToDateTime(end))
+            .Where(x => x.SiteVisit.Site.SiteId == siteId)
+            .Where(x => x.Command.Equals("alarm"))
+            .OrderBy(x => x.SiteVisit.StartTime).ToListAsync();
+
+            if(alarms.Count() > 0)
+                return alarms.Last();
+            else   
+                return null;
+        }
+    
     }
 
    
