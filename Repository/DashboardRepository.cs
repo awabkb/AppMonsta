@@ -886,21 +886,27 @@ namespace IMK_web.Repository
                                 break;
 
                                     case "rssi_umts":
-                                    foreach(var result in results)
-                                    {   
-                                        String status = result.CELL;
-                                        if(status.Equals("PASSED"))
-                                            passed = 1;
-                                        else if(status.Equals("FAILED")) {
+                                    foreach (var result in results)
+                                    {
+                                        double rssi;
+                                        if(result.RSSI == null)
                                             passed = 0;
-                                            break;
+                                        else {
+                                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                            if (isValue == true && rssi <= -110)
+                                                passed = 1;
+                                            else if (isValue == false || rssi > -110)
+                                            {
+                                                passed = 0;
+                                                break;
+                                            }
                                         }
                                     }
                                     if(passed == 1)
                                         if(pCommands.ContainsKey("umts"))
                                             pCommands["umts"] ++;
                                         else
-                                            pCommands.Add("vswr", 1);
+                                            pCommands.Add("umts", 1);
 
                                     else
                                         if(fCommands.ContainsKey("umts"))
@@ -1131,7 +1137,7 @@ namespace IMK_web.Repository
                 // get latest alarm captured just before current visit
                 var lastAlarm = this.GetLatestAlarm(start, visit.First().StartTime.ToString(), visit.First().Site.SiteId);
                 List<string> latestAlarms = new List<string>();
-                if(lastAlarm.Result != null) 
+                if(lastAlarm != null && lastAlarm.Result != null) 
                 {
                     dynamic latestAlarmResults = JsonConvert.DeserializeObject(lastAlarm.Result.Result);
                     foreach(var res in latestAlarmResults) {
@@ -1169,9 +1175,10 @@ namespace IMK_web.Repository
                                     foreach(var item in clearedAlarms) alarms.Remove(item);
                                 }
                                 else {
-                                    if(newAlarms.Count() > 0)
+                                    if(newAlarms.Count() > 0) {
                                         commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = session.StartTime });
-
+                                        foreach(var item in newAlarms) latestAlarms.Add(item);
+                                    }
                                     else
                                         commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Time = session.StartTime });
                                 }
@@ -1274,13 +1281,18 @@ namespace IMK_web.Repository
                     case "rssi_umts":
                         foreach (var result in results)
                         {
-                            String status = result.CELL;
-                            if (status.Equals("PASSED"))
-                                passed = 1;
-                            else if (status.Equals("FAILED"))
-                            {
+                            double rssi;
+                            if(result.RSSI == null)
                                 passed = 0;
-                                break;
+                            else {
+                                bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                if (isValue == true && rssi <= -110)
+                                    passed = 1;
+                                else if (isValue == false || rssi > -110)
+                                {
+                                    passed = 0;
+                                    break;
+                                }
                             }
                         }
                         if (passed == 1)
@@ -1370,6 +1382,7 @@ namespace IMK_web.Repository
             .Where(x => x.SiteVisit.StartTime.Date >= Convert.ToDateTime(start).Date && x.SiteVisit.StartTime < Convert.ToDateTime(end))
             .Where(x => x.SiteVisit.Site.SiteId == siteId)
             .Where(x => x.Command.Equals("alarm"))
+            .Where(x => !x.Result.Equals("null"))
             .OrderBy(x => x.SiteVisit.StartTime).ToListAsync();
 
             if(alarms.Count() > 0)
