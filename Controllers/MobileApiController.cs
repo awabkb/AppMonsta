@@ -380,6 +380,10 @@ namespace IMK_web.Controllers
                 CountryCode = siteIntegration.CountryCode,
                 CountryName = siteIntegration.CountryName,
                 AppVersion = siteIntegration.AppVersion,
+                Error = siteIntegration.Error,
+                Progress = siteIntegration.Progress,
+                AiLog = siteIntegration.AiLog,
+                InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
             
@@ -549,6 +553,12 @@ namespace IMK_web.Controllers
             var response = await client.SendEmailAsync(msg);
 
             return Ok(response);
+        }
+        
+        [HttpGet("claims")]
+        public List<System.Security.Claims.Claim> getSignum(){
+            var signum = User.Claims.ToList();
+            return signum;
         }
 
 
