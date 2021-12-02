@@ -11,6 +11,8 @@ namespace IMK_web.Repository
         Task<IEnumerable<Site>> GetIMKCountriesByMA(string MA);
         Task<IEnumerable<Country>> GetOperatorsByCountry(string countries);
         Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators);
+        Task<ActionResult> GetSiteVisitDetailsNew(string start, string end, string countries, string operators);
+
         Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteRevisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetIMKFunctions(string start, string end, string countries, string operators);

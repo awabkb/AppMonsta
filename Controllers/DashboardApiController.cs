@@ -130,7 +130,14 @@ namespace IMK_web.Controllers
             return data;
         }
 
-        //get all site visits details 
+        //get all site visits details new
+        [HttpGet("site_details_new")]
+        public async Task<ActionResult> getSiteDetailsNew([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetSiteVisitDetailsNew(start, end, countries, operators);
+            return data;
+        }
+
         [HttpGet("commands")]
         public async Task<ActionResult[]> getCommandStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {

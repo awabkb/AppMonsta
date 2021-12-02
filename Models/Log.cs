@@ -15,6 +15,7 @@ namespace IMK_web.Models
         public string Result { get; set; }
         public SiteVisit SiteVisit { get; set; }
         public long ResponseTime { get; set; }
+        public int SiteVisitVisitId { get; set; }
 
     }
 

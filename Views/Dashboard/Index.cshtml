@@ -9,8 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="./favicon.png">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
     <link rel="stylesheet" type="text/css" media="screen" href="./style/eds.min.css" />
     <link rel="stylesheet" type="text/css" media="screen" href="./style/app.css" />
 
@@ -146,7 +145,7 @@
                                 <div class="ml-2">
                                     <div class="datepicker" id="reportrange">
                                         <input name="date" type="text" placeholder="YYYY-MM-DD" name="datepicker"
-                                            class="with-icon" style="width: 90%;">
+                                               class="with-icon" style="width: 90%;">
                                         <div class="suffix icon-inside"><i class="icon icon-calendar"></i></div>
 
                                         <div class="calendar closed">
@@ -242,7 +241,6 @@
 
                     </div>
                     <!-- End Row 1 -->
-
                     <!-- Row 2 -->
                     <div class="row">
 
@@ -300,7 +298,6 @@
 
                     </div>
                     <!-- End Row 2 -->
-
                     <!-- Row 3 -->
                     <div class="row">
 
@@ -330,10 +327,10 @@
                                     <!-- Right panel -->
                                     <div class="right-panel">
                                         <div class="header">
-                                        <div class="left">
-                                            <span class="title">Details of</span>
-                                            <span class="subtitle">Functions</span>
-                                        </div>
+                                            <div class="left">
+                                                <span class="title">Details of</span>
+                                                <span class="subtitle">Functions</span>
+                                            </div>
                                         </div>
                                         <div class="content">
                                             <!-- Insert total pass fail here -->
@@ -350,7 +347,7 @@
                                         </div>
                                     </div>
                                 </div>
-                             </div>
+                            </div>
                         </div>
 
                         <!-- Tile 6 -->
@@ -368,7 +365,6 @@
 
                     </div>
                     <!-- End Row 3 -->
-
                     <!-- Row 4 -->
                     <div class="row">
 
@@ -399,10 +395,9 @@
 
                     </div>
                     <!-- End Row 3 -->
-
                     <!-- Tile KPI -->
                     <div class="row">
-                        <div class="tile sm-12 lg-3">
+                        <div class="tile sm-12 lg-6">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Pass / Fail Status</div>
@@ -418,7 +413,7 @@
                                             <div class="item command">RSSI-LTE FDD</div>
                                             <div class="item command">RSSI-LTE TDD</div>
                                             <div class="item command">RSSI-NR</div>
-                                            <div class="item command">Alarm</div>                                            
+                                            <div class="item command">Alarm</div>
                                         </div>
                                     </div>
                                 </div>
@@ -468,7 +463,7 @@
                             </div>
                         </div>
 
-                        <div class="tile sm-12 lg-3">
+                        <div class="tile sm-12 lg-6">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Top Revisited Sites</div>
@@ -478,43 +473,43 @@
                                 <div id="top-revisits"></div>
                             </div>
                         </div>
-
-                        <div class="tile sm-12 lg-6">
-                            <div class="header">
-                                <div class="left">
-                                    <div class="title">LMT Details</div>
-                                </div>
-                                <div class="right">
-                                    <div class="action" data-type="maximize">
-                                        <span class="tooltip pointer">
-                                        <i class="icon icon-maximize"></i> <span class="message left black">Maximize tile</span>
-                                        </span>
+                        @*
+                            <div class="tile sm-12 lg-6">
+                                <div class="header">
+                                    <div class="left">
+                                        <div class="title">LMT Details</div>
+                                    </div>
+                                    <div class="right">
+                                        <div class="action" data-type="maximize">
+                                            <span class="tooltip pointer">
+                                                <i class="icon icon-maximize"></i> <span class="message left black">Maximize tile</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="table-buttons">
+                                        <button class="btn" id="export-lmt">Export</button>
                                     </div>
                                 </div>
-                                <div class="table-buttons">
-                                    <button class="btn" id="export-lmt">Export</button>
+                                <div class="content">
+                                    <div class="table-top">
+                                        <div class="table-top-left">
+                                            <div class="table-info ml-2"></div>
+                                        </div>
+                                    </div>
+                                    <table id="lmt-details" class="table compact striped text-sm"></table>
+
+                                    <div class="table-bottom">
+                                        <div class="pagination-group">
+                                            <ul class="pagination"></ul>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="content">
-                                <div class="table-top">
-                                    <div class="table-top-left">
-                                        <div class="table-info ml-2"></div>
-                                    </div>
-                                </div>
-                                <table id="lmt-details" class="table compact striped text-sm"></table>
-
-                                <div class="table-bottom">
-                                    <div class="pagination-group">
-                                        <ul class="pagination"></ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                        *@
                     </div>
 
 
-                    <div class="row">
+                    @*     <div class="row">
                         <!-- Tile 9 -->
                         <div class="tile sm-12 xl-12">
                             <div class="header">
@@ -535,55 +530,84 @@
 
                                 <table id="site-details" class="table striped text-sm"></table>
 
-                                @* <div class="table-bottom">
-                                    <div class="pagination-group">
-                                        <ul class="pagination"></ul>
+                              <div class="table-bottom">
+                                        <div class="pagination-group">
+                                            <ul class="pagination"></ul>
 
-                                        <div class="actions">
-                                            <label class="left">Go to</label>
-                                            <input type="number" min="1">
+                                            <div class="actions">
+                                                <label class="left">Go to</label>
+                                                <input type="number" min="1">
 
-                                            <label class="left">Show</label>
-                                            <div class="select" data-type="single">
-                                                <button class="btn current-options">5</button>
+                                                <label class="left">Show</label>
+                                                <div class="select" data-type="single">
+                                                    <button class="btn current-options">5</button>
 
-                                                <div class="options-list">
-                                                    <div class="item active">5</div>
-                                                    <div class="item">10</div>
-                                                    <div class="item">100</div>
-                                                    <div class="item">All</div>
+                                                    <div class="options-list">
+                                                        <div class="item active">5</div>
+                                                        <div class="item">10</div>
+                                                        <div class="item">100</div>
+                                                        <div class="item">All</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div> *@
-                            </div>
-                            <div class="dialog" data-trigger="#open-details" data-type="simple">
-                                <div class="content">
-                                    <div class="top">
-                                        <div class="title">Field Engineer Details</div>
-                                    </div>
-                                    <div class="body">
-                                        <p>Share your email to keep updated with the latest news.</p>
-                                    </div>
-                                    <div class="bottom">
-                                        <button class="btn ghost" data-close="true">Cancel</button>
-                                    </div>
+                                    </div> *@
+                    <div class="row">
+                        <!-- Tile 9 -->
+                        <div class="tile sm-12 xl-12">
+                            <div class="header">
+                                <div class="left">
+                                    <div class="title">Site Visit Details</div>
+                                </div>
+                                <div class="table-buttons">
+                                    @if (ViewBag.Role.Equals("Admin"))
+                                    {
+                                        <button class="btn" id="export-new-visits-admin">Export</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn" id="export-new-visits-user">Export</button>
+                                    }
+
                                 </div>
                             </div>
-                        </div>
+                            <div class="content">
+                                <div class="table-top">
+                                    <div class="table-top-left">
+                                        <div class="table-info ml-2"></div>
+                                    </div>
 
+                                </div>
+
+                                <table id="site-details-updated" class="table compact striped"></table>
+
+                            </div>
+                        </div>
                     </div>
 
-
-
+                </div>
+                <div class="dialog" data-trigger="#open-details" data-type="simple">
+                    <div class="content">
+                        <div class="top">
+                            <div class="title">Field Engineer Details</div>
+                        </div>
+                        <div class="body">
+                            <p>Share your email to keep updated with the latest news.</p>
+                        </div>
+                        <div class="bottom">
+                            <button class="btn ghost" data-close="true">Cancel</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+        </div>
+
     </main>
 
     <script src="./js/eds.min.js" charset="utf-8"></script>
     <script src="./js/app.js" charset="utf-8"></script>
-    <script> init()</script>
+    <script>init()</script>
 
 </body>
 
