@@ -464,7 +464,7 @@ function getData(startdate, enddate, countries, operators) {
         }
     });
 
-    $.ajax({
+    /*$.ajax({
         url: "api/dashboardapi/site_details",
         type: "GET",
         data: Data,
@@ -584,7 +584,7 @@ function getData(startdate, enddate, countries, operators) {
 
             });
         }
-    });
+    });*/
     ///////////////////////////new site details//////////////////
     $.ajax({
         url: "api/dashboardapi/site_details_new",
@@ -595,13 +595,26 @@ function getData(startdate, enddate, countries, operators) {
                 const el = {
                     ...e,
                     integrationResult: e.siteIntegration,
-
+                    diagnostic: (e.diagnostic ? {
+                        siteVisit: {
+                            user: {
+                                name: e.user,
+                                aspCompany: { name: e.asp },
+                                phone: e.phone,
+                                email: e.email
+                            },
+                            rpiVersion: e.rpiVersion,
+                            appVersion: e.appVersion,
+                            startTime: e.date,
+                           // finishTime: e.finishTime
+                        }
+                    } : null)
                 };
                 return el;
             });
+            console.log(tableData);
             const tableDOM = document.querySelector('#site-details-updated');
             tableDOM.innerHTML = '';
-            console.log(res);
             const search = [];
             const columns = [
                 {
@@ -671,7 +684,7 @@ function getData(startdate, enddate, countries, operators) {
                             td.innerHTML = `<span class="tooltip dotted">${diagnostic?.siteVisit?.startTime?.slice(0, 16)}
                                                 <span class="message left">
                                                     <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
-                                                    <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div> End Time:${diagnostic?.siteVisit?.finishTime?.slice(0, 16)}</div>
+                                                    <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
                                                     <div>Field Engineer: ${diagnostic?.siteVisit?.user.name}</div>
                                                     <div>Field Engineer Phone: ${diagnostic?.siteVisit?.user.phone}</div>
                                                     <div>Field Engineer Email: ${diagnostic?.siteVisit?.user.email}</div>
@@ -870,102 +883,102 @@ function getData(startdate, enddate, countries, operators) {
 
 
     ////////////////// LMT Details ///////////////////
-    $.ajax({
-        url: "api/dashboardapi/site_integrations",
-        type: "GET",
-        data: Data,
-        success: function (res) {
-            const tableDOM = document.querySelector('#lmt-details');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'siteName',
-                        title: 'Site',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold',
-                        cellStyle: 'color:steelblue'
-                    },
-                    {
-                        key: 'outcome',
-                        title: 'Status',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold',
-                        onCreatedCell: (td, cellData) => {
-                            if (cellData === 'success')
-                                td.innerHTML = `<span class="pill severity-cleared" > <b>Success</b></span> `;
-                            else if (cellData === 'Failed')
-                                td.innerHTML = `<span class="pill" ><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span> `;
-                            else
-                                td.innerHTML = `<span class="pill" ><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span> `;
-                        },
-
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'downloadStart',
-                        title: 'Integration Start',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'integrateEnd',
-                        title: 'Integration End',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'integrationTime',
-                        title: 'Duration',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'user',
-                        title: 'User',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                ],
-                sortable: true,
-                resize: true,
-                rowsPerPage: 5,
-
-            });
-            table.init();
-
-            var today = new Date();
-            var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-            var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-            var dateTime = date + 'T' + time;
-            document.querySelector('#export-lmt').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'LMT data is exported to IMK_LMT' + dateTime + '.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Site Name', 'Status', 'Country', 'Integration Start', 'Integration End', 'Duration', 'ASP', 'User']);
-                table.data.forEach(row => {
-                    rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
-                });
-                exportToCsv(dateTime + "IMK_LMT.csv", rows)
-
-            });
-        }
-    });
+    /*   $.ajax({
+           url: "api/dashboardapi/site_integrations",
+           type: "GET",
+           data: Data,
+           success: function (res) {
+               const tableDOM = document.querySelector('#lmt-details');
+               tableDOM.innerHTML = '';
+               const table = new eds.Table(tableDOM, {
+                   data: res,
+                   columns: [
+                       {
+                           key: 'siteName',
+                           title: 'Site',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold',
+                           cellStyle: 'color:steelblue'
+                       },
+                       {
+                           key: 'outcome',
+                           title: 'Status',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold',
+                           onCreatedCell: (td, cellData) => {
+                               if (cellData === 'success')
+                                   td.innerHTML = `<span class="pill severity-cleared" > <b>Success</b></span> `;
+                               else if (cellData === 'Failed')
+                                   td.innerHTML = `<span class="pill" ><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span> `;
+                               else
+                                   td.innerHTML = `<span class="pill" ><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span> `;
+                           },
+   
+                       },
+                       {
+                           key: 'country',
+                           title: 'Country',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'downloadStart',
+                           title: 'Integration Start',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'integrateEnd',
+                           title: 'Integration End',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'integrationTime',
+                           title: 'Duration',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'asp',
+                           title: 'ASP',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'user',
+                           title: 'User',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                   ],
+                   sortable: true,
+                   resize: true,
+                   rowsPerPage: 5,
+   
+               });
+               table.init();
+   
+               var today = new Date();
+               var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+               var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+               var dateTime = date + 'T' + time;
+               document.querySelector('#export-lmt').addEventListener('click', () => {
+                   const notification = new eds.Notification({
+                       title: 'Export data',
+                       description: 'LMT data is exported to IMK_LMT' + dateTime + '.csv file',
+                   });
+                   notification.init();
+                   var rows = [];
+                   rows.push(['Site Name', 'Status', 'Country', 'Integration Start', 'Integration End', 'Duration', 'ASP', 'User']);
+                   table.data.forEach(row => {
+                       rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
+                   });
+                   exportToCsv(dateTime + "IMK_LMT.csv", rows)
+   
+               });
+           }
+       });*/
 
     ////////////////// Total Pass - Fail ///////////////////
     $.ajax({

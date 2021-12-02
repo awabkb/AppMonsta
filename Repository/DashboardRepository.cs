@@ -633,7 +633,6 @@ namespace IMK_web.Repository
 
             var siteIntegrations = new List<IntegrationDetail>();
             //get diagnostics
-            var logs = _context.Logs.Where(item => allVisits.Select(visit => visit.VisitId).Contains(item.SiteVisitVisitId));
             var _siteIntegrations = _context.SiteIntegrations.Where(x => x.SiteName != null)
                          .OrderBy(x => x.DownloadStart).ToList();
 
@@ -716,7 +715,7 @@ namespace IMK_web.Repository
                 rpVersion = y.Select(i => i.RPIVersion),
                 asp = y.Select(i => i.User.AspCompany.Name),
                 date = y.Select(i => i.StartTime),
-                id = y.Select(i => i.VisitId)
+                id = y.Select(i => i.VisitId),
 
                 //contact = x.Site.AspCompany.ApsMentor.Email
             });
@@ -727,6 +726,7 @@ namespace IMK_web.Repository
             {
                 var revisit = false;
                 var lmtRecord = lmts.FirstOrDefault(item => item.SiteName == vd.siteName);
+
                 if (lmtRecord != null)
                 {
                     lmts.Remove(lmtRecord);
@@ -760,8 +760,8 @@ namespace IMK_web.Repository
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     //v1.SiteIntegration = integrations.FirstOrDefault(item => item.Key.SiteName == y.Key.Name);
-                    v1.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
                     v1.SiteIntegration = lmtRecord;
+                    v1.Diagnostic = true;
                     //v1.IsIntegrated = vd.isIntegrated;
                     uniqueVisits.Add(v1);
 
@@ -784,8 +784,9 @@ namespace IMK_web.Repository
                             v.ASP = vd.asp.First();
                             v.Date = d[i].Date.ToString("yyyy-MM-dd");
                             v.IsRevisit = revisit;
-                            v.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
+                            //  v.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
                             v.SiteIntegration = lmtRecord;
+                            v.Diagnostic = true;
                             uniqueVisits.Add(v);
                         }
                         T = d[i];
@@ -804,8 +805,8 @@ namespace IMK_web.Repository
                     v1.ASP = vd.asp.First();
                     v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
-                    v1.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
                     v1.SiteIntegration = lmtRecord;
+                    v1.Diagnostic = true;
                     uniqueVisits.Add(v1);
                 }
 
@@ -815,7 +816,7 @@ namespace IMK_web.Repository
                 SiteName = e.SiteName,
                 Country = e.Country,
                 SiteIntegration = e,
-                Diagnostic = null,
+                Diagnostic = false,
                 IsRevisit = false,
                 Date = e.IntegrateStart
 

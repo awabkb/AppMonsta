@@ -20,6 +20,6 @@ namespace Data
         [NotMapped]
         public IntegrationDetail SiteIntegration { get; set; }
         [NotMapped]
-        public Log Diagnostic { get; set; }
+        public bool Diagnostic { get; set; }
     }
 }
