@@ -893,9 +893,9 @@ namespace IMK_web.Repository
                                             passed = 0;
                                         else {
                                             bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                            if (isValue == true && rssi <= -110)
+                                            if (isValue == true && rssi <= -100)
                                                 passed = 1;
-                                            else if (isValue == false || rssi > -110)
+                                            else if (isValue == false || rssi > -100)
                                             {
                                                 passed = 0;
                                                 break;
@@ -1037,7 +1037,8 @@ namespace IMK_web.Repository
             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
             siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null)
-            // .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
+            //.Where(x => x.DownloadStart != null)
+            //.Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
             .OrderBy(x => x.DownloadStart).ToListAsync();
 
             var integrations = siteIntegrations.GroupBy(x => new { x.SiteName, x.UserId, 
@@ -1112,7 +1113,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include(x =>x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                     .ToListAsync();
                 }
@@ -1121,7 +1122,7 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include(x =>x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                         .ToListAsync();
@@ -1131,6 +1132,7 @@ namespace IMK_web.Repository
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).ToList();
             
             List<Dictionary<string,string>> list= new List<Dictionary<string, string>>();
+            Dictionary<string, int> alarmTypes = new Dictionary<string, int>();
 
             foreach(var visit in visitDetails) {
                                         
@@ -1162,16 +1164,17 @@ namespace IMK_web.Repository
                                 dynamic results = JsonConvert.DeserializeObject(log.Result);
                                 foreach (var alarm in results)
                                 {
-                                    string alarmType = alarm.DESCRIPTION;
+                                    string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
+                                    if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
+                                    else alarmTypes[alarmType] = 1;
                                     if(!alarms.Contains(alarmType)) alarms.Add(alarmType);
-
                                 }
                                 
                                 IEnumerable<string> clearedAlarms = latestAlarms.Except(alarms);
                                 IEnumerable<string> newAlarms = alarms.Except(latestAlarms);
 
                                 if(clearedAlarms.Count() > 0) {
-                                    commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - lastAlarm.Result.SiteVisit.StartTime).TotalMinutes });
+                                    commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - lastAlarm.Result.SiteVisit.StartTime).TotalHours });
                                     foreach(var item in clearedAlarms) alarms.Remove(item);
                                 }
                                 else {
@@ -1242,12 +1245,17 @@ namespace IMK_web.Repository
                 median.Add(i.Key, duration.Count() == 0 ? 0 : (int) duration.Median());             
 
             }
+            double totalTypes = alarmTypes.Sum(x => x.Value);
+            foreach(KeyValuePair<string, int> entry in alarmTypes)
+                alarmTypes[entry.Key] = (int) Math.Round((double)(entry.Value / totalTypes) * 100);
+
             Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
             returnList.Add("passed_per_visit", vpassed);
             returnList.Add("failed_per_visit", vfailed);
             returnList.Add("resolved_per_visit", resolved);
             returnList.Add("avg_resolution", resolvedtime);
             returnList.Add("median_resolution", median);
+            returnList.Add("alarm_types", alarmTypes);
 
             return new JsonResult(returnList);
         }
@@ -1286,9 +1294,9 @@ namespace IMK_web.Repository
                                 passed = 0;
                             else {
                                 bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                if (isValue == true && rssi <= -110)
+                                if (isValue == true && rssi <= -100)
                                     passed = 1;
-                                else if (isValue == false || rssi > -110)
+                                else if (isValue == false || rssi > -100)
                                 {
                                     passed = 0;
                                     break;

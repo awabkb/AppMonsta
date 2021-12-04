@@ -744,7 +744,7 @@ function getData(startdate, enddate, countries, operators) {
             const chart = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
-                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE TDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
+                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
                     "series": [
                         {"name": "Passed FTR", "values": Object.values(passed_per_visit)},
                         {"name": "Failed", "values": Object.values(failed_per_visit)},
@@ -792,7 +792,7 @@ function getData(startdate, enddate, countries, operators) {
                 "RSSI-LTE FDD":passed["fdd"] ? passed["fdd"] : 0,
                 "RSSI-LTE TDD":passed["tdd"] ? passed["tdd"] : 0,
                 "RSSI-NR":passed["nr"] ? passed["nr"] : 0,
-                "Alarm":passed["alarm"] ? passed["alarm"] : 0
+                // "Alarm":passed["alarm"] ? passed["alarm"] : 0
             };
             var total_failed =  {
                 "VSWR":failed["vswr"] ? failed["vswr"] : 0 ,
@@ -800,7 +800,7 @@ function getData(startdate, enddate, countries, operators) {
                 "RSSI-LTE FDD":failed["fdd"] ? failed["fdd"] : 0,
                 "RSSI-LTE TDD":failed["tdd"] ? failed["tdd"] : 0,
                 "RSSI-NR":failed["nr"] ? failed["nr"] : 0,
-                "Alarm":failed["alarm"] ? failed["alarm"] : 0
+                // "Alarm":failed["alarm"] ? failed["alarm"] : 0
             };
 
             for (let i = 0; i < 6; i++) {
@@ -810,6 +810,26 @@ function getData(startdate, enddate, countries, operators) {
                 row.append($('<td>').html(Object.values(total_failed)[i]));
                 $('#total-pf').append(row);
             }
+
+            ////////// Alarm types analysis
+            var alarmsList = [];
+            var alarmTypes = res[1].value["alarm_types"];
+            for (const [key, value] of Object.entries(alarmTypes))
+                alarmsList.push({"name": key, "values": [value]})
+
+            const alarms = document.getElementById('alarm-types');
+            alarms.innerHTML = '';
+            const donutChart = new eds.Donut({
+                element: alarms,
+                data: {
+                    "series": alarmsList
+                },
+                unit: 'Types'
+            });
+            donutChart.init();
+            $("#alarm-time").text(resolution_time["Alarm"]);
+            $('#alarm-types .labels .label').css("font-size", "12px");
+            $('#alarm-types .chart-legend').css('display','none');
         }
     });
 
@@ -978,6 +998,24 @@ function hideLegend(tile) {
         $('#'+tile+' .chart-legend').css('display','none');
     else
         $('#'+tile+' .chart-legend').css('display','block');
+}
+
+function toggleVersions(version) {
+    if(version == "imk") {
+        $('#imk-version').css('display','block');
+        $('#app-version').css('display','none');
+        $("#switch-versions").val("app");
+        $("#switch-versions").html('<i class="icon icon-signal"></i>IMK');
+        $("#app-imk-version").html("IMK");
+    }
+    else if(version == "app") {
+        $('#imk-version').css('display','none');
+        $('#app-version').css('display','block');
+        $("#switch-versions").val("imk");
+        $("#switch-versions").html('<i class="icon icon-mobile-devices"></i>App');
+        $("#app-imk-version").html("App");
+    }
+
 }
 
 /////////////////////////////////////////////// GLOBES 

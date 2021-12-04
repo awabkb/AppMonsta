@@ -306,7 +306,7 @@
 
                         <!-- Tile 5 -->
                         <div class="tile sm-12 lg-8">
-                            <div class="content">
+                            <div class="content ml-3">
                                 <div class="row multi-panel-tile">
                                     <!-- Middle panel -->
                                     <div class="mid-panel">
@@ -341,8 +341,8 @@
                                                 <thead>
                                                     <tr>
                                                         <th style="width: 110px;">Command</th>
-                                                        <th>Total Passed</th>
-                                                        <th>Total Failed</th>
+                                                        <th>Total Passes</th>
+                                                        <th>Total Failures</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="total-pf"></tbody>
@@ -357,11 +357,17 @@
                         <div class="tile sm-12 lg-4">
                             <div class="header">
                                 <div class="left">
-                                    <div class="title">IMK Version</div>
+                                    <div class="title">Versions</div>
+                                    <div class="subtitle" id="app-imk-version">App</div>
+                                </div>
+                                <div class="right">
+                                    <button class="btn" id="switch-versions" value="app" onclick="toggleVersions(this.value)"><i class="icon icon-mobile-devices"></i>App</button>
+                                    @* <button class="btn"><i class="icon icon-mobile-devices"></i>App</button> *@
                                 </div>
                             </div>
                             <div class="content" style="margin: 0 auto;width: 70%;">
-                                <div id="imk-version"></div>
+                                <div id="app-version"></div>
+                                <div id="imk-version" style="display: none;"></div>
                             </div>
                         </div>
 
@@ -373,7 +379,7 @@
                     <div class="row">
 
                         <!-- Tile 7 -->
-                        <div class="tile sm-12 lg-8">
+                        <div class="tile sm-12 lg-6">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Top 10 Field Engineers</div>
@@ -383,9 +389,19 @@
                                 <div id="top-asp"></div>
                             </div>
                         </div>
+                        
+                        <div class="tile sm-12 lg-6">
+                            <div class="header">
+                                <div class="left">
+                                    <div class="title">Top Revisited Sites</div>
+                                </div>
+                            </div>
+                            <div class="content">
+                                <div id="top-revisits"></div>
+                            </div>
+                        </div>
 
-
-                        <!-- Tile 8 -->
+                        @* <!-- Tile 8 -->
                         <div class="tile sm-12 lg-4">
                             <div class="header">
                                 <div class="left">
@@ -395,14 +411,14 @@
                             <div class="content" style="margin: 0 auto;width: 70%;">
                                 <div id="app-version"></div>
                             </div>
-                        </div>
+                        </div> *@
 
                     </div>
                     <!-- End Row 3 -->
 
                     <!-- Tile KPI -->
                     <div class="row">
-                        <div class="tile sm-12 lg-3">
+                        <div class="tile sm-12 lg-8">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Pass / Fail Status</div>
@@ -468,18 +484,26 @@
                             </div>
                         </div>
 
-                        <div class="tile sm-12 lg-3">
+                        <div class="tile sm-12 lg-4">
                             <div class="header">
                                 <div class="left">
-                                    <div class="title">Top Revisited Sites</div>
+                                    <div class="title">Alarm Analysis</div>
                                 </div>
                             </div>
-                            <div class="content">
-                                <div id="top-revisits"></div>
+                            <div class="content" style="margin: 0 auto;width: 70%;">
+                                <div id="alarm-types"></div>
+                                    <div class="kpi">
+                                        <div class="color-gray">Average Resolution time</div>
+                                        <div class="item">
+                                            <span class="text-xl" id="alarm-time"></span>
+                                            <span class="text-lg color-gray">hours</span>
+                                        </div>
+                                    </div>    
+
                             </div>
                         </div>
 
-                        <div class="tile sm-12 lg-6">
+                        <div class="tile sm-12 lg-6" style="display: none;">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">LMT Details</div>
