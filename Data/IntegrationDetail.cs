@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using IMK_web.Models;
 
-namespace Data{
-    public class IntegrationDetail {
+namespace Data
+{
+    public class IntegrationDetail
+    {
         public string SiteName { get; set; }
         public string Country { get; set; }
         public string Operator { get; set; }
@@ -16,7 +18,9 @@ namespace Data{
         public string IntegrateEnd { get; set; }
         public string IntegrationTime { get; set; }
         public string Status { get; set; }
+        public string AndroidVersion { get; set; }
 
-        
+
+
     }
 }

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using IMK_web.Models;
 
-namespace Data{
-    public class VisitDetail{
+namespace Data
+{
+    public class VisitDetail
+    {
         public string SiteName { get; set; }
         public string Country { get; set; }
         public string User { get; set; }
@@ -14,6 +17,9 @@ namespace Data{
         public String ASP { get; set; }
         public String Date { get; set; }
         public bool IsRevisit { get; set; }
-        
+        [NotMapped]
+        public IntegrationDetail SiteIntegration { get; set; }
+        [NotMapped]
+        public bool Diagnostic { get; set; }
     }
 }

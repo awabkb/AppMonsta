@@ -391,7 +391,7 @@ namespace IMK_web.Repository
 
             var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new
             {
-                name = y.Key + " - " + (y.Select(i=>i.Site.Country).First()),
+                name = y.Key + " - " + (y.Select(i => i.Site.Country).First()),
                 sites = y.Select(i => i.Site.SiteId).Distinct().Count()
             });
             var topasp = asp.OrderByDescending(s => s.sites).Take(10);
@@ -581,7 +581,7 @@ namespace IMK_web.Repository
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
-                    
+
 
 
                     for (var i = 1; i < d.Length; i++)
@@ -626,6 +626,208 @@ namespace IMK_web.Repository
 
         }
 
+        public async Task<ActionResult> GetSiteVisitDetailsNew(string start, string end, string countries, string operators)
+        {
+            List<SiteVisit> allVisits = null;
+            List<IntegrationDetail> lmts = new List<IntegrationDetail>();
+
+            var siteIntegrations = new List<IntegrationDetail>();
+            //get diagnostics
+            var _siteIntegrations = _context.SiteIntegrations.Where(x => x.SiteName != null)
+                         .Where(x => x.DownloadStart != null)
+                         .OrderBy(x => x.DownloadStart).ToList();
+
+            var integrations = _siteIntegrations
+            .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
+            .GroupBy(x => new
+            {
+                x.SiteName,
+                x.UserId,
+                start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
+
+            });
+            List<IntegrationDetail> filteredIntegrations = null;
+            foreach (var integration in integrations)
+            {
+
+                User user = await this.GetUser(integration.First().UserId);
+                Site site = await this.GetSite(integration.First().SiteName, integration.First().CountryName);
+
+                IntegrationDetail visit = new IntegrationDetail();
+                visit.SiteName = integration.First().SiteName;
+                visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
+                visit.User = user.Name;
+                visit.Asp = user.AspCompany.Name;
+                visit.Operator = site == null ? null : site.Operator.Name;
+                visit.DownloadStart = integration.First().DownloadStart;
+                visit.DownloadEnd = integration.Last().DownloadEnd;
+                visit.IntegrateStart = integration.First().IntegrateStart;
+                visit.IntegrateEnd = integration.Last().IntegrateEnd;
+                visit.Outcome = integration.Last().Outcome;
+                visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
+                    "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
+                visit.AndroidVersion = integration.First().AppVersion;
+                lmts.Add(visit);
+
+            }
+
+
+            if (countries == null)
+                return new JsonResult(null);
+            else if (countries == "all")
+            {
+                allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany)
+                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                .ToListAsync();
+                filteredIntegrations = lmts;
+
+            }
+            else
+            {
+                if (operators == null)
+                {
+                    string[] arrCountries = countries.Split(",");
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    .ToListAsync();
+                    filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).ToList();
+
+                }
+                else
+                {
+                    string[] arrCountries = countries.Split(",");
+                    string[] arrOps = operators.Split(",");
+
+                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                        .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                        .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                        .ToListAsync();
+                    filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).Where(c => arrOps.Contains(c.Operator)).ToList();
+
+                }
+            }
+
+            var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).Select(y => new
+            {
+                siteName = y.Key.Name,
+                country = y.Select(i => i.Site.Country),
+                user = y.Select(i => i.User.Name),
+                phone = y.Select(i => i.User.Phone),
+                email = y.Select(i => i.User.Email),
+                androidVersion = y.Select(i => i.AppVersion),
+                rpVersion = y.Select(i => i.RPIVersion),
+                asp = y.Select(i => i.User.AspCompany.Name),
+                date = y.Select(i => i.StartTime),
+                id = y.Select(i => i.VisitId),
+
+                //contact = x.Site.AspCompany.ApsMentor.Email
+            });
+            List<VisitDetail> uniqueVisits = new List<VisitDetail>();
+            Dictionary<string, DateTime> siterevisit = new Dictionary<string, DateTime>();
+
+            foreach (var vd in visitDetails)
+            {
+                var revisit = false;
+                var lmtRecord = filteredIntegrations.FirstOrDefault(item => item.SiteName == vd.siteName);
+
+                if (lmtRecord != null)
+                {
+                    filteredIntegrations.Remove(lmtRecord);
+                }
+                if (siterevisit.ContainsKey(vd.siteName))
+                {
+                    var T = siterevisit[vd.siteName];
+                    if (vd.date.First() >= T.AddHours(12))
+                    {
+                        revisit = true;
+                        siterevisit[vd.siteName] = vd.date.First();
+                    }
+                }
+                else
+                    siterevisit.Add(vd.siteName, vd.date.First());
+
+                if (vd.date.Count() > 1)
+                {
+
+                    var d = vd.date.ToArray();
+                    var T = d[0];
+                    VisitDetail v1 = new VisitDetail();
+                    v1.SiteName = vd.siteName;
+                    v1.Country = vd.country.First();
+                    v1.User = vd.user.First();
+                    v1.Phone = vd.phone.First();
+                    v1.Email = vd.email.First();
+                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
+                    v1.ASP = vd.asp.First();
+                    v1.Date = d[0].Date.ToString("yyyy-MM-dd");
+                    v1.IsRevisit = revisit;
+                    //v1.SiteIntegration = integrations.FirstOrDefault(item => item.Key.SiteName == y.Key.Name);
+                    v1.SiteIntegration = lmtRecord;
+                    v1.Diagnostic = true;
+                    //v1.IsIntegrated = vd.isIntegrated;
+                    uniqueVisits.Add(v1);
+
+
+
+
+                    for (var i = 1; i < d.Length; i++)
+                    {
+
+                        if (d[i] >= T.AddHours(12))
+                        {
+                            VisitDetail v = new VisitDetail();
+                            v.SiteName = vd.siteName;
+                            v.Country = vd.country.First();
+                            v.User = vd.user.First();
+                            v.Phone = vd.phone.First();
+                            v.Email = vd.email.First();
+                            v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
+                            v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
+                            v.ASP = vd.asp.First();
+                            v.Date = d[i].Date.ToString("yyyy-MM-dd");
+                            v.IsRevisit = revisit;
+                            //  v.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
+                            v.SiteIntegration = lmtRecord;
+                            v.Diagnostic = true;
+                            uniqueVisits.Add(v);
+                        }
+                        T = d[i];
+                    }
+                }
+                else
+                {
+                    VisitDetail v1 = new VisitDetail();
+                    v1.SiteName = vd.siteName;
+                    v1.Country = vd.country.First();
+                    v1.User = vd.user.First();
+                    v1.Phone = vd.phone.First();
+                    v1.Email = vd.email.First();
+                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
+                    v1.ASP = vd.asp.First();
+                    v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
+                    v1.IsRevisit = revisit;
+                    v1.SiteIntegration = lmtRecord;
+                    v1.Diagnostic = true;
+                    uniqueVisits.Add(v1);
+                }
+
+            }
+            uniqueVisits.AddRange(filteredIntegrations.Select(e => new VisitDetail
+            {
+                SiteName = e.SiteName,
+                Country = e.Country,
+                SiteIntegration = e,
+                Diagnostic = false,
+                IsRevisit = false,
+                Date = e.IntegrateStart
+
+            }));
+            // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
+            return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
+
+        }
 
 
 
@@ -668,7 +870,7 @@ namespace IMK_web.Repository
             var site_users = await _context.SiteVisits.Include("User").Where(x => c.Contains(x.Site.Country))
             .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
             .Select(x => x.User.UserId).Distinct().ToListAsync();
-            
+
             var active_users = visits.GroupBy(x => new { x.Site.Country }).Select(y => new
             {
                 country = y.Key.Country,
@@ -789,24 +991,24 @@ namespace IMK_web.Repository
 
                     }
                 }
-                if(siterevisit.Count != 0)
-                  dict.Add(siteName, siterevisit);
+                if (siterevisit.Count != 0)
+                    dict.Add(siteName, siterevisit);
             }
-            
+
             // order by number of revisits and return first 10 elements
-            dict = dict.OrderByDescending(x=> x.Value.Values.Sum())
-            .ToDictionary(x => x.Key, x=>x.Value.OrderByDescending(y=>y.Value)
-            .ToDictionary(y=>y.Key, y=>y.Value))
+            dict = dict.OrderByDescending(x => x.Value.Values.Sum())
+            .ToDictionary(x => x.Key, x => x.Value.OrderByDescending(y => y.Value)
+            .ToDictionary(y => y.Key, y => y.Value))
             .Take(10).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             return new JsonResult(dict);
 
         }
-        
+
         // IMK functions Pass/Fail status 
         public async Task<ActionResult> GetCommandStatus(string start, string end, string countries, string operators)
         {
-            Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
+            Dictionary<string, Dictionary<string, int>> returnList = new Dictionary<string, Dictionary<string, int>>();
 
             List<SiteVisit> visitLogs = null;
             if (countries == null)
@@ -817,7 +1019,7 @@ namespace IMK_web.Repository
                 visitLogs = await _context.SiteVisits.Include(x => x.Logs)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                 .ToListAsync();
-                
+
             }
             else
             {
@@ -842,56 +1044,60 @@ namespace IMK_web.Repository
                 }
             }
 
-            
-            Dictionary<string, int> pCommands  = new Dictionary<string, int>(); //passed
-            Dictionary<string, int> fCommands  = new Dictionary<string, int>(); //failed
+
+            Dictionary<string, int> pCommands = new Dictionary<string, int>(); //passed
+            Dictionary<string, int> fCommands = new Dictionary<string, int>(); //failed
 
 
             var check1 = new List<Object>();
 
-            foreach(var site in visitLogs)
+            foreach (var site in visitLogs)
             {
-                foreach(var logs in site.Logs)
+                foreach (var logs in site.Logs)
                 {
-                    if(logs.Result != null) {
+                    if (logs.Result != null)
+                    {
                         var command = logs.Command;
                         dynamic results = JsonConvert.DeserializeObject(logs.Result);
                         var passed = 0;
-                        if(results != null)
+                        if (results != null)
                         {
-                            switch(command) {
-                                case "vswr": 
-                                    foreach(var result in results)
-                                    {   
+                            switch (command)
+                            {
+                                case "vswr":
+                                    foreach (var result in results)
+                                    {
                                         String status = result.STATUS;
-                                        if(status.Equals("PASSED"))
+                                        if (status.Equals("PASSED"))
                                             passed = 1;
-                                        else if(status.Equals("FAILED")) {
+                                        else if (status.Equals("FAILED"))
+                                        {
                                             passed = 0;
                                             break;
                                         }
                                     }
-                                    if(passed == 1)
-                                        if(pCommands.ContainsKey("vswr"))
-                                            pCommands["vswr"] ++;
+                                    if (passed == 1)
+                                        if (pCommands.ContainsKey("vswr"))
+                                            pCommands["vswr"]++;
                                         else
                                             pCommands.Add("vswr", 1);
 
                                     else
-                                        if(fCommands.ContainsKey("vswr"))
-                                            fCommands["vswr"] ++;
-                                        else
-                                            fCommands.Add("vswr", 1);                                
+                                        if (fCommands.ContainsKey("vswr"))
+                                        fCommands["vswr"]++;
+                                    else
+                                        fCommands.Add("vswr", 1);
 
-                                break;
+                                    break;
 
-                                    case "rssi_umts":
+                                case "rssi_umts":
                                     foreach (var result in results)
                                     {
                                         double rssi;
-                                        if(result.RSSI == null)
+                                        if (result.RSSI == null)
                                             passed = 0;
-                                        else {
+                                        else
+                                        {
                                             bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
                                             if (isValue == true && rssi <= -100)
                                                 passed = 1;
@@ -902,134 +1108,139 @@ namespace IMK_web.Repository
                                             }
                                         }
                                     }
-                                    if(passed == 1)
-                                        if(pCommands.ContainsKey("umts"))
-                                            pCommands["umts"] ++;
+                                    if (passed == 1)
+                                        if (pCommands.ContainsKey("umts"))
+                                            pCommands["umts"]++;
                                         else
                                             pCommands.Add("umts", 1);
 
                                     else
-                                        if(fCommands.ContainsKey("umts"))
-                                            fCommands["umts"] ++;
-                                        else
-                                            fCommands.Add("umts", 1);                                
+                                        if (fCommands.ContainsKey("umts"))
+                                        fCommands["umts"]++;
+                                    else
+                                        fCommands.Add("umts", 1);
 
-                                break;
+                                    break;
 
-                                    case "rssi-lte EUtranCellFDD":
-                                    foreach(var result in results)
-                                    {   double rssi;
+                                case "rssi-lte EUtranCellFDD":
+                                    foreach (var result in results)
+                                    {
+                                        double rssi;
                                         bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                        if(isValue == true && rssi <= -110)
+                                        if (isValue == true && rssi <= -110)
                                             passed = 1;
-                                        else if(isValue == false || rssi > -110) {
+                                        else if (isValue == false || rssi > -110)
+                                        {
                                             passed = 0;
                                             break;
                                         }
                                     }
-                                    if(passed == 1)
-                                        if(pCommands.ContainsKey("fdd"))
-                                            pCommands["fdd"] ++;
+                                    if (passed == 1)
+                                        if (pCommands.ContainsKey("fdd"))
+                                            pCommands["fdd"]++;
                                         else
                                             pCommands.Add("fdd", 1);
 
                                     else
-                                        if(fCommands.ContainsKey("fdd"))
-                                            fCommands["fdd"] ++;
-                                        else
-                                            fCommands.Add("fdd", 1);                                
+                                        if (fCommands.ContainsKey("fdd"))
+                                        fCommands["fdd"]++;
+                                    else
+                                        fCommands.Add("fdd", 1);
 
-                                break;
+                                    break;
 
-                                    case "rssi-lte EUtranCellTDD":
-                                    foreach(var result in results)
-                                    {   
+                                case "rssi-lte EUtranCellTDD":
+                                    foreach (var result in results)
+                                    {
                                         double rssi;
                                         bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                        if(isValue == true && rssi <= -110)
+                                        if (isValue == true && rssi <= -110)
                                             passed = 1;
-                                        else if(isValue == false || rssi > -110) {
+                                        else if (isValue == false || rssi > -110)
+                                        {
                                             passed = 0;
                                             break;
                                         }
                                     }
-                                    if(passed == 1)
-                                        if(pCommands.ContainsKey("tdd"))
-                                            pCommands["tdd"] ++;
+                                    if (passed == 1)
+                                        if (pCommands.ContainsKey("tdd"))
+                                            pCommands["tdd"]++;
                                         else
                                             pCommands.Add("tdd", 1);
 
                                     else
-                                        if(fCommands.ContainsKey("tdd"))
-                                            fCommands["tdd"] ++;
-                                        else
-                                            fCommands.Add("tdd", 1);                                
+                                        if (fCommands.ContainsKey("tdd"))
+                                        fCommands["tdd"]++;
+                                    else
+                                        fCommands.Add("tdd", 1);
 
-                                break;
+                                    break;
 
-                                    case "rssi-nr":
-                                    foreach(var result in results)
-                                    {   
+                                case "rssi-nr":
+                                    foreach (var result in results)
+                                    {
                                         double rssi;
                                         bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                        if(isValue == true && rssi <= -110)
+                                        if (isValue == true && rssi <= -110)
                                             passed = 1;
-                                        else if(isValue == false || rssi > -110) {
+                                        else if (isValue == false || rssi > -110)
+                                        {
                                             passed = 0;
                                             break;
                                         }
                                     }
-                                    if(passed == 1)
-                                        if(pCommands.ContainsKey("nr"))
-                                            pCommands["nr"] ++;
+                                    if (passed == 1)
+                                        if (pCommands.ContainsKey("nr"))
+                                            pCommands["nr"]++;
                                         else
                                             pCommands.Add("nr", 1);
 
                                     else
-                                        if(fCommands.ContainsKey("nr"))
-                                            fCommands["nr"] ++;
-                                        else
-                                            fCommands.Add("nr", 1);                                
+                                        if (fCommands.ContainsKey("nr"))
+                                        fCommands["nr"]++;
+                                    else
+                                        fCommands.Add("nr", 1);
 
-                                break;
+                                    break;
 
-                                    case "alarm":
-                                    foreach(var result in results)
-                                    {   
+                                case "alarm":
+                                    foreach (var result in results)
+                                    {
                                         String description = result.DESCRIPTION;
-                                        if(description.Equals(""))
+                                        if (description.Equals(""))
                                             passed = 1;
-                                        else if(!description.Equals("")) {
+                                        else if (!description.Equals(""))
+                                        {
                                             passed = 0;
                                             break;
                                         }
                                     }
-                                    if(passed == 1)
-                                        if(pCommands.ContainsKey("alarm"))
-                                            pCommands["alarm"] ++;
+                                    if (passed == 1)
+                                        if (pCommands.ContainsKey("alarm"))
+                                            pCommands["alarm"]++;
                                         else
                                             pCommands.Add("alarm", 1);
 
                                     else
-                                        if(fCommands.ContainsKey("alarm"))
-                                            fCommands["alarm"] ++;
-                                        else
-                                            fCommands.Add("alarm", 1);                                
+                                        if (fCommands.ContainsKey("alarm"))
+                                        fCommands["alarm"]++;
+                                    else
+                                        fCommands.Add("alarm", 1);
 
-                                break;
+                                    break;
                             }
                         }
 
                     }
                 }
             }
-            returnList.Add("passed",pCommands);
-            returnList.Add("failed",fCommands);
+            returnList.Add("passed", pCommands);
+            returnList.Add("failed", fCommands);
             return new JsonResult(returnList);
-        
+
         }
 
-    
+
         // Get LMT Site Integrations
         public async Task<ActionResult> GetSiteIntegrations(string start, string end, string countries, string operators)
         {
@@ -1041,28 +1252,32 @@ namespace IMK_web.Repository
             //.Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
             .OrderBy(x => x.DownloadStart).ToListAsync();
 
-            var integrations = siteIntegrations.GroupBy(x => new { x.SiteName, x.UserId, 
-            start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date});
+            var integrations = siteIntegrations.GroupBy(x => new
+            {
+                x.SiteName,
+                x.UserId,
+                start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
+            });
             foreach (var integration in integrations)
             {
-                
+
                 User user = await this.GetUser(integration.First().UserId);
                 Site site = await this.GetSite(integration.First().SiteName, integration.First().CountryName);
-                
-                    IntegrationDetail visit = new IntegrationDetail();
-                    visit.SiteName = integration.First().SiteName;
-                    visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
-                    visit.User = user.Name;
-                    visit.Asp = user.AspCompany.Name;
-                    visit.Operator = site == null ? null : site.Operator.Name;
-                    visit.DownloadStart = integration.First().DownloadStart;
-                    visit.DownloadEnd = integration.Last().DownloadEnd;
-                    visit.IntegrateStart = integration.First().IntegrateStart;
-                    visit.IntegrateEnd = integration.Last().IntegrateEnd;
-                    visit.Outcome = integration.Last().Outcome;
-                    visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ? 
-                        "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
-                    lmts.Add(visit);
+
+                IntegrationDetail visit = new IntegrationDetail();
+                visit.SiteName = integration.First().SiteName;
+                visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
+                visit.User = user.Name;
+                visit.Asp = user.AspCompany.Name;
+                visit.Operator = site == null ? null : site.Operator.Name;
+                visit.DownloadStart = integration.First().DownloadStart;
+                visit.DownloadEnd = integration.Last().DownloadEnd;
+                visit.IntegrateStart = integration.First().IntegrateStart;
+                visit.IntegrateEnd = integration.Last().IntegrateEnd;
+                visit.Outcome = integration.Last().Outcome;
+                visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
+                    "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
+                lmts.Add(visit);
 
             }
             List<IntegrationDetail> filteredIntegrations = null;
@@ -1090,11 +1305,11 @@ namespace IMK_web.Repository
                 }
             }
 
-           return new JsonResult(filteredIntegrations.OrderByDescending(x => x.DownloadStart));
+            return new JsonResult(filteredIntegrations.OrderByDescending(x => x.DownloadStart));
         }
 
 
-        
+
         public async Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators)
         {
             List<SiteVisit> allVisits = null;
@@ -1104,7 +1319,7 @@ namespace IMK_web.Repository
 
             else if (countries == "all")
             {
-                allVisits = await _context.SiteVisits.Include(x =>x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany)
+                allVisits = await _context.SiteVisits.Include(x => x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                 .ToListAsync();
             }
@@ -1130,21 +1345,24 @@ namespace IMK_web.Repository
             }
 
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).ToList();
-            
+
             List<Dictionary<string,string>> list= new List<Dictionary<string, string>>();
             Dictionary<string, int> alarmTypes = new Dictionary<string, int>();
 
-            foreach(var visit in visitDetails) {
-                                        
+
+            foreach (var visit in visitDetails)
+            {
+
                 // get latest alarm captured just before current visit
                 var lastAlarm = this.GetLatestAlarm(start, visit.First().StartTime.ToString(), visit.First().Site.SiteId);
                 List<string> latestAlarms = new List<string>();
-                if(lastAlarm != null && lastAlarm.Result != null) 
+                if (lastAlarm != null && lastAlarm.Result != null)
                 {
                     dynamic latestAlarmResults = JsonConvert.DeserializeObject(lastAlarm.Result.Result);
-                    foreach(var res in latestAlarmResults) {
+                    foreach (var res in latestAlarmResults)
+                    {
                         string type = res.DESCRIPTION;
-                        if(!latestAlarms.Contains(type))
+                        if (!latestAlarms.Contains(type))
                             latestAlarms.Add(type);
                     }
                 }
@@ -1157,7 +1375,7 @@ namespace IMK_web.Repository
                     foreach (var log in session.Logs)
                     {
                         //////////// Alarms
-                        if(log.Command.Equals("alarm"))
+                        if (log.Command.Equals("alarm"))
                         {
                             if (lastAlarm.Result != null && !log.Result.Equals("null"))
                             {
@@ -1168,8 +1386,9 @@ namespace IMK_web.Repository
                                     if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
                                     else alarmTypes[alarmType] = 1;
                                     if(!alarms.Contains(alarmType)) alarms.Add(alarmType);
+
                                 }
-                                
+
                                 IEnumerable<string> clearedAlarms = latestAlarms.Except(alarms);
                                 IEnumerable<string> newAlarms = alarms.Except(latestAlarms);
 
@@ -1177,10 +1396,12 @@ namespace IMK_web.Repository
                                     commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - lastAlarm.Result.SiteVisit.StartTime).TotalHours });
                                     foreach(var item in clearedAlarms) alarms.Remove(item);
                                 }
-                                else {
-                                    if(newAlarms.Count() > 0) {
+                                else
+                                {
+                                    if (newAlarms.Count() > 0)
+                                    {
                                         commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = session.StartTime });
-                                        foreach(var item in newAlarms) latestAlarms.Add(item);
+                                        foreach (var item in newAlarms) latestAlarms.Add(item);
                                     }
                                     else
                                         commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Time = session.StartTime });
@@ -1188,7 +1409,7 @@ namespace IMK_web.Repository
                             }
                         }
 
-                        else 
+                        else
                         {
                             //check if command is in dictionary then update the status, else add new status
                             var passed = CommandPassed(log.Command, log.Result);
@@ -1198,51 +1419,57 @@ namespace IMK_web.Repository
                                 // to be resolved check if command previously failed and now passed
                                 if (commands[log.Command].Contains("Failed") && passed)
                                     commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - Convert.ToDateTime(firstAttempt.Time)).TotalMinutes });
-                                
+
                             }
                             else commands[log.Command] = JsonConvert.SerializeObject(new { Status = (passed ? "Passed" : "Failed"), Time = session.StartTime });
                         }
                     }
 
                 }
-                if(commands.Count()!=0)
+                if (commands.Count() != 0)
                     list.Add(commands);
             }
-            
-            Dictionary<string,List<string>> details = new Dictionary<string, List<string>>();
-            foreach(var item in list) {
-                foreach(var log in item) {
+
+            Dictionary<string, List<string>> details = new Dictionary<string, List<string>>();
+            foreach (var item in list)
+            {
+                foreach (var log in item)
+                {
                     var command = log.Key;
                     var status = log.Value;
-                    if(details.ContainsKey(command)) {
+                    if (details.ContainsKey(command))
+                    {
                         details[command].Add(status);
                     }
-                    else {
-                        details.Add(command, new List<string>{status});
+                    else
+                    {
+                        details.Add(command, new List<string> { status });
                     }
                 }
 
             }
-            Dictionary<string, int> vpassed  = new Dictionary<string, int>(); //passed per visit
-            Dictionary<string, int> vfailed  = new Dictionary<string, int>(); //failed per visit
-            Dictionary<string, int> resolved  = new Dictionary<string, int>(); //resolved per visit
-            Dictionary<string, int> resolvedtime  = new Dictionary<string, int>(); //avg resolution time
-            Dictionary<string, int> median  = new Dictionary<string, int>(); //median for resolution time
-            
-            foreach(var i in details) {
-                vpassed.Add(i.Key, i.Value.Where(x =>x.Contains("Passed")).Count());
-                vfailed.Add(i.Key, i.Value.Where(x =>x.Contains("Failed")).Count());
-                resolved.Add(i.Key, i.Value.Where(x =>x.Contains("Resolved")).Count());
+            Dictionary<string, int> vpassed = new Dictionary<string, int>(); //passed per visit
+            Dictionary<string, int> vfailed = new Dictionary<string, int>(); //failed per visit
+            Dictionary<string, int> resolved = new Dictionary<string, int>(); //resolved per visit
+            Dictionary<string, int> resolvedtime = new Dictionary<string, int>(); //avg resolution time
+            Dictionary<string, int> median = new Dictionary<string, int>(); //median for resolution time
+
+            foreach (var i in details)
+            {
+                vpassed.Add(i.Key, i.Value.Where(x => x.Contains("Passed")).Count());
+                vfailed.Add(i.Key, i.Value.Where(x => x.Contains("Failed")).Count());
+                resolved.Add(i.Key, i.Value.Where(x => x.Contains("Resolved")).Count());
 
                 List<double> duration = new List<double>();
-                foreach(var j in i.Value.Where(x => x.Contains("Resolved"))) {
+                foreach (var j in i.Value.Where(x => x.Contains("Resolved")))
+                {
                     dynamic info = JsonConvert.DeserializeObject(j);
                     var time = info.Duration;
                     duration.Add(Convert.ToDouble(time));
 
                 }
-                resolvedtime.Add(i.Key, duration.Count() == 0 ? 0 : (int) duration.Average());
-                median.Add(i.Key, duration.Count() == 0 ? 0 : (int) duration.Median());             
+                resolvedtime.Add(i.Key, duration.Count() == 0 ? 0 : (int)duration.Average());
+                median.Add(i.Key, duration.Count() == 0 ? 0 : (int)duration.Median());
 
             }
             double totalTypes = alarmTypes.Sum(x => x.Value);
@@ -1290,9 +1517,10 @@ namespace IMK_web.Repository
                         foreach (var result in results)
                         {
                             double rssi;
-                            if(result.RSSI == null)
+                            if (result.RSSI == null)
                                 passed = 0;
-                            else {
+                            else
+                            {
                                 bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
                                 if (isValue == true && rssi <= -100)
                                     passed = 1;
@@ -1384,7 +1612,8 @@ namespace IMK_web.Repository
         }
 
 
-        public async Task<Log> GetLatestAlarm(string start, string end, int siteId) {
+        public async Task<Log> GetLatestAlarm(string start, string end, int siteId)
+        {
 
             var alarms = await _context.Logs.Include(x => x.SiteVisit).Include(x => x.SiteVisit.Site)
             .Where(x => x.SiteVisit.StartTime.Date >= Convert.ToDateTime(start).Date && x.SiteVisit.StartTime < Convert.ToDateTime(end))
@@ -1393,14 +1622,14 @@ namespace IMK_web.Repository
             .Where(x => !x.Result.Equals("null"))
             .OrderBy(x => x.SiteVisit.StartTime).ToListAsync();
 
-            if(alarms.Count() > 0)
+            if (alarms.Count() > 0)
                 return alarms.Last();
-            else   
+            else
                 return null;
         }
-    
+
     }
 
-   
+
 
 }

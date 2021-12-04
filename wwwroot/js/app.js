@@ -13,10 +13,10 @@ page.init();
 const selects = document.querySelectorAll('.select');
 
 if (selects) {
-  Array.from(selects).forEach((selectDOM) => {
-    const select = new eds.Select(selectDOM);
-    select.init();
-  });
+    Array.from(selects).forEach((selectDOM) => {
+        const select = new eds.Select(selectDOM);
+        select.init();
+    });
 }
 
 eds.NotificationLog.init();
@@ -159,14 +159,14 @@ function getCountries(ma) {
         data: { marketArea: ma },
         success: function (res) {
             var countries = '';
-            if(res.length != 0) {
+            if (res.length != 0) {
                 countries =
-                '<li>' +
-                '<span class="item" tabindex="0">' +
-                '<input class="country" name=\"countries[]\" onclick="selectCountries()" type="checkbox" id="all-countries" value="all" checked>' +
-                '<label for="all-countries">Select All</label>' +
-                '</span>' +
-                '</li>';
+                    '<li>' +
+                    '<span class="item" tabindex="0">' +
+                    '<input class="country" name=\"countries[]\" onclick="selectCountries()" type="checkbox" id="all-countries" value="all" checked>' +
+                    '<label for="all-countries">Select All</label>' +
+                    '</span>' +
+                    '</li>';
             }
 
             for (var i = 0; i < res.length; i++) {
@@ -349,7 +349,7 @@ function getData(startdate, enddate, countries, operators) {
                 functions.push(0);
             else {
                 for (var i in res[0]) {
-                    if(i != 'sgwStatus') 
+                    if (i != 'sgwStatus')
                         functions.push(res[0][i]);
                 }
             }
@@ -464,7 +464,7 @@ function getData(startdate, enddate, countries, operators) {
         }
     });
 
-    $.ajax({
+    /*$.ajax({
         url: "api/dashboardapi/site_details",
         type: "GET",
         data: Data,
@@ -527,7 +527,7 @@ function getData(startdate, enddate, countries, operators) {
                     {
                         key: 'email',
                         title: 'Email',
-                        hidden: true 
+                        hidden: true
                     }
                 ],
                 sortable: true,
@@ -546,7 +546,7 @@ function getData(startdate, enddate, countries, operators) {
 
                         const notification = new eds.Notification({
                             title: "Field Engineer Info",
-                            description: 'Name: '+ siteEngineer + '\nPhone: ' + phone + '\nEmail: ' + email,
+                            description: 'Name: ' + siteEngineer + '\nPhone: ' + phone + '\nEmail: ' + email,
                         });
                         notification.init();
 
@@ -556,21 +556,21 @@ function getData(startdate, enddate, countries, operators) {
                 onCreatedHead: (thead, headData) => {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
-                        if(th.cellIndex!=7 && th.cellIndex!=8 && th.cellIndex!=9 && th.cellIndex!=10)
-                        th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex +'" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
+                        if (th.cellIndex != 7 && th.cellIndex != 8 && th.cellIndex != 9 && th.cellIndex != 10)
+                            th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex + '" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
                     });
                 }
             });
             table.init();
-            
+
             var today = new Date();
-            var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+            var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
             var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-            var dateTime = date+'T'+time;
+            var dateTime = date + 'T' + time;
             document.querySelector('#export-data').addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
-                    description: 'Site Details data is exported to IMK_Dashboard'+ dateTime + '.csv file',
+                    description: 'Site Details data is exported to IMK_Dashboard' + dateTime + '.csv file',
                 });
                 notification.init();
                 var rows = [];
@@ -578,118 +578,396 @@ function getData(startdate, enddate, countries, operators) {
                 table.data.forEach(row => {
                     rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"], row["isRevisit"]]);
                 });
-                exportToCsv(dateTime +"IMK_Dashboard.csv", rows)
+
+                exportToCsv(dateTime + "IMK_Dashboard.csv", rows)
 
             });
+        }
+    });*/
+    ///////////////////////////new site details//////////////////
+    $.ajax({
+        url: "api/dashboardapi/site_details_new",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const tableData = res.map(e => {
+                const el = {
+                    ...e,
+                    integrationResult: e.siteIntegration,
+                    diagnostic: (e.diagnostic ? {
+                        siteVisit: {
+                            user: {
+                                name: e.user,
+                                aspCompany: { name: e.asp },
+                                phone: e.phone,
+                                email: e.email
+                            },
+                            rpiVersion: e.rpiVersion,
+                            appVersion: e.appVersion,
+                            startTime: e.date,
+                           // finishTime: e.finishTime
+                        }
+                    } : null)
+                };
+                return el;
+            });
+            const tableDOM = document.querySelector('#site-details-updated');
+            tableDOM.innerHTML = '';
+            const search = [];
+            const columns = [
+                {
+                    key: 'country',
+                    title: 'Country',
+                    sort: 'none',
+                    width: '5%'
+
+                },
+                {
+                    key: 'siteName',
+                    title: 'Site Name',
+                    sort: 'none',
+                    width: '8%'
+                },
+                {
+                    key: "siteIntegration",
+                    title: 'LMT Integration',
+                    onCreatedCell: (td, cellData) => {
+                        if (cellData) {
+                            const integration = cellData;
+                            td.innerHTML = `<span class="tooltip dotted">${integration?.downloadStart?.slice(0, 16)}
+                                                <span class="message right">
+                                                        <div>ASP: ${integration?.asp}</div>
+                                                        <div>Integration Start Time: ${integration?.downloadStart?.slice(0, 16) || ""}</div>
+                                                        <div>Integration End Time: ${integration?.integrateEnd?.slice(0, 16) || ""}</div>
+                                                        <div>Duration: ${integration?.integrationTime}</div>
+                                                        <div>Field Engineer: ${integration?.user}</div>
+                                                        <div>App Version: ${integration?.androidVersion}</div>
+                                                </span>
+                                             </span>`;
+                        }
+                    },
+                    sort: 'none',
+                    width: '4%',
+
+                },
+                {
+                    key: "integrationResult",
+                    title: "Integration Result",
+                    sort: 'none',
+                    onCreatedCell: (td, cellData) => {
+                        if (cellData) {
+                            const integration = cellData.outcome;
+                            if (integration === 'success')
+                                td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
+                            else if (integration === 'Failed')
+                                td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
+                            else
+                                td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
+                        }
+                    },
+                    width: '3%',
+                    hideFilter: true,
+
+                },
+                {
+                    key: 'diagnostic',
+                    title: 'Site Diagnostics',
+                    onCreatedCell: (td, cellData) => {
+                        if (cellData) {
+                            const diagnostic = cellData;
+                            td.innerHTML = `<span class="tooltip dotted">${diagnostic?.siteVisit?.startTime?.slice(0, 16)}
+                                                <span class="message left">
+                                                    <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
+                                                    <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
+                                                    <div>Field Engineer: ${diagnostic?.siteVisit?.user.name}</div>
+                                                    <div>Field Engineer Phone: ${diagnostic?.siteVisit?.user.phone}</div>
+                                                    <div>Field Engineer Email: ${diagnostic?.siteVisit?.user.email}</div>
+                                                    <div>IMK Version: ${diagnostic?.siteVisit?.rpiVersion}</div>
+                                                    <div>App Version: ${diagnostic?.siteVisit?.appVersion}</div>
+                                                </span>
+                                            </span>`;
+                        }
+                    },
+                    sort: 'none',
+                    width: '4%',
+
+                },
+                {
+                    key: 'isRevisit',
+                    title: 'Revisit',
+                    sort: 'none',
+                    onCreatedCell: (td, cellData) => {
+                        if (cellData === true)
+                            td.innerHTML = `<span class="color-green"><i class="icon icon-alarm-level4"></i></span>`;
+                    },
+                    hideFilter: true,
+                    width: '3%'
+
+                }
+
+            ]
+
+            columns.forEach(column => {
+                const width = "95%";
+                search.push(
+                    `<th> <input  id="${column.key}FIND" onkeyup="_search(this)" type="text"  style="width: ${width}; display: ${(column.hideFilter ? "none" : null)}; " placeholder="Type to filter"/>
+                      </th > `
+                )
+            });
+            const table = new eds.Table(tableDOM, {
+                data: tableData,
+                columns: columns,
+                sortable: true,
+                actions: true,
+                resize: true,
+
+                onCreatedHead: (thead, headData) => {
+                    thead.innerHTML = (thead.innerHTML + search.join(''));
+                }
+            });
+            table.init();
+
+            var today = new Date();
+
+            if (document.querySelector('#export-new-visits-admin') != null) {
+
+                document.querySelector('#export-new-visits-admin')?.addEventListener('click', () => {
+                    //////////////////////prepare data to export/////////////////////////////
+                    const rows = [];
+                    rows.push(['Country',
+                        'SiteName',
+                        'IntegrationAspCompany',
+                        'IntegrationStart',
+                        'IntegrationEnd',
+                        'IntegrationDuration',
+                        'IntegrationFieldEngineer',
+                        'IntegrationAppVersion',
+                        'IntegrationResult',
+                        'DiagnosticsAspCompany',
+                        'DiagnosticsStartTime',
+                        'DiagnosticsFieldEngineer',
+                        'DiagnosticsFieldEngineerPhone',
+                        'DiagnosticsFieldEngineerEmail',
+                        'DiagnosticsIMK_Version',
+                        'DiagnosticsAppVersion']);
+                    var currentTable = document.getElementById("site-details-updated");
+                    var siteNames = [];
+                    var trs = currentTable.tBodies[0].getElementsByTagName("tr");
+
+                    for (var i = 0; i < trs.length; i++) {
+
+                        if (trs[i].hidden) {
+                            continue;
+                        }
+                        else {
+                            var tds = trs[i].getElementsByTagName("td");
+                            siteNames.push(tds[1].innerText)
+                        }
+                    }
+
+                    var reportData = tableData.filter(item => siteNames.includes(item.siteName));
+                    console.log(reportData)
+
+                    reportData.forEach(e => {
+                        rows.push([e.country || "",
+                        e.siteName || "",
+                        e.siteIntegration?.asp || "",
+                        e.siteIntegration?.downloadStart || "",
+                        e.siteIntegration?.integrateEnd || "",
+                        e.siteIntegration?.integrationTime || "",
+                        e.siteIntegration?.user || "",
+                        e.siteIntegration?.androidVersion || "",
+                        (e.siteIntegration ? e.siteIntegration.outcome ?? "incomplete" : ""),
+                        e.diagnostic?.siteVisit?.user.aspCompany.name || "",
+                        e.diagnostic?.siteVisit?.startTime?.slice(0, 16) || "",
+                        e.diagnostic?.siteVisit?.user?.name || "",
+                        e.diagnostic?.siteVisit?.user?.phone || "",
+                        e.diagnostic?.siteVisit?.user?.email || "",
+                        e.diagnostic?.siteVisit?.rpiVersion || "",
+                        e.diagnostic?.siteVisit?.appVersion || ""]);
+                    });
+
+                    /////////////////////////////////////////////////////////////////////
+                    const notification = new eds.Notification({
+                        title: 'Export data',
+                        description: 'Site visits data is exported to IMK_Site_visits' + today.toISOString() + '.csv file',
+                    });
+                    notification.init();
+                    _exportToCsv(today.toISOString() + "IMK_Dashboard.csv", rows);
+
+                });
+            }
+            else if (document.querySelector('#export-new-visits-admin') == null && document.querySelector('#export-new-visits-user') != null) {
+
+
+                document.querySelector('#export-new-visits-user')?.addEventListener('click', () => {
+                    ///////////prepare data to export/////////
+                    const rows = [];
+                    rows.push(['Country',
+                        'SiteName',
+                        'IntegrationAspCompany',
+                        'IntegrationStart',
+                        'IntegrationEnd',
+                        'IntegrationDuration',
+                        'IntegrationFieldEngineer',
+                        'IntegrationAndroidVersion',
+                        'IntegrationResult',
+                        'DiagnosticsAspCompany',
+                        'DiagnosticsStartTime',
+                        'DiagnosticsFieldEngineer',
+                        'DiagnosticsIMK_Version',
+                        'DiagnosticsAndroidVersion']);
+                    var currentTable = document.getElementById("site-details-updated");
+                    var siteNames = [];
+                    var trs = currentTable.tBodies[0].getElementsByTagName("tr");
+                    for (var i = 0; i < trs.length; i++) {
+
+                        if (trs[i].hidden) {
+                            continue;
+                        }
+                        else {
+                            var tds = trs[i].getElementsByTagName("td");
+                            siteNames.push(tds[1].innerText)
+                        }
+                    }
+                    var reportData = tableData.filter(item => siteNames.includes(item.siteName));
+
+                    reportData.forEach(e => {
+                        rows.push([e.country || "",
+                        e.siteName || "",
+                        e.siteIntegration?.downloadStart || "",
+                        e.siteIntegration?.downloadEnd || "",
+                        e.siteIntegration?.asp || "",
+                        e.siteIntegration?.integrationTime || "",
+                        e.siteIntegration?.user || "",
+                        e.siteIntegration?.androidVersion || "",
+                        (e.siteIntegration ? e.siteIntegration.outcome ?? "incomplete" : ""),
+                        e.diagnostic?.siteVisit?.user.aspCompany.name || "",
+                        e.diagnostic?.siteVisit?.startTime?.slice(0, 16) || "",
+                        e.diagnostic?.siteVisit?.user?.name || "",
+                        e.diagnostic?.siteVisit?.rpiVersion || "",
+                        e.diagnostic?.siteVisit?.appVersion || ""]);
+                    });
+
+                    ////////////////////////////////////////////
+                    const notification = new eds.Notification({
+                        title: 'Export data',
+                        description: 'Site visits data is exported to IMK_Site_visits' + today.toISOString() + '.csv file',
+                    });
+                    notification.init();
+                    _exportToCsv(today.toISOString() + "IMK_Dashboard.csv", rows);
+
+                });
+            }
         }
     });
 
 
     ////////////////// LMT Details ///////////////////
-    $.ajax({
-        url: "api/dashboardapi/site_integrations",
-        type: "GET",
-        data: Data,
-        success: function (res) {
-            const tableDOM = document.querySelector('#lmt-details');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'siteName',
-                        title: 'Site',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold',
-                        cellStyle: 'color:steelblue'
-                    },
-                    {
-                        key: 'outcome',
-                        title: 'Status',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold',
-                        onCreatedCell: (td, cellData) => {
-                            if (cellData === 'success')
-                                td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
-                            else if(cellData === 'Failed')
-                                td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
-                            else
-                                td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
-                        },
+    /*   $.ajax({
+           url: "api/dashboardapi/site_integrations",
+           type: "GET",
+           data: Data,
+           success: function (res) {
+               const tableDOM = document.querySelector('#lmt-details');
+               tableDOM.innerHTML = '';
+               const table = new eds.Table(tableDOM, {
+                   data: res,
+                   columns: [
+                       {
+                           key: 'siteName',
+                           title: 'Site',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold',
+                           cellStyle: 'color:steelblue'
+                       },
+                       {
+                           key: 'outcome',
+                           title: 'Status',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold',
+                           onCreatedCell: (td, cellData) => {
+                               if (cellData === 'success')
+                                   td.innerHTML = `<span class="pill severity-cleared" > <b>Success</b></span> `;
+                               else if (cellData === 'Failed')
+                                   td.innerHTML = `<span class="pill" ><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span> `;
+                               else
+                                   td.innerHTML = `<span class="pill" ><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span> `;
+                           },
+   
+                       },
+                       {
+                           key: 'country',
+                           title: 'Country',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'downloadStart',
+                           title: 'Integration Start',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'integrateEnd',
+                           title: 'Integration End',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'integrationTime',
+                           title: 'Duration',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'asp',
+                           title: 'ASP',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                       {
+                           key: 'user',
+                           title: 'User',
+                           sort: 'none',
+                           headerStyle: 'font-weight:bold'
+                       },
+                   ],
+                   sortable: true,
+                   resize: true,
+                   rowsPerPage: 5,
+   
+               });
+               table.init();
+   
+               var today = new Date();
+               var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+               var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
+               var dateTime = date + 'T' + time;
+               document.querySelector('#export-lmt').addEventListener('click', () => {
+                   const notification = new eds.Notification({
+                       title: 'Export data',
+                       description: 'LMT data is exported to IMK_LMT' + dateTime + '.csv file',
+                   });
+                   notification.init();
+                   var rows = [];
+                   rows.push(['Site Name', 'Status', 'Country', 'Integration Start', 'Integration End', 'Duration', 'ASP', 'User']);
+                   table.data.forEach(row => {
+                       rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
+                   });
+                   exportToCsv(dateTime + "IMK_LMT.csv", rows)
+   
+               });
+           }
+       });*/
 
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'downloadStart',
-                        title: 'Integration Start',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'integrateEnd',
-                        title: 'Integration End',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'integrationTime',
-                        title: 'Duration',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                    {
-                        key: 'user',
-                        title: 'User',
-                        sort: 'none',
-                        headerStyle: 'font-weight:bold'
-                    },
-                ],
-                sortable: true,
-                resize: true,
-                rowsPerPage: 5,
-
-            });
-            table.init();
-
-            var today = new Date();
-            var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-            var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-            var dateTime = date+'T'+time;
-            document.querySelector('#export-lmt').addEventListener('click', () => {
-                const notification = new eds.Notification({
-                    title: 'Export data',
-                    description: 'LMT data is exported to IMK_LMT'+ dateTime + '.csv file',
-                });
-                notification.init();
-                var rows = [];
-                rows.push(['Site Name', 'Status','Country', 'Integration Start', 'Integration End', 'Duration', 'ASP', 'User']);
-                table.data.forEach(row => {
-                    rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
-                });
-                exportToCsv(dateTime +"IMK_LMT.csv", rows)
-
-            });
-        }
-    });
-    
     ////////////////// Total Pass - Fail ///////////////////
     $.ajax({
         url: "api/dashboardapi/commands",
         type: "GET",
         data: Data,
         success: function (res) {
-            
+
             ////////////////// Pass / Fail status (per visit)
 
             const element = document.getElementById('pass-fail');
@@ -700,44 +978,44 @@ function getData(startdate, enddate, countries, operators) {
             var medians = res[1].value["median_resolution"];
 
             var passed_per_visit = {
-                "VSWR":vpassedResult["vswr"] ? vpassedResult["vswr"] : 0 ,
-                "RSSI UMTS":vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0 ,
-                "RSSI-LTE FDD":vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD":vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR":vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
-                "Alarm":vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
+                "VSWR": vpassedResult["vswr"] ? vpassedResult["vswr"] : 0,
+                "RSSI UMTS": vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0,
+                "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
+                "Alarm": vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
             }
             var failed_per_visit = {
-                "VSWR":vfailedResult["vswr"] ? vfailedResult["vswr"] : 0 ,
-                "RSSI UMTS":vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0 ,
-                "RSSI-LTE FDD":vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD":vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR":vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
-                "Alarm":vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
+                "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,
+                "RSSI UMTS": vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0,
+                "RSSI-LTE FDD": vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
+                "Alarm": vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
             }
             var resolved_per_visit = {
-                "VSWR":resolvedResult["vswr"] ? resolvedResult["vswr"] : 0 ,
-                "RSSI UMTS":resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0 ,
-                "RSSI-LTE FDD":resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD":resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR":resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
-                "Alarm":resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
+                "VSWR": resolvedResult["vswr"] ? resolvedResult["vswr"] : 0,
+                "RSSI UMTS": resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0,
+                "RSSI-LTE FDD": resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
+                "Alarm": resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
             }
             var resolution_time = {
-                "VSWR":resolution["vswr"] ? resolution["vswr"] : 0 ,
-                "RSSI UMTS":resolution["rssi_umts"] ? resolution["rssi_umts"] : 0 ,
-                "RSSI-LTE FDD":resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD":resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR":resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
-                "Alarm":resolution["alarm"] ? resolution["alarm"] : 0
+                "VSWR": resolution["vswr"] ? resolution["vswr"] : 0,
+                "RSSI UMTS": resolution["rssi_umts"] ? resolution["rssi_umts"] : 0,
+                "RSSI-LTE FDD": resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
+                "Alarm": resolution["alarm"] ? resolution["alarm"] : 0
             }
             var medians_time = {
-                "VSWR":medians["vswr"] ? medians["vswr"] : 0 ,
-                "RSSI UMTS":medians["rssi_umts"] ? medians["rssi_umts"] : 0 ,
-                "RSSI-LTE FDD":medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD":medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR":medians["rssi-nr"] ? medians["rssi-nr"] : 0,
-                "Alarm":medians["alarm"] ? medians["alarm"] : 0
+                "VSWR": medians["vswr"] ? medians["vswr"] : 0,
+                "RSSI UMTS": medians["rssi_umts"] ? medians["rssi_umts"] : 0,
+                "RSSI-LTE FDD": medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": medians["rssi-nr"] ? medians["rssi-nr"] : 0,
+                "Alarm": medians["alarm"] ? medians["alarm"] : 0
             }
 
             element.innerHTML = '';
@@ -746,8 +1024,8 @@ function getData(startdate, enddate, countries, operators) {
                 data: {
                     "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
                     "series": [
-                        {"name": "Passed FTR", "values": Object.values(passed_per_visit)},
-                        {"name": "Failed", "values": Object.values(failed_per_visit)},
+                        { "name": "Passed FTR", "values": Object.values(passed_per_visit) },
+                        { "name": "Failed", "values": Object.values(failed_per_visit) },
                     ]
                 },
                 x: { unit: 'Nodes' }
@@ -756,13 +1034,12 @@ function getData(startdate, enddate, countries, operators) {
 
             document.querySelector('#get-command').addEventListener('selectOption', (evt) => {
                 var selectedValue = $('.item.command.active')[0].innerHTML;
-                if(selectedValue === "Passed / Failed")
-                {
+                if (selectedValue === "Passed / Failed") {
                     document.getElementById("pass-fail").style.display = 'block';
                     document.getElementById("resolved").style.display = 'none';
                 }
                 else {
-                    
+
                     document.getElementById("pass-fail").style.display = 'none';
                     document.getElementById("resolved").style.display = 'block';
 
@@ -772,7 +1049,7 @@ function getData(startdate, enddate, countries, operators) {
                     $("#median-time").text(medians_time[selectedValue]);
                     var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
                     var percentage = (resolved_per_visit[selectedValue] / total) * 100;
-                    $("#total-nodes").text("/ "+total);
+                    $("#total-nodes").text("/ " + total);
                     $("#progress-bar").val(Math.round(percentage));
                     $("#progress-value").text(Math.round(percentage) + " %");
 
@@ -843,10 +1120,9 @@ function getData(startdate, enddate, countries, operators) {
             element.innerHTML = '';
             var sites = [];
             var revisits = [];
-            
-            for(var i in res)
-            {
-                for(j in res[i]) {
+
+            for (var i in res) {
+                for (j in res[i]) {
                     sites.push(i + " - " + j);
                     revisits.push(res[i][j]);
                 }
@@ -889,18 +1165,47 @@ function search() {
     for (var i = 0; i < trs.length; i++) {
         var tds = trs[i].getElementsByTagName("td");
         trs[i].style.display = "none";
-        if (tds[0].innerHTML.toUpperCase().indexOf(input0.value.toUpperCase()) > -1 
-            && tds[1].innerHTML.toUpperCase().indexOf(input1.value.toUpperCase()) > -1 
-            && tds[2].innerHTML.toUpperCase().indexOf(input2.value.toUpperCase()) > -1 
-            && tds[3].innerHTML.toUpperCase().indexOf(input3.value.toUpperCase()) > -1 
-            && tds[4].innerHTML.toUpperCase().indexOf(input4.value.toUpperCase()) > -1 
-            && tds[5].innerHTML.toUpperCase().indexOf(input5.value.toUpperCase()) > -1 
-            && tds[6].innerHTML.toUpperCase().indexOf(input6.value.toUpperCase()) > -1 ) {
+        if (tds[0].innerHTML.toUpperCase().indexOf(input0.value.toUpperCase()) > -1
+            && tds[1].innerHTML.toUpperCase().indexOf(input1.value.toUpperCase()) > -1
+            && tds[2].innerHTML.toUpperCase().indexOf(input2.value.toUpperCase()) > -1
+            && tds[3].innerHTML.toUpperCase().indexOf(input3.value.toUpperCase()) > -1
+            && tds[4].innerHTML.toUpperCase().indexOf(input4.value.toUpperCase()) > -1
+            && tds[5].innerHTML.toUpperCase().indexOf(input5.value.toUpperCase()) > -1
+            && tds[6].innerHTML.toUpperCase().indexOf(input6.value.toUpperCase()) > -1) {
             trs[i].style.display = "";
             continue;
         }
 
     }
+}
+
+function _search(e) {
+
+
+    var input0 = document.getElementById("countryFIND");
+    var input1 = document.getElementById("siteNameFIND");
+    var input2 = document.getElementById("siteIntegrationFIND");
+    var input3 = document.getElementById("diagnosticFIND");
+    var table = document.getElementById("site-details-updated");
+
+    var trs = table.tBodies[0].getElementsByTagName("tr");
+    for (var i = 0; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName("td");
+        trs[i].style.display = "none";
+        trs[i].hidden = true;
+        if (tds[0].innerHTML.toUpperCase().indexOf(input0?.value.toUpperCase()) > -1
+            && tds[1].innerHTML.toUpperCase().indexOf(input1?.value.toUpperCase()) > -1
+            && tds[2].innerHTML.toUpperCase().indexOf(input2?.value.toUpperCase()) > -1
+            && tds[4].innerHTML.toUpperCase().indexOf(input3?.value.toUpperCase()) > -1
+        ) {
+            trs[i].style.display = "";
+            trs[i].hidden = false;
+
+            continue;
+        }
+
+    }
+
 }
 
 
@@ -956,12 +1261,12 @@ function exportToCsv(filename, rows) {
     var processRow = function (row) {
         var finalVal = '';
         for (var j = 0; j < row.length; j++) {
-            var innerValue = row[j] === null ? '' : row[j].toString();
+            var innerValue = row[j] === null ? '' : row[j]?.toString();
             if (row[j] instanceof Date) {
-                innerValue = row[j].toLocaleString();
+                innerValue = row[j]?.toLocaleString();
             };
-            var result = innerValue.replace(/"/g, '""');
-            if (result.search(/("|,|\n)/g) >= 0)
+            var result = innerValue?.replace(/"/g, '""');
+            if (result?.search(/("|,|\n)/g) >= 0)
                 result = '"' + result + '"';
             if (j > 0)
                 finalVal += ',';
@@ -992,12 +1297,54 @@ function exportToCsv(filename, rows) {
         }
     }
 }
+function _exportToCsv(filename, rows) {
+    var _result = [];
+    rows.forEach(row => {
+        var finalVal = '';
+        for (var j = 0; j < row.length; j++) {
+            var innerValue = row[j] === null ? '' : row[j]?.toString();
+            if (row[j] instanceof Date) {
+                innerValue = row[j]?.toLocaleString();
+            };
+            var result = innerValue?.replace(/"/g, '""');
+            if (result?.search(/("|,|\n)/g) >= 0)
+                result = '"' + result + '"';
+            if (j > 0)
+                finalVal += ',';
+            finalVal += result;
+        }
+        _result.push(finalVal + '\n');
+    });
+    if (_result.length > 1) {
+        var csvFile = "";
+        _result.forEach(e => {
+            csvFile += e.toLocaleString();
+        });
+        var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) { // feature detection
+                // Browsers that support HTML5 download attribute
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    }
+
+}
 
 function hideLegend(tile) {
-    if( $('#'+tile+' .chart-legend').css('display') === "block")
-        $('#'+tile+' .chart-legend').css('display','none');
+    if ($('#' + tile + ' .chart-legend').css('display') === "block")
+        $('#' + tile + ' .chart-legend').css('display', 'none');
     else
-        $('#'+tile+' .chart-legend').css('display','block');
+        $('#' + tile + ' .chart-legend').css('display', 'block');
 }
 
 function toggleVersions(version) {
