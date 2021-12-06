@@ -27,6 +27,7 @@ namespace IMK_web.Repository
         Task<ActionResult> GetTopRevisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteIntegrations(string start, string end, string countries, string operators);
+        Task<ActionResult> GetAlarmTypes();
         string GetRole(string email);
 
 
