@@ -659,8 +659,8 @@ namespace IMK_web.Repository
                 visit.User = user.Name;
                 visit.Asp = user.AspCompany.Name;
                 visit.Operator = site == null ? null : site.Operator.Name;
-                visit.DownloadStart = integration.First().DownloadStart;
-                visit.DownloadEnd = integration.Last().DownloadEnd;
+                visit.DownloadStart = integration.First().DownloadStart.ToString();
+                visit.DownloadEnd = integration.Last().DownloadEnd?.ToString();
                 visit.IntegrateStart = integration.First().IntegrateStart;
                 visit.IntegrateEnd = integration.Last().IntegrateEnd;
                 visit.Outcome = integration.Last().Outcome;
@@ -760,7 +760,7 @@ namespace IMK_web.Repository
                     v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
                     v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
-                    v1.Date = d[0].Date.ToString("yyyy-MM-dd");
+                    v1.Date = d[0].ToString("yyyy-MM-dd HH-mm");
                     v1.IsRevisit = revisit;
                     //v1.SiteIntegration = integrations.FirstOrDefault(item => item.Key.SiteName == y.Key.Name);
                     v1.SiteIntegration = lmtRecord;
@@ -785,7 +785,7 @@ namespace IMK_web.Repository
                             v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
                             v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                             v.ASP = vd.asp.First();
-                            v.Date = d[i].Date.ToString("yyyy-MM-dd");
+                            v.Date = d[i].ToString("yyyy-MM-dd HH-mm");
                             v.IsRevisit = revisit;
                             //  v.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
                             v.SiteIntegration = lmtRecord;
@@ -806,7 +806,7 @@ namespace IMK_web.Repository
                     v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
                     v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
                     v1.ASP = vd.asp.First();
-                    v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
+                    v1.Date = vd.date.First().ToString("yyyy-MM-dd HH:mm");
                     v1.IsRevisit = revisit;
                     v1.SiteIntegration = lmtRecord;
                     v1.Diagnostic = true;

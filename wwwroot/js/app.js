@@ -590,10 +590,14 @@ function getData(startdate, enddate, countries, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
-            const tableData = res.map(e => {
+            const tableData = res.map((e, index) => {
                 const el = {
                     ...e,
+                    id: index,
+                    outcome: e.siteIntegration ? e.siteIntegration.outcome : "",
                     integrationResult: e.siteIntegration,
+                    diagnosticStartTime: e.date.slice(0, 16) ?? "",
+                    integrationStartTime: e.siteIntegration?.downloadStart.slice(0, 16) ?? "",
                     diagnostic: (e.diagnostic ? {
                         siteVisit: {
                             user: {
@@ -605,7 +609,7 @@ function getData(startdate, enddate, countries, operators) {
                             rpiVersion: e.rpiVersion,
                             appVersion: e.appVersion,
                             startTime: e.date,
-                           // finishTime: e.finishTime
+
                         }
                     } : null)
                 };
@@ -613,8 +617,17 @@ function getData(startdate, enddate, countries, operators) {
             });
             const tableDOM = document.querySelector('#site-details-updated');
             tableDOM.innerHTML = '';
+            console.log(tableData);
             const search = [];
             const columns = [
+                {
+                    key: 'id',
+                    title: '',
+                    width: '1%',
+                    hideFilter: true,
+                    cellStyle: 'visibility: hidden'
+                },
+
                 {
                     key: 'country',
                     title: 'Country',
@@ -629,12 +642,15 @@ function getData(startdate, enddate, countries, operators) {
                     width: '8%'
                 },
                 {
-                    key: "siteIntegration",
+                    key: "integrationStartTime",
                     title: 'LMT Integration',
                     onCreatedCell: (td, cellData) => {
                         if (cellData) {
-                            const integration = cellData;
-                            td.innerHTML = `<span class="tooltip dotted">${integration?.downloadStart?.slice(0, 16)}
+                            const row = td.closest('tr');
+                            var rowId = row.getElementsByTagName("td")[0].innerHTML;
+                            console.log(row.getElementsByTagName("td"));
+                            const integration = tableData.find(item => item.id == rowId)?.siteIntegration;
+                            td.innerHTML = `<span class="tooltip dotted">${cellData}
                                                 <span class="message right">
                                                         <div>ASP: ${integration?.asp}</div>
                                                         <div>Integration Start Time: ${integration?.downloadStart?.slice(0, 16) || ""}</div>
@@ -651,12 +667,16 @@ function getData(startdate, enddate, countries, operators) {
 
                 },
                 {
-                    key: "integrationResult",
+                    key: "outcome",
                     title: "Integration Result",
                     sort: 'none',
                     onCreatedCell: (td, cellData) => {
-                        if (cellData) {
-                            const integration = cellData.outcome;
+                        const row = td.closest('tr');
+                        var rowId = row.getElementsByTagName("td")[0].innerHTML;
+                        console.log(rowId);
+                        const integrationResult = tableData.find(item => item.id == rowId)?.integrationResult;
+                        if (integrationResult) {
+                            const integration = cellData;
                             if (integration === 'success')
                                 td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
                             else if (integration === 'Failed')
@@ -664,18 +684,24 @@ function getData(startdate, enddate, countries, operators) {
                             else
                                 td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
                         }
+                        else {
+                            td.innerHTML = ""
+                        }
                     },
                     width: '3%',
                     hideFilter: true,
 
                 },
                 {
-                    key: 'diagnostic',
+                    key: 'diagnosticStartTime',
                     title: 'Site Diagnostics',
                     onCreatedCell: (td, cellData) => {
                         if (cellData) {
-                            const diagnostic = cellData;
-                            td.innerHTML = `<span class="tooltip dotted">${diagnostic?.siteVisit?.startTime?.slice(0, 16)}
+                            const row = td.closest('tr');
+                            var rowId = row.getElementsByTagName("td")[0].innerHTML;
+                            console.log(rowId);
+                            const diagnostic = tableData.find(item => item.id == rowId)?.diagnostic;
+                            td.innerHTML = `<span class="tooltip dotted">${cellData}
                                                 <span class="message left">
                                                     <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
                                                     <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
@@ -761,7 +787,7 @@ function getData(startdate, enddate, countries, operators) {
                         }
                         else {
                             var tds = trs[i].getElementsByTagName("td");
-                            siteNames.push(tds[1].innerText)
+                            siteNames.push(tds[2].innerText)
                         }
                     }
 
@@ -827,7 +853,7 @@ function getData(startdate, enddate, countries, operators) {
                         }
                         else {
                             var tds = trs[i].getElementsByTagName("td");
-                            siteNames.push(tds[1].innerText)
+                            siteNames.push(tds[2].innerText)
                         }
                     }
                     var reportData = tableData.filter(item => siteNames.includes(item.siteName));
@@ -969,7 +995,7 @@ function getData(startdate, enddate, countries, operators) {
         success: function (res) {
 
             ////////////////// Pass / Fail status (per visit)
-
+            console.log(res);
             const element = document.getElementById('pass-fail');
             var vpassedResult = res[1].value["passed_per_visit"];
             var vfailedResult = res[1].value["failed_per_visit"];
@@ -1064,19 +1090,19 @@ function getData(startdate, enddate, countries, operators) {
             var failed = res[0].value["failed"];
 
             var total_passed = {
-                "VSWR":passed["vswr"] ? passed["vswr"] : 0 ,
-                "RSSI UMTS":passed["umts"] ? passed["umts"] : 0 ,
-                "RSSI-LTE FDD":passed["fdd"] ? passed["fdd"] : 0,
-                "RSSI-LTE TDD":passed["tdd"] ? passed["tdd"] : 0,
-                "RSSI-NR":passed["nr"] ? passed["nr"] : 0,
+                "VSWR": passed["vswr"] ? passed["vswr"] : 0,
+                "RSSI UMTS": passed["umts"] ? passed["umts"] : 0,
+                "RSSI-LTE FDD": passed["fdd"] ? passed["fdd"] : 0,
+                "RSSI-LTE TDD": passed["tdd"] ? passed["tdd"] : 0,
+                "RSSI-NR": passed["nr"] ? passed["nr"] : 0,
                 // "Alarm":passed["alarm"] ? passed["alarm"] : 0
             };
-            var total_failed =  {
-                "VSWR":failed["vswr"] ? failed["vswr"] : 0 ,
-                "RSSI UMTS":failed["umts"] ? failed["umts"] : 0 ,
-                "RSSI-LTE FDD":failed["fdd"] ? failed["fdd"] : 0,
-                "RSSI-LTE TDD":failed["tdd"] ? failed["tdd"] : 0,
-                "RSSI-NR":failed["nr"] ? failed["nr"] : 0,
+            var total_failed = {
+                "VSWR": failed["vswr"] ? failed["vswr"] : 0,
+                "RSSI UMTS": failed["umts"] ? failed["umts"] : 0,
+                "RSSI-LTE FDD": failed["fdd"] ? failed["fdd"] : 0,
+                "RSSI-LTE TDD": failed["tdd"] ? failed["tdd"] : 0,
+                "RSSI-NR": failed["nr"] ? failed["nr"] : 0,
                 // "Alarm":failed["alarm"] ? failed["alarm"] : 0
             };
 
@@ -1092,7 +1118,7 @@ function getData(startdate, enddate, countries, operators) {
             var alarmsList = [];
             var alarmTypes = res[1].value["alarm_types"];
             for (const [key, value] of Object.entries(alarmTypes))
-                alarmsList.push({"name": key, "values": [value]})
+                alarmsList.push({ "name": key, "values": [value] })
 
             const alarms = document.getElementById('alarm-types');
             alarms.innerHTML = '';
@@ -1106,7 +1132,7 @@ function getData(startdate, enddate, countries, operators) {
             donutChart.init();
             $("#alarm-time").text(resolution_time["Alarm"]);
             $('#alarm-types .labels .label').css("font-size", "12px");
-            $('#alarm-types .chart-legend').css('display','none');
+            $('#alarm-types .chart-legend').css('display', 'none');
         }
     });
 
@@ -1184,8 +1210,8 @@ function _search(e) {
 
     var input0 = document.getElementById("countryFIND");
     var input1 = document.getElementById("siteNameFIND");
-    var input2 = document.getElementById("siteIntegrationFIND");
-    var input3 = document.getElementById("diagnosticFIND");
+    var input2 = document.getElementById("integrationStartTimeFIND");
+    var input3 = document.getElementById("diagnosticStartTimeFIND");
     var table = document.getElementById("site-details-updated");
 
     var trs = table.tBodies[0].getElementsByTagName("tr");
@@ -1193,10 +1219,10 @@ function _search(e) {
         var tds = trs[i].getElementsByTagName("td");
         trs[i].style.display = "none";
         trs[i].hidden = true;
-        if (tds[0].innerHTML.toUpperCase().indexOf(input0?.value.toUpperCase()) > -1
-            && tds[1].innerHTML.toUpperCase().indexOf(input1?.value.toUpperCase()) > -1
-            && tds[2].innerHTML.toUpperCase().indexOf(input2?.value.toUpperCase()) > -1
-            && tds[4].innerHTML.toUpperCase().indexOf(input3?.value.toUpperCase()) > -1
+        if (tds[1].innerHTML.toUpperCase().indexOf(input0?.value.toUpperCase()) > -1
+            && tds[2].innerHTML.toUpperCase().indexOf(input1?.value.toUpperCase()) > -1
+            && tds[3].innerHTML.toUpperCase().indexOf(input2?.value.toUpperCase()) > -1
+            && tds[5].innerHTML.toUpperCase().indexOf(input3?.value.toUpperCase()) > -1
         ) {
             trs[i].style.display = "";
             trs[i].hidden = false;
@@ -1348,16 +1374,16 @@ function hideLegend(tile) {
 }
 
 function toggleVersions(version) {
-    if(version == "imk") {
-        $('#imk-version').css('display','block');
-        $('#app-version').css('display','none');
+    if (version == "imk") {
+        $('#imk-version').css('display', 'block');
+        $('#app-version').css('display', 'none');
         $("#switch-versions").val("app");
         $("#switch-versions").html('<i class="icon icon-signal"></i>IMK');
         $("#app-imk-version").html("IMK");
     }
-    else if(version == "app") {
-        $('#imk-version').css('display','none');
-        $('#app-version').css('display','block');
+    else if (version == "app") {
+        $('#imk-version').css('display', 'none');
+        $('#app-version').css('display', 'block');
         $("#switch-versions").val("imk");
         $("#switch-versions").html('<i class="icon icon-mobile-devices"></i>App');
         $("#app-imk-version").html("App");
