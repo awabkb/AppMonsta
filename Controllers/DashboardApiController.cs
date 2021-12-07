@@ -170,6 +170,12 @@ namespace IMK_web.Controllers
             var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
         }
+                
+        [HttpGet("alarms")]
+        public async Task<ActionResult> getAlarms() {
+            var alarms = await _dashRepository.GetAlarmTypes();
+            return alarms;
+        }
 
         [HttpGet("claims")]
         public List<System.Security.Claims.Claim> getSignum(){

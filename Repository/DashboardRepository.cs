@@ -446,7 +446,7 @@ namespace IMK_web.Repository
                 values = y.Select(i => i.VisitId).Count()
             });
 
-            return new JsonResult(versions);
+            return new JsonResult(versions.OrderByDescending(x => x.values));
         }
 
 
@@ -493,7 +493,7 @@ namespace IMK_web.Repository
                 values = y.Select(i => i.VisitId).Count()
             });
 
-            return new JsonResult(versions);
+            return new JsonResult(versions.OrderByDescending(x => x.values));
         }
 
 
@@ -635,7 +635,7 @@ namespace IMK_web.Repository
             //get diagnostics
             var _siteIntegrations = _context.SiteIntegrations.Where(x => x.SiteName != null)
                          .Where(x => x.DownloadStart != null)
-                         .OrderBy(x => x.DownloadStart).ToList();
+                         .OrderByDescending(x => x.DownloadStart).ToList();
 
             var integrations = _siteIntegrations
             .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
@@ -1386,7 +1386,6 @@ namespace IMK_web.Repository
                                     if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
                                     else alarmTypes[alarmType] = 1;
                                     if(!alarms.Contains(alarmType)) alarms.Add(alarmType);
-
                                 }
 
                                 IEnumerable<string> clearedAlarms = latestAlarms.Except(alarms);
@@ -1482,7 +1481,7 @@ namespace IMK_web.Repository
             returnList.Add("resolved_per_visit", resolved);
             returnList.Add("avg_resolution", resolvedtime);
             returnList.Add("median_resolution", median);
-            returnList.Add("alarm_types", alarmTypes);
+            returnList.Add("alarm_types", alarmTypes.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value));
 
             return new JsonResult(returnList);
         }
@@ -1626,6 +1625,31 @@ namespace IMK_web.Repository
                 return alarms.Last();
             else
                 return null;
+        }
+
+        public async Task<ActionResult> GetAlarmTypes()
+        {
+
+            var alarms = await _context.Logs
+            .Where(x => x.Command.Equals("alarm"))
+            .Where(x => !x.Result.Equals("null"))
+            .ToListAsync();
+
+            List<string> alarmTypes = new List<string>();
+            foreach(var alarm in alarms)
+            {
+                if (alarm != null && alarm.Result != null)
+                {
+                    dynamic results = JsonConvert.DeserializeObject(alarm.Result);
+                    foreach (var res in results)
+                    {
+                        string type = res.DESCRIPTION;
+                        if (!alarmTypes.Contains(type))
+                            alarmTypes.Add(type);
+                    }
+                }
+            }
+            return new JsonResult(alarmTypes);
         }
 
     }
