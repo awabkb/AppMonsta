@@ -386,11 +386,32 @@ namespace IMK_web.Controllers
                 InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            
+            siteIntegration.AiLog = null;
             return Ok(siteIntegration);
             
         }
 
+        ////////////////////////// Mobile Rating ////////////////////////////
+        [HttpGet("questions")]
+        public async Task<IActionResult> getRatingQuestions()
+        {
+            var questions = await _appRepository.GetRatingQuestions();
+            return Ok(questions);
+        }
+
+        [HttpPost("rating")]
+        public async Task<IActionResult> addUserRating(Rating userRating)
+        {
+            _appRepository.Add( new Rating() 
+            {
+                Rate = userRating.Rate,
+                Questions = userRating.Questions,
+                Comment = userRating.Comment,
+                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault()
+            });
+            await _appRepository.SaveChanges();
+            return Ok(userRating);
+        }
         ////////////////////////// Send IMK User approval to admins ////////////////////////////
 
 
@@ -532,6 +553,14 @@ namespace IMK_web.Controllers
                     op = "Vodafone OM";
                 else
                     op = "Omantel";
+            }
+
+            if(country.Equals("Benin"))
+            {
+                if(Regex.IsMatch(sitename, "^[a-zA-Z]{2}[0-9]{3}$") || Regex.IsMatch(sitename, "^[a-zA-Z]{3}[0-9]{3}$") )
+                    op = "MTN BJ";
+                else
+                    op = "MOOV";
             }
             
             return op;

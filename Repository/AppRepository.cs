@@ -100,9 +100,9 @@ namespace IMK_web.Repository
         {
             return await _context.AspManagers.Where(x => x.Role.Equals("Admin")).Select(x => x.Email).ToArrayAsync();
         }
-        public async Task<IEnumerable<SiteVisit>> GetUserSiteVisits(User user)
+        public async Task<IEnumerable<SiteVisit>> GetUserSiteVisits(string email)
         {
-            return await _context.SiteVisits.Where(x => x.User == user).ToListAsync();
+            return await _context.SiteVisits.Include(x => x.User).Where(x => x.User.Email.Equals(email)).ToListAsync();
         }
 
         public async Task<IEnumerable<User>> GetAllUsers()
@@ -147,7 +147,12 @@ namespace IMK_web.Repository
         public async Task<IEnumerable<AspCompany>> GetAspCompanies()
         {
             return await _context.AspCompanies.Include(x => x.Country).ToListAsync();
-        }        
+        }     
+
+        public async Task<IEnumerable<RatingQuestion>> GetRatingQuestions() 
+        {
+            return await _context.RatingQuestions.ToListAsync();
+        }   
 
     }
 }

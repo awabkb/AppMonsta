@@ -24,13 +24,14 @@ namespace IMK_web.Repository
         Task<ImkVersion> GetLatestImkVersion();
         Task<string []> GetAspManagers(string country);
         Task<string []> GetAdmins();
-        Task<IEnumerable<SiteVisit>> GetUserSiteVisits(User user);
+        Task<IEnumerable<SiteVisit>> GetUserSiteVisits(string email);
         Task<User> GetUserByEmail(string email);
         Task<IEnumerable<User>> GetAllUsers();
         Task<ActionResult> GetLogs(string start, string end);
         Task<IEnumerable<AspManager>> GetApprovers();
         Task<AspManager> GetApprover(int id);
         Task<IEnumerable<AspCompany>> GetAspCompanies();
+        Task<IEnumerable<RatingQuestion>> GetRatingQuestions();
 
 
 
