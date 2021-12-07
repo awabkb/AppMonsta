@@ -814,14 +814,14 @@ namespace IMK_web.Repository
                 }
 
             }
-            uniqueVisits.AddRange(filteredIntegrations.Select(e => new VisitDetail
+            uniqueVisits.AddRange(filteredIntegrations.OrderByDescending(x => x.DownloadStart).Select(e => new VisitDetail
             {
                 SiteName = e.SiteName,
                 Country = e.Country,
                 SiteIntegration = e,
                 Diagnostic = false,
                 IsRevisit = false,
-                Date = e.IntegrateStart
+                Date = e.DownloadStart
 
             }));
             // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
