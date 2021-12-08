@@ -1395,6 +1395,8 @@ function toggleVersions(version) {
 var chart = am4core.create(document.getElementById("chartdiv"), am4maps.MapChart);
 var chart2 = am4core.create(document.getElementById("chartdiv2"), am4maps.MapChart);
 var chart3 = am4core.create(document.getElementById("chartdiv3"), am4maps.MapChart);
+var chart4 = am4core.create(document.getElementById("chartdiv4"), am4maps.MapChart);
+
 var isoCountries = isoCountries = {
     'Afghanistan': 'AF',
     'Aland Islands': 'AX',
@@ -2052,6 +2054,141 @@ function initMap(start, end, m_a) {
 
                 chart2.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.6;
                 chart2.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#4D97ED");
+
+                // // Create hover state and set alternative fill color
+                // var hs = polygonTemplate.states.create("hover");
+                // hs.properties.fill = chart.colors.getIndex(0).brighten(-0.5);
+
+                // // Create hover state and set alternative fill color
+                // var hs = polygonTemplate.states.create("hover");
+                // hs.properties.fill = am4core.color("#fff");
+
+                // Remove Antarctica
+                polygonSeries.exclude = [];
+
+                // Add some data
+                polygonSeries.data = mapdata;
+
+                // Bind "fill" property to "fill" key in data
+                polygonTemplate.propertyFields.fill = "fill";
+            }); // end am4core.ready()
+
+        }
+    })
+
+    $.ajax({
+        url: "api/dashboardapi/lmt-usage",
+        type: "GET",
+        data: { start: start, end: end, marketArea: m_a },
+        success: function (res) {
+            var mapdata = [];
+            for (var i = 0; i < res.length; i++) {
+                var obj = res[i];
+                var isocode = getCountryName(obj["country"])
+                if (isocode != "Other") {
+                    var data = []
+                    if (obj["percent"] > 20) {
+
+                        data["title"] = obj["country"]
+                        data["id"] = isocode;
+                        data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
+                        data["fill"] = "#ED0E00"
+                    }
+                    if (obj["percent"] > 10 && obj["percent"] < 20) {
+
+                        data["title"] = obj["country"]
+                        data["id"] = isocode;
+                        data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
+                        data["fill"] = "#FA842A"
+                    }
+                    if (obj["percent"] < 10) {
+                        var data = [];
+
+                        data["title"] = obj["country"]
+                        data["id"] = isocode;
+                        data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
+                        data["fill"] = "#CFC000"
+
+                    }
+                    mapdata.push(data)
+                }
+                if (isocode == "MA") {
+                    var data = []
+                    if (obj["percent"] > 20) {
+
+                        data["title"] = obj["country"]
+                        data["id"] = 'EH';
+                        data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
+                        data["fill"] = "#ED0E00"
+                    }
+                    if (obj["percent"] > 10 && obj["percent"] < 20) {
+
+                        data["title"] = obj["country"]
+                        data["id"] = 'EH';
+                        data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
+                        data["fill"] = "#FA842A"
+                    }
+                    if (obj["percent"] < 10) {
+                        var data = [];
+
+                        data["title"] = obj["country"]
+                        data["id"] = 'EH';
+                        data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
+                        data["fill"] = "#CFC000"
+
+                    }
+                    mapdata.push(data)
+                }
+            }
+            am4core.ready(function () {
+
+
+                // Themes begin
+                // am4core.useTheme(am4themes_dark);
+                am4core.useTheme(am4themes_animated);
+                // Themes end
+
+                if (chart4) {
+                    chart4.dispose();
+                    delete chart4;
+                    chart4 = am4core.create("chartdiv4", am4maps.MapChart)
+                }
+
+                // Set map definition
+                chart4.geodata = am4geodata_worldLow;
+
+                // Set projection
+                chart4.projection = new am4maps.projections.Orthographic();
+                chart4.panBehavior = "rotateLongLat";
+                chart4.deltaLatitude = lat;
+                chart4.deltaLongitude = lon;
+
+                chart4.padding(20, 20, 20, 20);
+
+                // limits vertical rotation
+                chart4.adapter.add("deltaLatitude", function (delatLatitude) {
+                    return am4core.math.fitToRange(delatLatitude, -90, 90);
+                })
+
+                // Create map polygon series
+                var polygonSeries = chart4.series.push(new am4maps.MapPolygonSeries());
+
+                // Make map load polygon (like country names) data from GeoJSON
+                polygonSeries.useGeodata = true;
+
+                // Configure series
+                var polygonTemplate = polygonSeries.mapPolygons.template;
+                polygonTemplate.tooltipText = "{name} LMT Usage {customData} ";
+                polygonTemplate.fill = am4core.color("#EDEDED");
+
+                var graticuleSeries = chart4.series.push(new am4maps.GraticuleSeries());
+                graticuleSeries.mapLines.template.line.stroke = am4core.color("#4D97ED");
+                graticuleSeries.mapLines.template.line.strokeOpacity = 0.08;
+                graticuleSeries.fitExtent = false;
+
+
+                chart4.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 0.6;
+                chart4.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#4D97ED");
 
                 // // Create hover state and set alternative fill color
                 // var hs = polygonTemplate.states.create("hover");
