@@ -18,6 +18,8 @@ namespace IMK_web.Data
         public DbSet<Log> Logs { get; set; }
         public DbSet<AspManager> AspManagers {get; set;}        
         public DbSet<SiteIntegration> SiteIntegrations {get; set;}
+        public DbSet<RatingQuestion> RatingQuestions {get; set;}
+        public DbSet<Rating> Ratings {get; set;}
 
 
     }

@@ -918,6 +918,8 @@ namespace IMK_web.Repository
             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
             siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null)
+            .Where(x=> x.Outcome !=null)
+            .Where(x => x.Outcome.Equals("success"))
             .OrderBy(x => x.DownloadStart).ToListAsync();
 
             var integrations = siteIntegrations.GroupBy(x => new
@@ -930,17 +932,20 @@ namespace IMK_web.Repository
             {
                 User user = await this.GetUser(integration.First().UserId);
                 IntegrationDetail visit = new IntegrationDetail();
+                visit.SiteName = integration.First().SiteName;
                 visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
                 visit.Outcome = integration.Last().Outcome;
                 lmts.Add(visit);
 
             }
-            var groupedIntegrations = lmts.Where(x => countries.Contains(x.Country)).Where(x => x.Outcome.Equals("success"))
+            var groupedIntegrations = lmts.Where(x => countries.Contains(x.Country))
+            .Where(x=> x.Outcome !=null)
+            .Where(x => x.Outcome.Equals("success"))
             .GroupBy(x => new { x.Country }).Select(y => new 
             {
                 country = y.Key.Country,
                 users = y.Select(i => i.SiteName).Distinct().Count(),
-                percent = ((float) y.Select(i => i.SiteName).Distinct().Count() / (float) lmts.Count()) * 100
+                percent = String.Format("{0:0.00}",((float) y.Select(i => i.SiteName).Distinct().Count() / (float) lmts.Count()) * 100)
 
             });
 
@@ -1497,7 +1502,7 @@ namespace IMK_web.Repository
 
             foreach (var i in details)
             {
-                vpassed.Add(i.Key, i.Value.Where(x => x.Contains("Passed")).Count());
+                vpassed.Add(i.Key, i.Value.Where(x => x.Contains("Passed") || x.Contains("Resolved")).Count());
                 vfailed.Add(i.Key, i.Value.Where(x => x.Contains("Failed")).Count());
                 resolved.Add(i.Key, i.Value.Where(x => x.Contains("Resolved")).Count());
 

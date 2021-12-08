@@ -40,7 +40,7 @@ function init() {
     marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
     countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : "all";
     operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
-    datestart = moment().subtract(29, 'days');
+    datestart = moment().subtract(6, 'days');
     dateend = moment();
 
     getCountries(marketArea);
@@ -51,7 +51,7 @@ function init() {
 }
 function daterange() {
     $(function () {
-        var start = moment().subtract(29, 'days');
+        var start = moment().subtract(6, 'days');
         var end = moment();
         function cb(start, end) {
             $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
@@ -1072,9 +1072,9 @@ function getData(startdate, enddate, countries, operators) {
                     $("#command").text(selectedValue);
                     $("#resolved-number").text(resolved_per_visit[selectedValue]);
                     $("#avg-time").text(resolution_time[selectedValue]);
-                    $("#median-time").text(medians_time[selectedValue]);
-                    var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
-                    var percentage = (resolved_per_visit[selectedValue] / total) * 100;
+                    //$("#median-time").text(medians_time[selectedValue]);
+                    //var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                    var percentage = (resolved_per_visit[selectedValue] / passed_per_visit[selectedValue]) * 100;
                     $("#total-nodes").text("/ " + total);
                     $("#progress-bar").val(Math.round(percentage));
                     $("#progress-value").text(Math.round(percentage) + " %");
