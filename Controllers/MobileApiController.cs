@@ -399,13 +399,13 @@ namespace IMK_web.Controllers
                 CountryCode = siteIntegration.CountryCode,
                 CountryName = siteIntegration.CountryName,
                 AppVersion = siteIntegration.AppVersion,
-                // Error = siteIntegration.Error,
-                //Progress = siteIntegration.Progress,
-                //AiLog = siteIntegration.AiLog,
-                //InitiatedAt = siteIntegration.InitiatedAt
+                Error = siteIntegration.Error,
+                Progress = siteIntegration.Progress,
+                AiLog = siteIntegration.AiLog,
+                InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            // siteIntegration.AiLog = null;
+            siteIntegration.AiLog = null;
             return Ok(siteIntegration);
 
         }

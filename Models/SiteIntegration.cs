@@ -23,9 +23,9 @@ namespace IMK_web.Models
         public string CountryCode { get; set; }
         public string CountryName { get; set; }
         public string AppVersion { get; set; }
-        //  public string Error { get; set; }
-        //public int Progress { get; set; }
-        //public byte[] AiLog { get; set; }
-        //public string InitiatedAt { get; set; }
+        public string Error { get; set; }
+        public int Progress { get; set; }
+        public byte[] AiLog { get; set; }
+        public string InitiatedAt { get; set; }
     }
 }
