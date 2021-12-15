@@ -10,6 +10,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Net.Http;
+using Microsoft.Extensions.Options;
+using System.Web;
+using Newtonsoft.Json.Linq;
+using IMK_web.Models.ModelHelper;
 
 namespace IMK_web.Controllers
 {
@@ -20,10 +25,16 @@ namespace IMK_web.Controllers
     public class DashboardApiController : Controller
     {
         private readonly IDashboardRepository _dashRepository;
+        private static string _azureMapKey;
+        private static HttpClient _client;
+        private static string _azureMapURL;
 
-        public DashboardApiController(IDashboardRepository dashboardRepository)
+        public DashboardApiController(IDashboardRepository dashboardRepository, IOptions<AppSettings> appSettings)
         {
             _dashRepository = dashboardRepository;
+            _azureMapKey = appSettings.Value.AzureMapsKey;
+            _azureMapURL = appSettings.Value.AzureMapsURL;
+            _client = new HttpClient();
         }
 
         ////// Filtering //////
@@ -41,6 +52,39 @@ namespace IMK_web.Controllers
         {
             var countries = await _dashRepository.GetIMKCountriesByMA(marketArea);
             return countries.Select(c => c.Country).Distinct().ToList();
+        }
+
+        [HttpGet("getCountry")]
+        public async Task<ActionResult> geCountryFromAzureMaps(string latitude, string longtiude)
+        {
+            var azureMapAddress = _azureMapURL;
+
+            var uriBuilder = new UriBuilder(azureMapAddress);
+
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            query["subscription-key"] = _azureMapKey;
+            query["api-version"] = "1.0";
+            var coordinates = latitude + ',' + longtiude;
+            var q = Uri.EscapeDataString(coordinates);
+            query["query"] = coordinates;
+            query["query"] = HttpUtility.UrlDecode(query["query"]);
+            uriBuilder.Query = query.ToString();
+            azureMapAddress = uriBuilder.ToString();
+
+            var response = await _client.GetAsync(azureMapAddress);
+            var data = response.Content.ReadAsStringAsync().Result;
+
+            JObject json = JObject.Parse(data);
+
+            var addressesArray = json.GetValue("addresses")[0];
+            var firstAddress = JObject.Parse(addressesArray.ToString());
+            var countryInfo = new
+            {
+                countryName = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("country").ToString(),
+                countryCode = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("countryCode").ToString()
+            };
+
+            return new JsonResult(countryInfo);
         }
 
         [HttpGet("operators")]
@@ -169,20 +213,22 @@ namespace IMK_web.Controllers
         {
             var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
-        }              
-                
+        }
+
         [HttpGet("alarms")]
-        public async Task<ActionResult> getAlarms() {
+        public async Task<ActionResult> getAlarms()
+        {
             var alarms = await _dashRepository.GetAlarmTypes();
             return alarms;
         }
 
         [HttpGet("claims")]
-        public List<System.Security.Claims.Claim> getSignum(){
+        public List<System.Security.Claims.Claim> getSignum()
+        {
             var signum = User.Claims.ToList();
             return signum;
         }
-        
+
 
 
 
@@ -211,13 +257,18 @@ namespace IMK_web.Controllers
             var data = await _dashRepository.GetNewProfiles(start, end, marketArea);
             return data;
         }
-        
+
         [HttpGet("lmt-usage")]
         public async Task<ActionResult> getSiteIntegrationsUsage([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
         {
             var data = await _dashRepository.GetSiteIntegrationUsage(start, end, marketArea);
             return data;
         }
-
+        [HttpGet("ratings")]
+        public async Task<ActionResult> GetRatings()
+        {
+            var result = await _dashRepository.GetRatings();
+            return result;
+        }
     }
 }

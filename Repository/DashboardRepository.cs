@@ -706,6 +706,7 @@ namespace IMK_web.Repository
 
                 }
             }
+            var _v = await _context.SiteVisits.ToListAsync();
 
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).Select(y => new
             {
@@ -913,7 +914,7 @@ namespace IMK_web.Repository
                 countries = await _context.Countries.Select(x => x.Name).ToArrayAsync();
             else
                 countries = await _context.Countries.Where(x => x.MA.Equals(marketArea)).Select(x => x.Name).ToArrayAsync();
-                            
+
             List<SiteIntegration> siteIntegrations = null;
             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
@@ -936,11 +937,11 @@ namespace IMK_web.Repository
 
             }
             var groupedIntegrations = lmts.Where(x => countries.Contains(x.Country)).Where(x => x.Outcome.Equals("success"))
-            .GroupBy(x => new { x.Country }).Select(y => new 
+            .GroupBy(x => new { x.Country }).Select(y => new
             {
                 country = y.Key.Country,
                 users = y.Select(i => i.SiteName).Distinct().Count(),
-                percent = ((float) y.Select(i => i.SiteName).Distinct().Count() / (float) lmts.Count()) * 100
+                percent = ((float)y.Select(i => i.SiteName).Distinct().Count() / (float)lmts.Count()) * 100
 
             });
 
@@ -1370,7 +1371,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include(x =>x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include(x => x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                     .ToListAsync();
                 }
@@ -1379,7 +1380,7 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include(x =>x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include(x => x.Logs).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                         .ToListAsync();
@@ -1388,7 +1389,7 @@ namespace IMK_web.Repository
 
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null).GroupBy(x => new { x.Site.Name, x.User.UserId, x.StartTime.Date }).ToList();
 
-            List<Dictionary<string,string>> list= new List<Dictionary<string, string>>();
+            List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
             Dictionary<string, int> alarmTypes = new Dictionary<string, int>();
 
 
@@ -1427,15 +1428,16 @@ namespace IMK_web.Repository
                                     string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
                                     if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
                                     else alarmTypes[alarmType] = 1;
-                                    if(!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                    if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
                                 }
 
                                 IEnumerable<string> clearedAlarms = latestAlarms.Except(alarms);
                                 IEnumerable<string> newAlarms = alarms.Except(latestAlarms);
 
-                                if(clearedAlarms.Count() > 0) {
+                                if (clearedAlarms.Count() > 0)
+                                {
                                     commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - lastAlarm.Result.SiteVisit.StartTime).TotalHours });
-                                    foreach(var item in clearedAlarms) alarms.Remove(item);
+                                    foreach (var item in clearedAlarms) alarms.Remove(item);
                                 }
                                 else
                                 {
@@ -1514,10 +1516,10 @@ namespace IMK_web.Repository
 
             }
             double totalTypes = alarmTypes.Sum(x => x.Value);
-            foreach(KeyValuePair<string, int> entry in alarmTypes)
-                alarmTypes[entry.Key] = (int) Math.Round((double)(entry.Value / totalTypes) * 100);
+            foreach (KeyValuePair<string, int> entry in alarmTypes)
+                alarmTypes[entry.Key] = (int)Math.Round((double)(entry.Value / totalTypes) * 100);
 
-            Dictionary<string,Dictionary<string,int>> returnList = new Dictionary<string, Dictionary<string, int>>();
+            Dictionary<string, Dictionary<string, int>> returnList = new Dictionary<string, Dictionary<string, int>>();
             returnList.Add("passed_per_visit", vpassed);
             returnList.Add("failed_per_visit", vfailed);
             returnList.Add("resolved_per_visit", resolved);
@@ -1678,7 +1680,7 @@ namespace IMK_web.Repository
             .ToListAsync();
 
             List<string> alarmTypes = new List<string>();
-            foreach(var alarm in alarms)
+            foreach (var alarm in alarms)
             {
                 if (alarm != null && alarm.Result != null)
                 {
@@ -1694,6 +1696,13 @@ namespace IMK_web.Repository
             return new JsonResult(alarmTypes);
         }
 
+
+        public async Task<ActionResult> GetRatings()
+        {
+
+            var ratings = await _context.Ratings.Include("User").ToListAsync();
+            return new JsonResult(ratings);
+        }
     }
 
 

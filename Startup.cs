@@ -19,6 +19,7 @@ using IMK_web.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
+using IMK_web.Models.ModelHelper;
 
 namespace IMK_web
 {
@@ -41,11 +42,13 @@ namespace IMK_web
             services.AddMvc().AddNewtonsoftJson(opt=>{
             opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
-            
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
             services.AddTransient<Seed>();
             services.AddScoped<IDashboardRepository,DashboardRepository>();
             services.AddScoped<IAppRepository,AppRepository>();
             services.AddScoped<IPortalRepository,PortalRepository>();
+            //services.AddScoped<>
 
 
             services.AddAuthentication()
@@ -84,7 +87,8 @@ namespace IMK_web
             }
             //seeder.seedUsers();
             //seeder.seedCountries();
-            
+
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

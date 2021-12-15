@@ -272,6 +272,13 @@ function filter(s, e, ma, c, o) {
 
 function getData(startdate, enddate, countries, operators) {
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
+
+    $.ajax({
+        url: "api/dashboardapi/getCountry",
+        type: "GET",
+        data: { latitude: "37.337", longtiude: "-121.89" }
+    })
+
     $.ajax({
         url: "api/dashboardapi/unique_sites",
         type: "GET",
@@ -464,6 +471,8 @@ function getData(startdate, enddate, countries, operators) {
         }
     });
 
+
+
     /*$.ajax({
         url: "api/dashboardapi/site_details",
         type: "GET",
@@ -517,7 +526,7 @@ function getData(startdate, enddate, countries, operators) {
                             if (cellData === true)
                                 td.innerHTML = `<span class="color-green"><i class="icon icon-alarm-level4"></i></span>`;
                         },
-
+    
                     },
                     {
                         key: 'phone',
@@ -534,25 +543,25 @@ function getData(startdate, enddate, countries, operators) {
                 actions: true,
                 resize: true,
                 height: '500px',
-
+    
                 onCreatedActionsCell: (td) => {
                     td.innerHTML = `<button class="btn-icon info"><i class="icon icon-info"></i></button>`;
-
+    
                     td.querySelector('button.info').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
                         var siteEngineer = $(tr).find('td').eq(3).text();
                         var phone = $(tr).find('td').eq(8).text();
                         var email = $(tr).find('td').eq(9).text();
-
+    
                         const notification = new eds.Notification({
                             title: "Field Engineer Info",
                             description: 'Name: ' + siteEngineer + '\nPhone: ' + phone + '\nEmail: ' + email,
                         });
                         notification.init();
-
+    
                     });
                 },
-
+    
                 onCreatedHead: (thead, headData) => {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
@@ -562,7 +571,7 @@ function getData(startdate, enddate, countries, operators) {
                 }
             });
             table.init();
-
+    
             var today = new Date();
             var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
             var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
@@ -578,9 +587,9 @@ function getData(startdate, enddate, countries, operators) {
                 table.data.forEach(row => {
                     rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"], row["isRevisit"]]);
                 });
-
+    
                 exportToCsv(dateTime + "IMK_Dashboard.csv", rows)
-
+    
             });
         }
     });*/
@@ -701,7 +710,8 @@ function getData(startdate, enddate, countries, operators) {
                             var rowId = row.getElementsByTagName("td")[0].innerHTML;
                             console.log(rowId);
                             const diagnostic = tableData.find(item => item.id == rowId)?.diagnostic;
-                            td.innerHTML = `<span class="tooltip dotted">${cellData}
+                            if (diagnostic) {
+                                td.innerHTML = `<span class="tooltip dotted">${cellData}
                                                 <span class="message left">
                                                     <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
                                                     <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
@@ -712,6 +722,10 @@ function getData(startdate, enddate, countries, operators) {
                                                     <div>App Version: ${diagnostic?.siteVisit?.appVersion}</div>
                                                 </span>
                                             </span>`;
+                            }
+                        }
+                        else {
+                            td.innerHTML = ""
                         }
                     },
                     sort: 'none',
@@ -920,7 +934,7 @@ function getData(startdate, enddate, countries, operators) {
                                else
                                    td.innerHTML = `<span class="pill" ><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span> `;
                            },
-   
+     
                        },
                        {
                            key: 'country',
@@ -962,10 +976,10 @@ function getData(startdate, enddate, countries, operators) {
                    sortable: true,
                    resize: true,
                    rowsPerPage: 5,
-   
+     
                });
                table.init();
-   
+     
                var today = new Date();
                var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
                var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
@@ -982,7 +996,7 @@ function getData(startdate, enddate, countries, operators) {
                        rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
                    });
                    exportToCsv(dateTime + "IMK_LMT.csv", rows)
-   
+     
                });
            }
        });*/
@@ -1171,6 +1185,69 @@ function getData(startdate, enddate, countries, operators) {
             chart.init();
         }
     });
+
+    $.ajax({
+        url: "api/dashboardapi/ratings",
+        type: "Get",
+        success: function (res) {
+            const cardContainer = document.getElementById('rating-card-container');
+            console.log(res);
+            const ratingValues = res.map(item => item.rate);
+            const mappedData = res.map(item => {
+                const element = {
+                    ...item,
+                    userName: item.user.name,
+                    email: item.user.email,
+                    answers: item.questions?.split(','),
+                    date: item.date ? new Date(item.date).toISOString().slice(0, 16) : ""
+
+                };
+                return element;
+            });
+            console.log(mappedData);
+            const averageRating = ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length;
+            const starPercentageRounded = `${(Math.round(averageRating * 2) * 10)}%`;
+            console.log(document.querySelectorAll(".stars-inner"));
+            document.querySelectorAll(".stars-inner").forEach(e => {
+                e.style.width = starPercentageRounded;
+            });
+            $("average-rate-val").text(averageRating);
+            const cardsHTML = mappedData.map(e => {
+                console.log(e.answers);
+                const answers = e.answers.map(a => (a && a.trim() !== "Other") ? `<p style="margin-bottom:0;">${a}</p>` : "")?.toString()?.replace(/,/g, '');
+                console.log(answers);
+
+                const _card =
+                    `<div class="card" style="margin-top: 0px; margin-bottom: 0px;" >
+                          <div class="header">
+                            <div class="left">
+                              <div class="title">${e.userName}</div>
+                              <div class="subtitle">
+                                ${e.date ? `<div>${e.date}</div>` : ""}
+                                         <div class="stars-outer">
+                                        <div class="stars-inner" style="width:${(Math.round(e.rate * 2) * 10)}%;" > </div>
+                                    </div>
+                               </div>
+                             </div>
+                            </div>
+                          <div class="content">
+                            <div>${answers}</div>
+${e.comment ? ` <p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
+                          </div>
+                        </div> `       ;
+                return _card;
+            });
+            cardContainer.innerHTML = cardsHTML;
+            const cards = document.querySelectorAll('.card');
+            if (cards) {
+                Array.from(cards)?.forEach((cardDOM) => {
+                    const card = new eds.Card(cardDOM);
+                    card.init();
+                });
+            }
+        }
+
+    })
 
 }
 
