@@ -169,7 +169,7 @@ namespace IMK_web.Controllers
         {
             var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
-        }
+        }              
                 
         [HttpGet("alarms")]
         public async Task<ActionResult> getAlarms() {
@@ -209,6 +209,13 @@ namespace IMK_web.Controllers
         public async Task<ActionResult> getNewProfiles([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
         {
             var data = await _dashRepository.GetNewProfiles(start, end, marketArea);
+            return data;
+        }
+        
+        [HttpGet("lmt-usage")]
+        public async Task<ActionResult> getSiteIntegrationsUsage([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
+        {
+            var data = await _dashRepository.GetSiteIntegrationUsage(start, end, marketArea);
             return data;
         }
 

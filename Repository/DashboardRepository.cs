@@ -814,14 +814,14 @@ namespace IMK_web.Repository
                 }
 
             }
-            uniqueVisits.AddRange(filteredIntegrations.Select(e => new VisitDetail
+            uniqueVisits.AddRange(filteredIntegrations.OrderByDescending(x => x.DownloadStart).Select(e => new VisitDetail
             {
                 SiteName = e.SiteName,
                 Country = e.Country,
                 SiteIntegration = e,
                 Diagnostic = false,
                 IsRevisit = false,
-                Date = e.IntegrateStart
+                Date = e.DownloadStart
 
             }));
             // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
@@ -903,6 +903,48 @@ namespace IMK_web.Repository
                 percent = ((float)y.Select(i => i.UserId).Count() / (float)allusers.Count()) * 100
             });
             return new JsonResult(newusers);
+        }
+
+        // get LMT global usage 
+        public async Task<ActionResult> GetSiteIntegrationUsage(string start, string end, string marketArea)
+        {
+            string[] countries;
+            if (marketArea == null)
+                countries = await _context.Countries.Select(x => x.Name).ToArrayAsync();
+            else
+                countries = await _context.Countries.Where(x => x.MA.Equals(marketArea)).Select(x => x.Name).ToArrayAsync();
+                            
+            List<SiteIntegration> siteIntegrations = null;
+            List<IntegrationDetail> lmts = new List<IntegrationDetail>();
+
+            siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null)
+            .OrderBy(x => x.DownloadStart).ToListAsync();
+
+            var integrations = siteIntegrations.GroupBy(x => new
+            {
+                x.SiteName,
+                x.UserId,
+                start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
+            });
+            foreach (var integration in integrations)
+            {
+                User user = await this.GetUser(integration.First().UserId);
+                IntegrationDetail visit = new IntegrationDetail();
+                visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
+                visit.Outcome = integration.Last().Outcome;
+                lmts.Add(visit);
+
+            }
+            var groupedIntegrations = lmts.Where(x => countries.Contains(x.Country)).Where(x => x.Outcome.Equals("success"))
+            .GroupBy(x => new { x.Country }).Select(y => new 
+            {
+                country = y.Key.Country,
+                users = y.Select(i => i.SiteName).Distinct().Count(),
+                percent = ((float) y.Select(i => i.SiteName).Distinct().Count() / (float) lmts.Count()) * 100
+
+            });
+
+            return new JsonResult(groupedIntegrations);
         }
 
         public string GetRole(string email)
