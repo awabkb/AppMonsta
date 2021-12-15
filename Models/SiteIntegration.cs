@@ -10,7 +10,7 @@ namespace IMK_web.Models
         public int Id { get; set; }
         public string SiteName { get; set; }
         public string DownloadStart { get; set; }
-        public string DownloadEnd  { get; set; }
+        public string DownloadEnd { get; set; }
         public string IntegrateStart { get; set; }
         public string IntegrateEnd { get; set; }
         public string Outcome { get; set; }
@@ -23,9 +23,9 @@ namespace IMK_web.Models
         public string CountryCode { get; set; }
         public string CountryName { get; set; }
         public string AppVersion { get; set; }
-        public string Error { get; set; }
-        public int Progress { get; set; }
-        public byte[] AiLog { get; set; }
-        public string InitiatedAt { get; set; }
+        //  public string Error { get; set; }
+        //public int Progress { get; set; }
+        //public byte[] AiLog { get; set; }
+        //public string InitiatedAt { get; set; }
     }
 }

@@ -19,6 +19,13 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using System.Web;
+using Microsoft.Extensions.Options;
+using System.Net.Http;
+using AzureMapsToolkit.Search;
+using AzureMapsToolkit;
+using IMK_web.Models.ModelHelper;
+using Newtonsoft.Json.Linq;
 
 namespace IMK_web.Controllers
 {
@@ -28,10 +35,17 @@ namespace IMK_web.Controllers
     public class MobileApiController : Controller
     {
         private readonly IAppRepository _appRepository;
+        private static string _azureMapKey;
+        private static HttpClient _client;
+        private static string _azureMapURL;
 
-        public MobileApiController(IAppRepository appRepository)
+
+        public MobileApiController(IAppRepository appRepository, IOptions<AppSettings> appSettings)
         {
             _appRepository = appRepository;
+            _azureMapKey = appSettings.Value.AzureMapsKey;
+            _azureMapURL = appSettings.Value.AzureMapsURL;
+            _client = new HttpClient();
         }
 
 
@@ -47,7 +61,8 @@ namespace IMK_web.Controllers
 
             if (user == null)
             {
-                if (tmp_user != null) {
+                if (tmp_user != null)
+                {
                     return BadRequest("Email already in use");
                 }
                 else
@@ -139,43 +154,47 @@ namespace IMK_web.Controllers
         }
 
         ////////////////////////// New Site Visit ////////////////////////////
+        [AllowAnonymous]
         [HttpPost("sitevisit")]
         public async Task<IActionResult> CreateSiteVisit(SiteVisitDto siteVisitDto)
         {
             var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
             User user = await _appRepository.GetUser(userId);
-
+            var countryCalledInfo = await geCountryFromAzureMaps(siteVisitDto.Latitude, siteVisitDto.Longitude);
             if (user == null)
             {
                 return BadRequest("User not found " + userId);
             }
-            if(siteVisitDto.SiteName == null || siteVisitDto.Country == null)
+            if (siteVisitDto.SiteName == null || countryCalledInfo.CountryName == null)
                 return BadRequest("Upload Failed");
-            
-            if(siteVisitDto.CountryCode == null) {
-                user.IsActive = false;
-                user.IsDeactivated = true;
-                user.Status = "System deactivation - old version";
-                _appRepository.Update(user);
-                await _appRepository.SaveChanges();
-                return BadRequest("Your device is using and old version of IMK please update");
+            if (countryCalledInfo == null || String.IsNullOrEmpty(countryCalledInfo.CountryName) || String.IsNullOrEmpty(countryCalledInfo.CountryCode))
+            {
+                if (siteVisitDto.CountryCode == null)
+                {
+                    user.IsActive = false;
+                    user.IsDeactivated = true;
+                    user.Status = "System deactivation - old version";
+                    _appRepository.Update(user);
+                    await _appRepository.SaveChanges();
+                    return BadRequest("Your device is using and old version of IMK please update");
+                }
             }
 
             SiteVisit siteVisit = new SiteVisit();
 
             siteVisit.User = await _appRepository.GetUser(userId);
 
-            Site site = await _appRepository.GetSite(siteVisitDto.SiteName, siteVisitDto.Country);
+            Site site = await _appRepository.GetSite(siteVisitDto.SiteName, countryCalledInfo.CountryName);
 
             Operator op = new Operator();
-            var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.CountryCode);
+            var ops = await _appRepository.GetOperatorByCountry(countryCalledInfo.CountryCode);
             if (ops == null)
                 op = null;
             else
             {
                 if (ops.Operators.Count() > 1)
                 {
-                    var opname = this.GetOperatorBySite(siteVisitDto.SiteName, siteVisitDto.Country);
+                    var opname = this.GetOperatorBySite(siteVisitDto.SiteName, countryCalledInfo.CountryName);
                     op = ops.Operators.FirstOrDefault(x => x.Name.Equals(opname));
                 }
                 else
@@ -186,7 +205,7 @@ namespace IMK_web.Controllers
             if (site == null)
             {
                 site = new Site();
-                site.Country = _appRepository.GetCountry(siteVisitDto.CountryCode).Result.Name;
+                site.Country = _appRepository.GetCountry(countryCalledInfo.CountryCode).Result.Name;
                 site.Latitude = Convert.ToDouble(siteVisitDto.Latitude);
                 site.Longitude = Convert.ToDouble(siteVisitDto.Longitude);
                 site.Name = siteVisitDto.SiteName;
@@ -372,23 +391,23 @@ namespace IMK_web.Controllers
                 IntegrateEnd = siteIntegration.IntegrateEnd,
                 Outcome = siteIntegration.Outcome,
                 Downloading = siteIntegration.Downloading,
-                Integrating = siteIntegration.Integrating,                    
-                UserId =  User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
+                Integrating = siteIntegration.Integrating,
+                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
                 MacAddress = siteIntegration.MacAddress,
                 Longitude = siteIntegration.Longitude,
                 Latitude = siteIntegration.Latitude,
                 CountryCode = siteIntegration.CountryCode,
                 CountryName = siteIntegration.CountryName,
                 AppVersion = siteIntegration.AppVersion,
-                Error = siteIntegration.Error,
-                Progress = siteIntegration.Progress,
-                AiLog = siteIntegration.AiLog,
-                InitiatedAt = siteIntegration.InitiatedAt
+                // Error = siteIntegration.Error,
+                //Progress = siteIntegration.Progress,
+                //AiLog = siteIntegration.AiLog,
+                //InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            siteIntegration.AiLog = null;
+            // siteIntegration.AiLog = null;
             return Ok(siteIntegration);
-            
+
         }
 
         ////////////////////////// Mobile Rating ////////////////////////////
@@ -402,12 +421,13 @@ namespace IMK_web.Controllers
         [HttpPost("rating")]
         public async Task<IActionResult> addUserRating(Rating userRating)
         {
-            _appRepository.Add( new Rating() 
+            _appRepository.Add(new Rating()
             {
                 Rate = userRating.Rate,
                 Questions = userRating.Questions,
                 Comment = userRating.Comment,
-                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault()
+                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
+                Date = userRating.Date
             });
             await _appRepository.SaveChanges();
             return Ok(userRating);
@@ -500,7 +520,7 @@ namespace IMK_web.Controllers
             var tos = new List<EmailAddress>();
             foreach (var recipient in Recipients)
             {
-                tos.Add(new EmailAddress(recipient));   
+                tos.Add(new EmailAddress(recipient));
             }
             var plainTextContent = "New message from IMK Support";
             var htmlContent = Body;
@@ -539,30 +559,30 @@ namespace IMK_web.Controllers
                     op = "MarocTel";
             }
 
-            if(country.Equals("Egypt"))
+            if (country.Equals("Egypt"))
             {
-                if(sitename.StartsWith("CAI") || sitename.StartsWith("DEL") || sitename.StartsWith("UCAI") || sitename.StartsWith("UDEL") || sitename.StartsWith("LCAI") || sitename.StartsWith("LDEL") || sitename.StartsWith("MCAI") || sitename.StartsWith("MDEL"))
+                if (sitename.StartsWith("CAI") || sitename.StartsWith("DEL") || sitename.StartsWith("UCAI") || sitename.StartsWith("UDEL") || sitename.StartsWith("LCAI") || sitename.StartsWith("LDEL") || sitename.StartsWith("MCAI") || sitename.StartsWith("MDEL"))
                     op = "Etisalat";
                 else
                     op = "Vodafone";
             }
 
-            if(country.Equals("Oman"))
+            if (country.Equals("Oman"))
             {
-                if(Regex.IsMatch(sitename, "^B[0-9]{2}") || sitename.StartsWith("EN") || sitename.StartsWith("GN"))
+                if (Regex.IsMatch(sitename, "^B[0-9]{2}") || sitename.StartsWith("EN") || sitename.StartsWith("GN"))
                     op = "Vodafone OM";
                 else
                     op = "Omantel";
             }
 
-            if(country.Equals("Benin"))
+            if (country.Equals("Benin"))
             {
-                if(Regex.IsMatch(sitename, "^[a-zA-Z]{2}[0-9]{3}$") || Regex.IsMatch(sitename, "^[a-zA-Z]{3}[0-9]{3}$") )
+                if (Regex.IsMatch(sitename, "^[a-zA-Z]{2}[0-9]{3}$") || Regex.IsMatch(sitename, "^[a-zA-Z]{3}[0-9]{3}$"))
                     op = "MTN BJ";
                 else
                     op = "MOOV";
             }
-            
+
             return op;
 
         }
@@ -570,7 +590,7 @@ namespace IMK_web.Controllers
         [AllowAnonymous]
         [HttpGet("test")]
         public async Task<IActionResult> test()
-        {   
+        {
             var apiKey = "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";
             var client = new SendGridClient(apiKey);
             var from = new EmailAddress("imk@ericsson.com", "IMK Support");
@@ -583,13 +603,43 @@ namespace IMK_web.Controllers
 
             return Ok(response);
         }
-        
+
         [HttpGet("claims")]
-        public List<System.Security.Claims.Claim> getSignum(){
+        public List<System.Security.Claims.Claim> getSignum()
+        {
             var signum = User.Claims.ToList();
             return signum;
         }
 
+        [HttpGet("getCountryFromAzureApi")]
+        public async Task<AzureCountryResultModel> geCountryFromAzureMaps(string latitude, string longtiude)
+        {
+            var azureMapAddress = _azureMapURL;
+            var uriBuilder = new UriBuilder(azureMapAddress);
+
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            query["subscription-key"] = _azureMapKey;
+            query["api-version"] = "1.0";
+            query["query"] = latitude + ',' + longtiude;
+
+            uriBuilder.Query = query.ToString();
+            azureMapAddress = uriBuilder.ToString();
+
+            var response = await _client.GetAsync(azureMapAddress);
+            var data = response.Content.ReadAsStringAsync().Result;
+
+            JObject json = JObject.Parse(data);
+
+            var addressesArray = json.GetValue("addresses")[0];
+            var firstAddress = JObject.Parse(addressesArray.ToString());
+            var countryInfo = new AzureCountryResultModel()
+            {
+                CountryName = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("country").ToString(),
+                CountryCode = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("countryCode").ToString()
+            };
+
+            return countryInfo;
+        }
 
     }
 }

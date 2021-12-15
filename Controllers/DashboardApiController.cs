@@ -169,20 +169,22 @@ namespace IMK_web.Controllers
         {
             var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
-        }              
-                
+        }
+
         [HttpGet("alarms")]
-        public async Task<ActionResult> getAlarms() {
+        public async Task<ActionResult> getAlarms()
+        {
             var alarms = await _dashRepository.GetAlarmTypes();
             return alarms;
         }
 
         [HttpGet("claims")]
-        public List<System.Security.Claims.Claim> getSignum(){
+        public List<System.Security.Claims.Claim> getSignum()
+        {
             var signum = User.Claims.ToList();
             return signum;
         }
-        
+
 
 
 
@@ -211,13 +213,18 @@ namespace IMK_web.Controllers
             var data = await _dashRepository.GetNewProfiles(start, end, marketArea);
             return data;
         }
-        
+
         [HttpGet("lmt-usage")]
         public async Task<ActionResult> getSiteIntegrationsUsage([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
         {
             var data = await _dashRepository.GetSiteIntegrationUsage(start, end, marketArea);
             return data;
         }
-
+        [HttpGet("ratings")]
+        public async Task<ActionResult> GetRatings()
+        {
+            var result = await _dashRepository.GetRatings();
+            return result;
+        }
     }
 }
