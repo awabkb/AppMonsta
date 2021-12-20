@@ -426,7 +426,9 @@ namespace IMK_web.Controllers
                 Questions = userRating.Questions,
                 Comment = userRating.Comment,
                 UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
-                Date = userRating.Date
+                Date = userRating.Date,
+                Latitude = userRating.Latitude,
+                Longitude = userRating.Longitude
             });
             await _appRepository.SaveChanges();
             return Ok(userRating);
@@ -630,7 +632,7 @@ namespace IMK_web.Controllers
             azureMapAddress = uriBuilder.ToString();
 
             var response = await _client.GetAsync(azureMapAddress);
-            var data =  response.Content.ReadAsStringAsync().Result;
+            var data = response.Content.ReadAsStringAsync().Result;
 
             JObject json = JObject.Parse(data);
 
