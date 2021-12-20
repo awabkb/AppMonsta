@@ -22,8 +22,7 @@ using SendGrid.Helpers.Mail;
 using System.Web;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
-using AzureMapsToolkit.Search;
-using AzureMapsToolkit;
+
 using IMK_web.Models.ModelHelper;
 using Newtonsoft.Json.Linq;
 
@@ -154,7 +153,7 @@ namespace IMK_web.Controllers
         }
 
         ////////////////////////// New Site Visit ////////////////////////////
-        [AllowAnonymous]
+        ///
         [HttpPost("sitevisit")]
         public async Task<IActionResult> CreateSiteVisit(SiteVisitDto siteVisitDto)
         {
@@ -405,7 +404,7 @@ namespace IMK_web.Controllers
                 InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            siteIntegration.AiLog = null;
+            //siteIntegration.AiLog = null;
             return Ok(siteIntegration);
 
         }
@@ -611,6 +610,7 @@ namespace IMK_web.Controllers
             return signum;
         }
 
+        [AllowAnonymous]
         [HttpGet("getCountryFromAzureApi")]
         public async Task<AzureCountryResultModel> geCountryFromAzureMaps(string latitude, string longtiude)
         {
@@ -620,13 +620,17 @@ namespace IMK_web.Controllers
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["subscription-key"] = _azureMapKey;
             query["api-version"] = "1.0";
+            if (String.IsNullOrEmpty(latitude) || String.IsNullOrEmpty(longtiude))
+            {
+                return null;
+            }
             query["query"] = latitude + ',' + longtiude;
 
             uriBuilder.Query = query.ToString();
             azureMapAddress = uriBuilder.ToString();
 
             var response = await _client.GetAsync(azureMapAddress);
-            var data = response.Content.ReadAsStringAsync().Result;
+            var data =  response.Content.ReadAsStringAsync().Result;
 
             JObject json = JObject.Parse(data);
 

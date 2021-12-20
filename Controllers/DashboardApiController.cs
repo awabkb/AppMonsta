@@ -221,9 +221,9 @@ namespace IMK_web.Controllers
             return data;
         }
         [HttpGet("ratings")]
-        public async Task<ActionResult> GetRatings()
+        public async Task<ActionResult> GetRatings(string start, string end)
         {
-            var result = await _dashRepository.GetRatings();
+            var result = await _dashRepository.GetRatings(start, end);
             return result;
         }
     }

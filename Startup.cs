@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using IMK_web.Models.ModelHelper;
+using IMK_web.Services;
 
 namespace IMK_web
 {
@@ -49,7 +50,7 @@ namespace IMK_web
             services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<IAppRepository, AppRepository>();
             services.AddScoped<IPortalRepository, PortalRepository>();
-            //services.AddScoped<>
+            services.AddScoped<IIMKHelperService, IMKHelperService>();
 
 
             services.AddAuthentication()

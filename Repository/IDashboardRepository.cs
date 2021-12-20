@@ -30,7 +30,7 @@ namespace IMK_web.Repository
         Task<ActionResult> GetSiteIntegrationUsage(string start, string end, string marketArea);
         Task<ActionResult> GetAlarmTypes();
         string GetRole(string email);
-        Task<ActionResult> GetRatings();
+        Task<ActionResult> GetRatings(string start, string end);
 
 
 

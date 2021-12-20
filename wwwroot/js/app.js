@@ -679,9 +679,9 @@ function getData(startdate, enddate, countries, operators) {
                         const integrationResult = tableData.find(item => item.id == rowId)?.integrationResult;
                         if (integrationResult) {
                             const integration = cellData;
-                            if (integration === 'success')
+                            if (integration.toUpperCase() === 'SUCCESS')
                                 td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
-                            else if (integration === 'Failed')
+                            else if (integration.toUpperCase === 'FAILED')
                                 td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
                             else
                                 td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
@@ -1182,6 +1182,7 @@ function getData(startdate, enddate, countries, operators) {
     $.ajax({
         url: "api/dashboardapi/ratings",
         type: "Get",
+        data: Data,
         success: function (res) {
             const cardContainer = document.getElementById('rating-card-container');
             console.log(res);
@@ -1202,9 +1203,12 @@ function getData(startdate, enddate, countries, operators) {
             const starPercentageRounded = `${(Math.round(averageRating * 2) * 10)}%`;
             console.log(document.querySelectorAll(".stars-inner"));
             document.querySelectorAll(".stars-inner").forEach(e => {
-                e.style.width = starPercentageRounded;
+                e.style.width = ratingValues.length ? starPercentageRounded : "0%";
             });
             $("average-rate-val").text(averageRating);
+            var reviewsfield = document.querySelector("#total-reviews");
+            if (reviewsfield)
+                reviewsfield.innerHTML = mappedData.length == 1 ? 1 + " review" : mappedData.length > 1000 ? mappedData.length / 1000 + "K reviews" : mappedData.length + " reviews";
             const cardsHTML = mappedData.map(e => {
                 console.log(e.answers);
                 const answers = e.answers.map(a => (a && a.trim() !== "Other") ? `<p style="margin-bottom:0;">${a}</p>` : "")?.toString()?.replace(/,/g, '');
@@ -1214,8 +1218,10 @@ function getData(startdate, enddate, countries, operators) {
                     `<div class="card" style="margin-top: 0px; margin-bottom: 0px;" >
                           <div class="header">
                             <div class="left">
-                              <div class="title">${e.userName}</div>
+                              <div class="title">${e.userName} </div>
                               <div class="subtitle">
+                        ${e.country?
+                       `<div style="color:gray;">${e.country}</div>` : ""}
                                 ${e.date ? `<div>${e.date}</div>` : ""}
                                          <div class="stars-outer">
                                         <div class="stars-inner" style="width:${(Math.round(e.rate * 2) * 10)}%;" > </div>
@@ -1225,7 +1231,7 @@ function getData(startdate, enddate, countries, operators) {
                             </div>
                           <div class="content">
                             <div>${answers}</div>
-${e.comment ? ` <p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
+                    ${e.comment ? `<p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
                           </div>
                         </div> `       ;
                 return _card;
@@ -1243,13 +1249,14 @@ ${e.comment ? ` <p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.
 
             rows.push(['UserName',
                 'UserEmail',
+                'Country',
                 'Rate',
                 'RatingDate',
                 'Answers',
-                'Comments',
+                'Comments'
             ]);
             mappedData.forEach(e => {
-                rows.push([e.userName, e.email, e.rate, e.date, e.questions, e.comment.trim()]);
+                rows.push([e.userName, e.email, e.country, e.rate, e.date, e.questions, e.comment?.trim()]);
             })
             document.querySelector('#export-ratings')?.addEventListener('click', () => {
                 const notification = new eds.Notification({
