@@ -1708,7 +1708,11 @@ namespace IMK_web.Repository
             var ratings = await _context.Ratings.Include("User").Where(r => r.Date >= Convert.ToDateTime(start).Date && r.Date < Convert.ToDateTime(end)).ToListAsync();
             ratings.ForEach(e =>
             {
-                e.Country = _IMKHelperservice.geCountryFromAzureMaps(e.Latitude, e.Longitude).Result?.CountryName;
+                var country = _IMKHelperservice.geCountryFromAzureMaps(e.Latitude, e.Longitude).Result;
+                if (country != null)
+                    e.Country = country?.CountryName;
+                else
+                    e.Country = null;
             });
             return new JsonResult(ratings);
         }

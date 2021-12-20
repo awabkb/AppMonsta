@@ -404,7 +404,7 @@ namespace IMK_web.Controllers
                 InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            //siteIntegration.AiLog = null;
+            siteIntegration.AiLog = null;
             return Ok(siteIntegration);
 
         }
