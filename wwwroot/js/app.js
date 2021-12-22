@@ -114,7 +114,7 @@ $('#filter').on('reset', function (e) {
     var c = "all";
     var o = [];
     var ma = '';
-    var s = (moment().subtract(29, 'days')).format('YYYY-MM-DD');
+    var s = (moment().subtract(7, 'days')).format('YYYY-MM-DD');
     var e = (moment()).format('YYYY-MM-DD');
 
     $('.country[type="checkbox"]').each(function () {

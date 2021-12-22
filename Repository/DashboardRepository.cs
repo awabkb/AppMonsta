@@ -921,7 +921,7 @@ namespace IMK_web.Repository
 
             siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null)
             .Where(x => x.Outcome != null)
-            .Where(x => x.Outcome.Equals("success"))
+            .Where(x => x.Outcome.ToUpper().Equals("SUCCESS"))
             .OrderBy(x => x.DownloadStart).ToListAsync();
 
             var integrations = siteIntegrations
@@ -944,7 +944,7 @@ namespace IMK_web.Repository
             }
             var groupedIntegrations = lmts.Where(x => countries.Contains(x.Country))
             .Where(x => x.Outcome != null)
-            .Where(x => x.Outcome.Equals("success"))
+            .Where(x => x.Outcome.ToUpper().Equals("SUCCESS"))
             .GroupBy(x => new { x.Country }).Select(y => new
             {
                 country = y.Key.Country,
@@ -1714,7 +1714,7 @@ namespace IMK_web.Repository
                 else
                     e.Country = null;
             });
-            return new JsonResult(ratings);
+            return new JsonResult(ratings.OrderByDescending(i => i.Date));
         }
 
     }
