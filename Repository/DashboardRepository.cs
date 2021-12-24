@@ -11,17 +11,19 @@ using RestSharp;
 using Newtonsoft.Json;
 using System.Globalization;
 using MathNet.Numerics.Statistics;
+using IMK_web.Services;
 
 namespace IMK_web.Repository
 {
     public class DashboardRepository : IDashboardRepository
     {
         private readonly DataContext _context;
+        private readonly IIMKHelperService _IMKHelperservice;
 
-        public DashboardRepository(DataContext dataContext)
+        public DashboardRepository(DataContext dataContext, IIMKHelperService imkHelperService)
         {
             this._context = dataContext;
-
+            _IMKHelperservice = imkHelperService;
         }
         public async Task<IEnumerable<Country>> GetCountries()
         {
@@ -919,15 +921,17 @@ namespace IMK_web.Repository
 
             siteIntegrations = await _context.SiteIntegrations.Where(x => x.SiteName != null)
             .Where(x => x.Outcome != null)
-            .Where(x => x.Outcome.Equals("success"))
+            .Where(x => x.Outcome.ToUpper().Equals("SUCCESS"))
             .OrderBy(x => x.DownloadStart).ToListAsync();
 
-            var integrations = siteIntegrations.GroupBy(x => new
-            {
-                x.SiteName,
-                x.UserId,
-                start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
-            });
+            var integrations = siteIntegrations
+                .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
+                    .GroupBy(x => new
+                    {
+                        x.SiteName,
+                        x.UserId,
+                        start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
+                    });
             foreach (var integration in integrations)
             {
                 User user = await this.GetUser(integration.First().UserId);
@@ -940,7 +944,7 @@ namespace IMK_web.Repository
             }
             var groupedIntegrations = lmts.Where(x => countries.Contains(x.Country))
             .Where(x => x.Outcome != null)
-            .Where(x => x.Outcome.Equals("success"))
+            .Where(x => x.Outcome.ToUpper().Equals("SUCCESS"))
             .GroupBy(x => new { x.Country }).Select(y => new
             {
                 country = y.Key.Country,
@@ -1377,6 +1381,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
+
                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                     .ToListAsync();
@@ -2253,6 +2258,19 @@ namespace IMK_web.Repository
                 }
             }
             return new JsonResult(alarmTypes);
+        }
+        public async Task<ActionResult> GetRatings(string start, string end)
+        {
+            var ratings = await _context.Ratings.Include("User").Where(r => r.Date >= Convert.ToDateTime(start).Date && r.Date < Convert.ToDateTime(end)).ToListAsync();
+            ratings.ForEach(e =>
+            {
+                var country = _IMKHelperservice.geCountryFromAzureMaps(e.Latitude, e.Longitude).Result;
+                if (country != null)
+                    e.Country = country?.CountryName;
+                else
+                    e.Country = null;
+            });
+            return new JsonResult(ratings.OrderByDescending(i => i.Date));
         }
 
     }

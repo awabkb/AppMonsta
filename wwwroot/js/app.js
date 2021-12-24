@@ -117,7 +117,7 @@ $('#filter').on('reset', function (e) {
     var c = "all";
     var o = [];
     var ma = '';
-    var s = (moment().subtract(29, 'days')).format('YYYY-MM-DD');
+    var s = (moment().subtract(7, 'days')).format('YYYY-MM-DD');
     var e = (moment()).format('YYYY-MM-DD');
 
     $('.country[type="checkbox"]').each(function () {
@@ -468,6 +468,8 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         }
     });
 
+
+
     /*$.ajax({
         url: "api/dashboardapi/site_details",
         type: "GET",
@@ -521,7 +523,7 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                             if (cellData === true)
                                 td.innerHTML = `<span class="color-green"><i class="icon icon-alarm-level4"></i></span>`;
                         },
-
+    
                     },
                     {
                         key: 'phone',
@@ -538,25 +540,25 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 actions: true,
                 resize: true,
                 height: '500px',
-
+    
                 onCreatedActionsCell: (td) => {
                     td.innerHTML = `<button class="btn-icon info"><i class="icon icon-info"></i></button>`;
-
+    
                     td.querySelector('button.info').addEventListener('click', (evt) => {
                         var tr = evt.target.closest('tr');
                         var siteEngineer = $(tr).find('td').eq(3).text();
                         var phone = $(tr).find('td').eq(8).text();
                         var email = $(tr).find('td').eq(9).text();
-
+    
                         const notification = new eds.Notification({
                             title: "Field Engineer Info",
                             description: 'Name: ' + siteEngineer + '\nPhone: ' + phone + '\nEmail: ' + email,
                         });
                         notification.init();
-
+    
                     });
                 },
-
+    
                 onCreatedHead: (thead, headData) => {
                     var ths = thead.getElementsByTagName("th");
                     ths.forEach(th => {
@@ -566,7 +568,7 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 }
             });
             table.init();
-
+    
             var today = new Date();
             var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
             var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
@@ -582,9 +584,9 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 table.data.forEach(row => {
                     rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"], row["isRevisit"]]);
                 });
-
+    
                 exportToCsv(dateTime + "IMK_Dashboard.csv", rows)
-
+    
             });
         }
     });*/
@@ -678,9 +680,9 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                         const integrationResult = tableData.find(item => item.id == rowId)?.integrationResult;
                         if (integrationResult) {
                             const integration = cellData;
-                            if (integration === 'success')
+                            if (integration.toUpperCase() === 'SUCCESS')
                                 td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
-                            else if (integration === 'Failed')
+                            else if (integration.toUpperCase === 'FAILED')
                                 td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
                             else
                                 td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
@@ -701,23 +703,22 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                             const row = td.closest('tr');
                             var rowId = row.getElementsByTagName("td")[0].innerHTML;
                             const diagnostic = tableData.find(item => item.id == rowId)?.diagnostic;
-                            if(diagnostic) {
+                            if (diagnostic) {
                                 td.innerHTML = `<span class="tooltip dotted">${cellData}
-                                                    <span class="message left">
-                                                        <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
-                                                        <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
-                                                        <div>Field Engineer: ${diagnostic?.siteVisit?.user.name}</div>
-                                                        <div>Field Engineer Phone: ${diagnostic?.siteVisit?.user.phone}</div>
-                                                        <div>Field Engineer Email: ${diagnostic?.siteVisit?.user.email}</div>
-                                                        <div>IMK Version: ${diagnostic?.siteVisit?.rpiVersion}</div>
-                                                        <div>App Version: ${diagnostic?.siteVisit?.appVersion}</div>
-                                                    </span>
-                                                </span>`;
+                                                <span class="message left">
+                                                    <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
+                                                    <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
+                                                    <div>Field Engineer: ${diagnostic?.siteVisit?.user.name}</div>
+                                                    <div>Field Engineer Phone: ${diagnostic?.siteVisit?.user.phone}</div>
+                                                    <div>Field Engineer Email: ${diagnostic?.siteVisit?.user.email}</div>
+                                                    <div>IMK Version: ${diagnostic?.siteVisit?.rpiVersion}</div>
+                                                    <div>App Version: ${diagnostic?.siteVisit?.appVersion}</div>
+                                                </span>
+                                            </span>`;
                             }
                             else {
                                 td.innerHTML = ""
                             }
-
                         }
                     },
                     sort: 'none',
@@ -925,7 +926,7 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                                else
                                    td.innerHTML = `<span class="pill" ><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span> `;
                            },
-   
+     
                        },
                        {
                            key: 'country',
@@ -967,10 +968,10 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                    sortable: true,
                    resize: true,
                    rowsPerPage: 5,
-   
+     
                });
                table.init();
-   
+     
                var today = new Date();
                var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
                var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
@@ -987,7 +988,7 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                        rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
                    });
                    exportToCsv(dateTime + "IMK_LMT.csv", rows)
-   
+     
                });
            }
        });*/
@@ -1262,6 +1263,97 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         }
     });
     fillAverageTable(countries, operators);
+
+    $.ajax({
+        url: "api/dashboardapi/ratings",
+        type: "Get",
+        data: Data,
+        success: function (res) {
+            const cardContainer = document.getElementById('rating-card-container');
+            console.log(res);
+            const ratingValues = res.map(item => item.rate);
+            const mappedData = res.map(item => {
+                const element = {
+                    ...item,
+                    userName: item.user.name,
+                    email: item.user.email,
+                    answers: item.questions?.split(','),
+                    date: item.date ? new Date(item.date).toISOString().slice(0, 16) : ""
+
+                };
+                return element;
+            });
+            console.log(mappedData);
+            const averageRating = ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length;
+            const starPercentageRounded = `${(Math.round(averageRating * 2) * 10)}%`;
+            console.log(document.querySelectorAll(".stars-inner"));
+            document.querySelectorAll(".stars-inner").forEach(e => {
+                e.style.width = ratingValues.length ? starPercentageRounded : "0%";
+            });
+            $("average-rate-val").text(averageRating);
+            var reviewsfield = document.querySelector("#total-reviews");
+            if (reviewsfield)
+                reviewsfield.innerHTML = mappedData.length == 1 ? 1 + " review" : mappedData.length > 1000 ? mappedData.length / 1000 + "K reviews" : mappedData.length + " reviews";
+            const cardsHTML = mappedData.map(e => {
+                console.log(e.answers);
+                const answers = e.answers.map(a => (a && a.trim() !== "Other") ? `<p style="margin-bottom:0;">${a}</p>` : "")?.toString()?.replace(/,/g, '');
+                console.log(answers);
+
+                const _card =
+                    `<div class="card" style="margin-top: 0px; margin-bottom: 0px;" >
+                          <div class="header">
+                            <div class="left">
+                              <div class="title">${e.userName} </div>
+                              <div class="subtitle">
+                        ${e.country?
+                       `<div style="color:gray;">${e.country}</div>` : ""}
+                                ${e.date ? `<div>${e.date}</div>` : ""}
+                                         <div class="stars-outer">
+                                        <div class="stars-inner" style="width:${(Math.round(e.rate * 2) * 10)}%;" > </div>
+                                    </div>
+                               </div>
+                             </div>
+                            </div>
+                          <div class="content">
+                            <div>${answers}</div>
+                    ${e.comment ? `<p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
+                          </div>
+                        </div> `       ;
+                return _card;
+            });
+            cardContainer.innerHTML = cardsHTML;
+            const cards = document.querySelectorAll('.card');
+            if (cards) {
+                Array.from(cards)?.forEach((cardDOM) => {
+                    const card = new eds.Card(cardDOM);
+                    card.init();
+                });
+            }
+            const rows = [];
+            var today = new Date();
+
+            rows.push(['UserName',
+                'UserEmail',
+                'Country',
+                'Rate',
+                'RatingDate',
+                'Answers',
+                'Comments'
+            ]);
+            mappedData.forEach(e => {
+                rows.push([e.userName, e.email, e.country, e.rate, e.date, e.questions, e.comment?.trim()]);
+            })
+            document.querySelector('#export-ratings')?.addEventListener('click', () => {
+                const notification = new eds.Notification({
+                    title: 'Export data',
+                    description: 'Ratings data is exported to RatingsReport_' + today.toISOString().slice(0, 16) + '.csv file',
+                });
+                notification.init();
+                _exportToCsv("RatingsReport_" + today.toISOString().slice(0, 16), rows);
+            })
+        }
+
+    })
 
 }
 

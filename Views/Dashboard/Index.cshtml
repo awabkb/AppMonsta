@@ -12,6 +12,8 @@
 
     <link rel="stylesheet" type="text/css" media="screen" href="./style/eds.min.css" />
     <link rel="stylesheet" type="text/css" media="screen" href="./style/app.css" />
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
@@ -42,6 +44,7 @@
             max-width: 100%;
             padding-bottom: -30px;
         }
+
         #chartdiv4 {
             width: 100%;
             height: 300px;
@@ -66,8 +69,13 @@
         <div class="items-container">
             <div class="item notification-log-trigger">
                 <span class="notification-log-number"></span>
-                <i class="icon icon-notification"></i>
-                <i class="icon icon-notification-ring"></i>
+                <span class="stars-outer" style="margin-top:20px; margin-left:20px; margin-bottom:20px;">
+                    <div class="stars-inner">
+
+                    </div>
+
+                </span>
+
             </div>
             <div class="item hover settings-trigger">
                 <i class="icon icon-profile"></i>
@@ -114,13 +122,30 @@
             <!-- System panel: Notification log -->
             <div class="notification-log">
                 <div class="syspanel-top">
-                    <span class="syspanel-title">Notifications</span>
+                    <span class="syspanel-title">App Ratings</span>
                     <i class="syspanel-close icon icon-cross"></i>
                 </div>
+
                 <div class="notification-log-container">
-                    <div class="notification-log-empty">No new notifications.</div>
+                    <div style="margin-top:20px; margin-left:20px; margin-bottom:20px;">
+                        <span class="stars-outer">
+                            <div class="stars-inner">
+
+                            </div>
+
+                        </span>
+                        <span class="tooltip" style="margin-left:55%;">
+                            <i class="icon icon-download-save" id="export-ratings">
+                            </i>
+                            <span class="message left">Export to excel</span>
+                        </span>
+                        <div style="color:gray;" id="total-reviews"> </div>
+                    </div>
+                    <div id="rating-card-container" style="overflow-y:scroll;">
+                        <div />
+
+                    </div>
                 </div>
-            </div>
         </aside>
 
         <!-- Application -->
@@ -244,7 +269,7 @@
                                 <div id="chartdiv3"></div>
                             </div>
                         </div>
-                        
+
                         <!-- Tile 5 -->
                         <div class="tile sm-12 lg-3">
                             <div class="header">
@@ -403,7 +428,7 @@
                                 <div id="top-asp"></div>
                             </div>
                         </div>
-                        
+
                         <div class="tile sm-12 lg-6">
                             <div class="header">
                                 <div class="left">
@@ -416,16 +441,16 @@
                         </div>
 
                         @* <!-- Tile 8 -->
-                        <div class="tile sm-12 lg-4">
-                            <div class="header">
-                                <div class="left">
-                                    <div class="title">App Version</div>
+                            <div class="tile sm-12 lg-4">
+                                <div class="header">
+                                    <div class="left">
+                                        <div class="title">App Version</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="content" style="margin: 0 auto;width: 70%;">
-                                <div id="app-version"></div>
-                            </div>
-                        </div> *@
+                                <div class="content" style="margin: 0 auto;width: 70%;">
+                                    <div id="app-version"></div>
+                                </div>
+                            </div> *@
 
                     </div>
                     <!-- End Row 3 -->
@@ -578,8 +603,6 @@
                             </div>
                         *@
                     </div>
-
-
                     @*     <div class="row">
                         <!-- Tile 9 -->
                         <div class="tile sm-12 xl-12">

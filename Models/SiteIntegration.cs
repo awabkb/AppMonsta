@@ -10,7 +10,7 @@ namespace IMK_web.Models
         public int Id { get; set; }
         public string SiteName { get; set; }
         public string DownloadStart { get; set; }
-        public string DownloadEnd  { get; set; }
+        public string DownloadEnd { get; set; }
         public string IntegrateStart { get; set; }
         public string IntegrateEnd { get; set; }
         public string Outcome { get; set; }

@@ -34,11 +34,13 @@ namespace IMK_web.Repository
         Task<ActionResult> GetResolutionTimes(string start, string end);
         string GetAlarmType(string _alarm);
         string GetRole(string email);
+        Task<ActionResult> GetRatings(string start, string end);
 
 
 
 
 
-        
+
+
     }
 }
