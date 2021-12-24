@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
+using System;
 
 namespace IMK_web.Models
 {
@@ -16,6 +17,7 @@ namespace IMK_web.Models
         public SiteVisit SiteVisit { get; set; }
         public long ResponseTime { get; set; }
         public int SiteVisitVisitId { get; set; }
+        public DateTime TimeOfAction { get; set; }
 
     }
 

@@ -33,6 +33,9 @@ var operatorsFilter = [];
 var marketArea = '';
 var datestart = null;
 var dateend = null;
+const fieldList=[]
+const remoteList=[]
+const miscList = []
 
 
 function init() {
@@ -46,7 +49,7 @@ function init() {
     getCountries(marketArea);
     // dateFilter();
     initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
-    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
+    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter,marketArea);
 
 }
 function daterange() {
@@ -265,13 +268,14 @@ function getOperators() {
 
 
 function filter(s, e, ma, c, o) {
-    getData(s, e, c, o);
+    getData(s, e, c, o, ma);
     initMap(s, e, ma);
 }
 
 
-function getData(startdate, enddate, countries, operators) {
+function getData(startdate, enddate, countries, operators, marketArea) {
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
+
     $.ajax({
         url: "api/dashboardapi/unique_sites",
         type: "GET",
@@ -617,7 +621,6 @@ function getData(startdate, enddate, countries, operators) {
             });
             const tableDOM = document.querySelector('#site-details-updated');
             tableDOM.innerHTML = '';
-            console.log(tableData);
             const search = [];
             const columns = [
                 {
@@ -648,7 +651,6 @@ function getData(startdate, enddate, countries, operators) {
                         if (cellData) {
                             const row = td.closest('tr');
                             var rowId = row.getElementsByTagName("td")[0].innerHTML;
-                            console.log(row.getElementsByTagName("td"));
                             const integration = tableData.find(item => item.id == rowId)?.siteIntegration;
                             td.innerHTML = `<span class="tooltip dotted">${cellData}
                                                 <span class="message right">
@@ -673,7 +675,6 @@ function getData(startdate, enddate, countries, operators) {
                     onCreatedCell: (td, cellData) => {
                         const row = td.closest('tr');
                         var rowId = row.getElementsByTagName("td")[0].innerHTML;
-                        console.log(rowId);
                         const integrationResult = tableData.find(item => item.id == rowId)?.integrationResult;
                         if (integrationResult) {
                             const integration = cellData;
@@ -699,19 +700,24 @@ function getData(startdate, enddate, countries, operators) {
                         if (cellData) {
                             const row = td.closest('tr');
                             var rowId = row.getElementsByTagName("td")[0].innerHTML;
-                            console.log(rowId);
                             const diagnostic = tableData.find(item => item.id == rowId)?.diagnostic;
-                            td.innerHTML = `<span class="tooltip dotted">${cellData}
-                                                <span class="message left">
-                                                    <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
-                                                    <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
-                                                    <div>Field Engineer: ${diagnostic?.siteVisit?.user.name}</div>
-                                                    <div>Field Engineer Phone: ${diagnostic?.siteVisit?.user.phone}</div>
-                                                    <div>Field Engineer Email: ${diagnostic?.siteVisit?.user.email}</div>
-                                                    <div>IMK Version: ${diagnostic?.siteVisit?.rpiVersion}</div>
-                                                    <div>App Version: ${diagnostic?.siteVisit?.appVersion}</div>
-                                                </span>
-                                            </span>`;
+                            if(diagnostic) {
+                                td.innerHTML = `<span class="tooltip dotted">${cellData}
+                                                    <span class="message left">
+                                                        <div>ASP: ${diagnostic?.siteVisit?.user.aspCompany.name}</div>
+                                                        <div>Start Time: ${diagnostic?.siteVisit?.startTime?.slice(0, 16)}</div><div>
+                                                        <div>Field Engineer: ${diagnostic?.siteVisit?.user.name}</div>
+                                                        <div>Field Engineer Phone: ${diagnostic?.siteVisit?.user.phone}</div>
+                                                        <div>Field Engineer Email: ${diagnostic?.siteVisit?.user.email}</div>
+                                                        <div>IMK Version: ${diagnostic?.siteVisit?.rpiVersion}</div>
+                                                        <div>App Version: ${diagnostic?.siteVisit?.appVersion}</div>
+                                                    </span>
+                                                </span>`;
+                            }
+                            else {
+                                td.innerHTML = ""
+                            }
+
                         }
                     },
                     sort: 'none',
@@ -792,7 +798,6 @@ function getData(startdate, enddate, countries, operators) {
                     }
 
                     var reportData = tableData.filter(item => siteNames.includes(item.siteName));
-                    console.log(reportData)
 
                     reportData.forEach(e => {
                         rows.push([e.country || "",
@@ -995,7 +1000,6 @@ function getData(startdate, enddate, countries, operators) {
         success: function (res) {
 
             ////////////////// Pass / Fail status (per visit)
-            console.log(res);
             const element = document.getElementById('pass-fail');
             var vpassedResult = res[1].value["passed_per_visit"];
             var vfailedResult = res[1].value["failed_per_visit"];
@@ -1117,22 +1121,108 @@ function getData(startdate, enddate, countries, operators) {
             ////////// Alarm types analysis
             var alarmsList = [];
             var alarmTypes = res[1].value["alarm_types"];
-            for (const [key, value] of Object.entries(alarmTypes))
-                alarmsList.push({ "name": key, "values": [value] })
+            var fieldAlarms = res[1].value["field_alarms"];
+            var remoteAlarms = res[1].value["remote_alarms"];
+            var miscAlarms = res[1].value["misc_alarms"];
 
-            const alarms = document.getElementById('alarm-types');
-            alarms.innerHTML = '';
-            const donutChart = new eds.Donut({
-                element: alarms,
+            for (const [key, value] of Object.entries(fieldAlarms))
+                fieldList.push({ "name": key, "values": [value] })
+            for (const [key, value] of Object.entries(remoteAlarms))
+                remoteList.push({ "name": key, "values": [value] })
+            for (const [key, value] of Object.entries(miscAlarms))
+                miscList.push({ "name": key, "values": [value] })
+            
+            const alarms1 = document.getElementById('field-types');
+            const alarms2 = document.getElementById('remote-types');
+            const alarms3 = document.getElementById('misc-types');
+            
+            alarms1.innerHTML = '';
+            const donutChart1 = new eds.Donut({
+                element: alarms1,
                 data: {
-                    "series": alarmsList
+                    "series": fieldList
                 },
                 unit: 'Types'
             });
-            donutChart.init();
-            $("#alarm-time").text(resolution_time["Alarm"]);
-            $('#alarm-types .labels .label').css("font-size", "12px");
-            $('#alarm-types .chart-legend').css('display', 'none');
+            donutChart1.init();
+
+            alarms2.innerHTML = '';
+            const donutChart2 = new eds.Donut({
+                element: alarms2,
+                data: {
+                    "series": remoteList
+                },
+                unit: 'Types'
+            });
+            donutChart2.init();
+
+            alarms3.innerHTML = '';
+            const donutChart3 = new eds.Donut({
+                element: alarms3,
+                data: {
+                    "series": miscList
+                },
+                unit: 'Types'
+            });
+            donutChart3.init();
+            $('.alarm-types .labels .label').css("font-size", "12px");
+            $('.alarm-types .chart-legend').css('display', 'none');
+
+            document.querySelector('#get-alarmtype').addEventListener('selectOption', (evt) => {
+                var selectedValue = $('.item.alarmtype.active')[0].innerHTML;
+                switch(selectedValue) {
+                    case "Field":
+                        $('#field-types').css('display', 'block');
+                        $('#remote-types').css('display', 'none');
+                        $('#misc-types').css('display', 'none');
+                        break;
+                    case "Remote":
+                        $('#field-types').css('display', 'none');
+                        $('#remote-types').css('display', 'block');
+                        $('#misc-types').css('display', 'none');           
+                        break;
+                    case "Misc":
+                        $('#field-types').css('display', 'none');
+                        $('#remote-types').css('display', 'none');
+                        $('#misc-types').css('display', 'block');
+                        break;
+            
+                }
+            });
+
+        }
+    });
+
+
+
+    //////////////// Alarm Best / Worst Countries ///////////////////
+    $.ajax({
+        url: "api/dashboardapi/resolved-countries",
+        type: "GET",
+        data: { start: startdate, end: enddate, marketArea: marketArea },
+        success: function (res) {
+            $('#top-list').empty();
+            $('#worst-list').empty();
+
+            var top = res.slice(0, 5);
+            var worst = res.slice(-5);
+
+            top.forEach(element => {
+                var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                element["key"] +
+                '</h4><div class="content">' +
+                element["value"] + 
+                ' mins</div></div>';
+                $('#top-list').append(html)
+            });
+            worst.forEach(element => {
+                var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                element["key"] +
+                '</h4><div class="content">' +
+                element["value"] +
+                ' mins</div></div>';
+                $('#worst-list').append(html)
+            });
         }
     });
 
@@ -1171,8 +1261,73 @@ function getData(startdate, enddate, countries, operators) {
             chart.init();
         }
     });
+    fillAverageTable(countries, operators);
 
 }
+
+
+function fillAverageTable(countries, operators) {
+    var passedData = { start: decodeURIComponent(moment().startOf('year').format('YYYY-MM-DD')), end: decodeURIComponent(moment().format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+    
+    var thisWeek = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(6, 'days').format('YYYY-MM-DD')), end: decodeURIComponent(moment().format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["alarm"];
+                $('#avg-1').html(tmp);
+            }
+        })
+        return tmp;
+    }();
+    var thisMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["alarm"];
+                $('#avg-2').html(tmp);
+
+            }
+        })
+        return tmp;
+    }();
+    var lastMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(1, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["alarm"];
+                $('#avg-3').html(tmp);
+            }
+        })
+        return tmp;
+    }();
+    var thisYear = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().startOf('year').format('YYYY-MM-DD')), end: decodeURIComponent(moment().format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["alarm"];
+                $('#avg-4').html(tmp);
+            }
+        })
+        return tmp;
+    }();
+}
+
 
 
 function search() {
@@ -1234,6 +1389,28 @@ function _search(e) {
 
 }
 
+
+function showAlarms() {
+    var type = document.querySelector('input[name="alarmType"]:checked').value;
+    switch(type) {
+        case "field":
+            $('#field-types').css('display', 'block');
+            $('#remote-types').css('display', 'none');
+            $('#misc-types').css('display', 'none');
+            break;
+        case "remote":
+            $('#field-types').css('display', 'none');
+            $('#remote-types').css('display', 'block');
+            $('#misc-types').css('display', 'none');           
+            break;
+        case "misc":
+            $('#field-types').css('display', 'none');
+            $('#remote-types').css('display', 'none');
+            $('#misc-types').css('display', 'block');
+            break;
+
+    }
+}
 
 function mapData(result) {
     var dates = [];
@@ -1390,6 +1567,24 @@ function toggleVersions(version) {
     }
 
 }
+
+function toggleTopCountries(category) {
+    if (category == "top") {
+        $('#top-list').css('display', 'block');
+        $('#worst-list').css('display', 'none');
+        $("#switch-list").val("worst");
+        $("#switch-list").html('Best Countries');
+    }
+    else if (category == "worst") {
+        $('#top-list').css('display', 'none');
+        $('#worst-list').css('display', 'block');
+        $("#switch-list").val("top");
+        $("#switch-list").html('Worst Countries');
+    }
+
+}
+
+
 
 /////////////////////////////////////////////// GLOBES 
 var chart = am4core.create(document.getElementById("chartdiv"), am4maps.MapChart);

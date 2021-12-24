@@ -8,6 +8,7 @@ using IMK_web.Repository;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -218,12 +219,14 @@ namespace IMK_web.Controllers
                     Longitude = logDto.Longitude,
                     Latitude = logDto.Latitude,
                     Result = JsonConvert.SerializeObject(logDto.Result),
-                    ResponseTime = logDto.ResponseTime
+                    ResponseTime = logDto.ResponseTime,
+                    TimeOfAction = DateTime.ParseExact(logDto.TimeOfAction,"ddd MMM dd HH:mm:ss 'GMT'K yyyy",CultureInfo.InvariantCulture),
                 });
             }
             siteVisit.Logs = logs;
             siteVisit.AppVersion = siteVisitDto.AppVersion;
             siteVisit.RPIVersion = siteVisitDto.RpiVersion;
+            //siteVisit.MacAddress = siteVisitDto.MacAddress;
             //siteVisit.ImkVersion = await _appRepository.GetImkVersion(siteVisitDto.RpiVersion, siteVisitDto.AppVersion);
 
             Dictionary<string, int> imkFunctionsDic = new Dictionary<string, int>();

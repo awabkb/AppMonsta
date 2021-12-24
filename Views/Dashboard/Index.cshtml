@@ -431,7 +431,7 @@
                     <!-- End Row 3 -->
                     <!-- Tile KPI -->
                     <div class="row">
-                        <div class="tile sm-12 lg-8">
+                        <div class="tile sm-12 lg-7">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Pass / Fail Status</div>
@@ -484,35 +484,64 @@
                                                 <span class="text-xl" id="avg-time"></span>
                                                 <span class="text-lg color-gray">minutes</span>
                                             </div>
-                                            @* <div class="item">
-                                                <div class="text">
-                                                    <span class="item"><i class="icon icon-chevron-right"></i>Median</span>
-                                                    <span class="item color-gray" id="median-time"><b></b></span>
-                                                    <span class="item color-gray">minutes</span>
-                                                </div>
-                                            </div> *@
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="tile sm-12 lg-4">
+                        <div class="tile sm-12 lg-5">
                             <div class="header">
                                 <div class="left">
                                     <div class="title">Alarm Analysis</div>
                                 </div>
                             </div>
-                            <div class="content" style="margin: 0 auto;width: 70%;">
-                                <div id="alarm-types"></div>
-                                    <div class="kpi">
-                                        <div class="color-gray">Average Resolution Time</div>
-                                        <div class="item">
-                                            <span class="text-xl" id="alarm-time"></span>
-                                            <span class="text-lg color-gray">hours</span>
-                                        </div>
-                                    </div>    
+                            <div class="content">
+                                <div class="row multi">
+                                    <div class="column sm-12 md-12 xl-8">
+                                        <div class="select" data-type="single" id="get-alarmtype">
+                                            <button class="btn current-options" id="select-alarmtype">Field</button>
 
+                                            <div class="options-list">
+                                                <div class="item alarmtype" id="default-alarmtype">Field</div>
+                                                <div class="item alarmtype">Remote</div>
+                                                <div class="item alarmtype">Misc</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alarm-types" id="field-types" style="margin: 0 auto;width: 70%;"></div>
+                                        <div class="alarm-types" id="remote-types" style="margin: 0 auto;width: 70%; display:none"></div>
+                                        <div class="alarm-types" id="misc-types" style="margin: 0 auto;width: 70%; display:none"></div>
+
+                                        <table class="table compact">
+                                            <thead>
+                                                <tr>
+                                                    <th>Period</th>
+                                                    <th>Last 7 days</th>
+                                                    <th>This month</th>
+                                                    <th>Last Month</th>
+                                                    <th>This year</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                    <td>Avg Res Time (Mins)</td>
+                                                    <td id="avg-1"></td>
+                                                    <td id="avg-2"></td>
+                                                    <td id="avg-3"></td>
+                                                    <td id="avg-4"></td>                                             
+                                                    </tr>
+                                                </tbody>
+                                        </table>  
+                                    </div> 
+                                    <div class="column sm-12 md-12 xl-4">
+                                        <div class="timeline">
+                                        <div class="section"><button id="switch-list" value="top" onclick="toggleTopCountries(this.value)">Best Countries</button></div>
+                                        <ul class="main-list" id="top-list"></ul>
+                                        <ul class="main-list" id="worst-list" style="display: none;"></ul>
+                                        </div>
+                                    </div>            
+                                </div>                  
                             </div>
                         </div>
                         @*

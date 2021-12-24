@@ -160,7 +160,14 @@ namespace IMK_web.Controllers
         [HttpGet("resolved")]
         public async Task<ActionResult> getResolvedFailures([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var data = await _dashRepository.GetResolvedFailures(start, end, countries, operators);
+            var data = await _dashRepository.GetAlarmAnalysis(start, end, countries, operators);
+            return data;
+        }
+        
+        [HttpGet("resolved-countries")]
+        public async Task<ActionResult> getResolutionPerCountries([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
+        {
+            var data = await _dashRepository.GetCountriesResolutionTimes(start, end, marketArea);
             return data;
         }
 
@@ -169,7 +176,13 @@ namespace IMK_web.Controllers
         {
             var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
-        }              
+        }   
+        
+        [HttpGet("resolution-times")]
+        public async Task<ActionResult> getResolutionTimes([FromQuery] string start, [FromQuery] string end) {
+            var resolutions = await _dashRepository.GetResolutionTimes(start, end);
+            return resolutions;
+        }           
                 
         [HttpGet("alarms")]
         public async Task<ActionResult> getAlarms() {
