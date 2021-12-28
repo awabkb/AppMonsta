@@ -1374,6 +1374,7 @@ namespace IMK_web.Repository
             {
                 allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                .Where(x => x.Logs.Any(x =>alarmCommands.Contains(x.Command)))
                 .ToListAsync();
             }
             else
@@ -1384,6 +1385,7 @@ namespace IMK_web.Repository
 
                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    .Where(x => x.Logs.Any(x =>alarmCommands.Contains(x.Command)))
                     .ToListAsync();
                 }
                 else
@@ -1394,6 +1396,7 @@ namespace IMK_web.Repository
                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                        .Where(x => x.Logs.Any(x =>alarmCommands.Contains(x.Command)))
                         .ToListAsync();
                 }
             }
@@ -1877,7 +1880,7 @@ namespace IMK_web.Repository
                 List<string> alarms = new List<string>();
                 var initialAlarmTime = visit.Logs.First().TimeOfAction;
 
-                foreach (var log in visit.Logs)
+                foreach (var log in visit.Logs.OrderBy(x => x.TimeOfAction))
                 {
                     //////////// Alarms
                     List<string> currentAlarms = new List<string>();
@@ -2082,7 +2085,7 @@ namespace IMK_web.Repository
                 List<string> alarms = new List<string>();
                 var initialAlarmTime = visit.Logs.First().TimeOfAction;
 
-                foreach (var log in visit.Logs)
+                foreach (var log in visit.Logs.OrderBy(x => x.TimeOfAction))
                 {
                     //////////// Alarms
                     List<string> currentAlarms = new List<string>(); //if alarms null then list is empty
@@ -2159,6 +2162,7 @@ namespace IMK_web.Repository
             foreach (var i in details)
             {
                 resolved.Add(i.Key, i.Value.Where(x => x.Contains("Resolved")).Count());
+                vfailed.Add(i.Key, i.Value.Where(x => x.Contains("Failed")).Count());
 
                 List<double> duration = new List<double>();
                 foreach (var j in i.Value.Where(x => x.Contains("Resolved")))
@@ -2197,8 +2201,11 @@ namespace IMK_web.Repository
                 }
 
             }
-
-            return new JsonResult(resolvedtime);
+            Dictionary<string, Dictionary<string, int>> returnList = new Dictionary<string, Dictionary<string, int>>();
+            returnList.Add("failed_per_visit", vfailed);
+            returnList.Add("resolved_per_visit", resolved);
+            returnList.Add("avg_resolution", resolvedtime);
+            return new JsonResult(returnList);
         }
 
 
