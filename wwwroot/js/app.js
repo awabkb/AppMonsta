@@ -40,18 +40,18 @@ function init() {
     marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
     countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : "all";
     operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
-    datestart = moment().subtract(29, 'days');
+    datestart = moment().subtract(6, 'days');
     dateend = moment();
 
     getCountries(marketArea);
     // dateFilter();
     initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
-    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter);
+    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter,marketArea);
 
 }
 function daterange() {
     $(function () {
-        var start = moment().subtract(29, 'days');
+        var start = moment().subtract(6, 'days');
         var end = moment();
         function cb(start, end) {
             $('#reportrange input').attr('placeholder', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
@@ -114,7 +114,7 @@ $('#filter').on('reset', function (e) {
     var c = "all";
     var o = [];
     var ma = '';
-    var s = (moment().subtract(29, 'days')).format('YYYY-MM-DD');
+    var s = (moment().subtract(7, 'days')).format('YYYY-MM-DD');
     var e = (moment()).format('YYYY-MM-DD');
 
     $('.country[type="checkbox"]').each(function () {
@@ -265,19 +265,13 @@ function getOperators() {
 
 
 function filter(s, e, ma, c, o) {
-    getData(s, e, c, o);
+    getData(s, e, c, o, ma);
     initMap(s, e, ma);
 }
 
 
-function getData(startdate, enddate, countries, operators) {
+function getData(startdate, enddate, countries, operators, marketArea) {
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
-
-    $.ajax({
-        url: "api/dashboardapi/getCountry",
-        type: "GET",
-        data: { latitude: "37.337", longtiude: "-121.89" }
-    })
 
     $.ajax({
         url: "api/dashboardapi/unique_sites",
@@ -626,7 +620,6 @@ function getData(startdate, enddate, countries, operators) {
             });
             const tableDOM = document.querySelector('#site-details-updated');
             tableDOM.innerHTML = '';
-            console.log(tableData);
             const search = [];
             const columns = [
                 {
@@ -646,7 +639,7 @@ function getData(startdate, enddate, countries, operators) {
                 },
                 {
                     key: 'siteName',
-                    title: 'Site Name',
+                    title: 'Node Name',
                     sort: 'none',
                     width: '8%'
                 },
@@ -657,7 +650,6 @@ function getData(startdate, enddate, countries, operators) {
                         if (cellData) {
                             const row = td.closest('tr');
                             var rowId = row.getElementsByTagName("td")[0].innerHTML;
-                            console.log(row.getElementsByTagName("td"));
                             const integration = tableData.find(item => item.id == rowId)?.siteIntegration;
                             td.innerHTML = `<span class="tooltip dotted">${cellData}
                                                 <span class="message right">
@@ -682,13 +674,12 @@ function getData(startdate, enddate, countries, operators) {
                     onCreatedCell: (td, cellData) => {
                         const row = td.closest('tr');
                         var rowId = row.getElementsByTagName("td")[0].innerHTML;
-                        console.log(rowId);
                         const integrationResult = tableData.find(item => item.id == rowId)?.integrationResult;
                         if (integrationResult) {
                             const integration = cellData;
-                            if (integration === 'success')
+                            if (integration.toUpperCase() === 'SUCCESS')
                                 td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
-                            else if (integration === 'Failed')
+                            else if (integration.toUpperCase === 'FAILED')
                                 td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
                             else
                                 td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
@@ -708,7 +699,6 @@ function getData(startdate, enddate, countries, operators) {
                         if (cellData) {
                             const row = td.closest('tr');
                             var rowId = row.getElementsByTagName("td")[0].innerHTML;
-                            console.log(rowId);
                             const diagnostic = tableData.find(item => item.id == rowId)?.diagnostic;
                             if (diagnostic) {
                                 td.innerHTML = `<span class="tooltip dotted">${cellData}
@@ -723,9 +713,9 @@ function getData(startdate, enddate, countries, operators) {
                                                 </span>
                                             </span>`;
                             }
-                        }
-                        else {
-                            td.innerHTML = ""
+                            else {
+                                td.innerHTML = ""
+                            }
                         }
                     },
                     sort: 'none',
@@ -806,7 +796,6 @@ function getData(startdate, enddate, countries, operators) {
                     }
 
                     var reportData = tableData.filter(item => siteNames.includes(item.siteName));
-                    console.log(reportData)
 
                     reportData.forEach(e => {
                         rows.push([e.country || "",
@@ -1008,100 +997,10 @@ function getData(startdate, enddate, countries, operators) {
         data: Data,
         success: function (res) {
 
-            ////////////////// Pass / Fail status (per visit)
-            console.log(res);
-            const element = document.getElementById('pass-fail');
-            var vpassedResult = res[1].value["passed_per_visit"];
-            var vfailedResult = res[1].value["failed_per_visit"];
-            var resolvedResult = res[1].value["resolved_per_visit"];
-            var resolution = res[1].value["avg_resolution"];
-            var medians = res[1].value["median_resolution"];
-
-            var passed_per_visit = {
-                "VSWR": vpassedResult["vswr"] ? vpassedResult["vswr"] : 0,
-                "RSSI UMTS": vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0,
-                "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
-                "Alarm": vpassedResult["alarm"] ? vpassedResult["alarm"] : 0
-            }
-            var failed_per_visit = {
-                "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,
-                "RSSI UMTS": vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0,
-                "RSSI-LTE FDD": vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD": vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR": vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
-                "Alarm": vfailedResult["alarm"] ? vfailedResult["alarm"] : 0
-            }
-            var resolved_per_visit = {
-                "VSWR": resolvedResult["vswr"] ? resolvedResult["vswr"] : 0,
-                "RSSI UMTS": resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0,
-                "RSSI-LTE FDD": resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD": resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR": resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
-                "Alarm": resolvedResult["alarm"] ? resolvedResult["alarm"] : 0
-            }
-            var resolution_time = {
-                "VSWR": resolution["vswr"] ? resolution["vswr"] : 0,
-                "RSSI UMTS": resolution["rssi_umts"] ? resolution["rssi_umts"] : 0,
-                "RSSI-LTE FDD": resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD": resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR": resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
-                "Alarm": resolution["alarm"] ? resolution["alarm"] : 0
-            }
-            var medians_time = {
-                "VSWR": medians["vswr"] ? medians["vswr"] : 0,
-                "RSSI UMTS": medians["rssi_umts"] ? medians["rssi_umts"] : 0,
-                "RSSI-LTE FDD": medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
-                "RSSI-LTE TDD": medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
-                "RSSI-NR": medians["rssi-nr"] ? medians["rssi-nr"] : 0,
-                "Alarm": medians["alarm"] ? medians["alarm"] : 0
-            }
-
-            element.innerHTML = '';
-            const chart = new eds.HorizontalBarChartStacked({
-                element: element,
-                data: {
-                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
-                    "series": [
-                        { "name": "Passed FTR", "values": Object.values(passed_per_visit) },
-                        { "name": "Failed", "values": Object.values(failed_per_visit) },
-                    ]
-                },
-                x: { unit: 'Nodes' }
-            });
-            chart.init();
-
-            document.querySelector('#get-command').addEventListener('selectOption', (evt) => {
-                var selectedValue = $('.item.command.active')[0].innerHTML;
-                if (selectedValue === "Passed / Failed") {
-                    document.getElementById("pass-fail").style.display = 'block';
-                    document.getElementById("resolved").style.display = 'none';
-                }
-                else {
-
-                    document.getElementById("pass-fail").style.display = 'none';
-                    document.getElementById("resolved").style.display = 'block';
-
-                    $("#command").text(selectedValue);
-                    $("#resolved-number").text(resolved_per_visit[selectedValue]);
-                    $("#avg-time").text(resolution_time[selectedValue]);
-                    $("#median-time").text(medians_time[selectedValue]);
-                    var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
-                    var percentage = (resolved_per_visit[selectedValue] / total) * 100;
-                    $("#total-nodes").text("/ " + total);
-                    $("#progress-bar").val(Math.round(percentage));
-                    $("#progress-value").text(Math.round(percentage) + " %");
-
-                }
-            });
-
-            //////////////////////////////////
-
             $('#total-pf').empty()
 
-            var passed = res[0].value["passed"];
-            var failed = res[0].value["failed"];
+            var passed = res["passed"];
+            var failed = res["failed"];
 
             var total_passed = {
                 "VSWR": passed["vswr"] ? passed["vswr"] : 0,
@@ -1109,7 +1008,6 @@ function getData(startdate, enddate, countries, operators) {
                 "RSSI-LTE FDD": passed["fdd"] ? passed["fdd"] : 0,
                 "RSSI-LTE TDD": passed["tdd"] ? passed["tdd"] : 0,
                 "RSSI-NR": passed["nr"] ? passed["nr"] : 0,
-                // "Alarm":passed["alarm"] ? passed["alarm"] : 0
             };
             var total_failed = {
                 "VSWR": failed["vswr"] ? failed["vswr"] : 0,
@@ -1117,7 +1015,6 @@ function getData(startdate, enddate, countries, operators) {
                 "RSSI-LTE FDD": failed["fdd"] ? failed["fdd"] : 0,
                 "RSSI-LTE TDD": failed["tdd"] ? failed["tdd"] : 0,
                 "RSSI-NR": failed["nr"] ? failed["nr"] : 0,
-                // "Alarm":failed["alarm"] ? failed["alarm"] : 0
             };
 
             for (let i = 0; i < 6; i++) {
@@ -1128,28 +1025,218 @@ function getData(startdate, enddate, countries, operators) {
                 $('#total-pf').append(row);
             }
 
-            ////////// Alarm types analysis
-            var alarmsList = [];
-            var alarmTypes = res[1].value["alarm_types"];
-            for (const [key, value] of Object.entries(alarmTypes))
-                alarmsList.push({ "name": key, "values": [value] })
-
-            const alarms = document.getElementById('alarm-types');
-            alarms.innerHTML = '';
-            const donutChart = new eds.Donut({
-                element: alarms,
-                data: {
-                    "series": alarmsList
-                },
-                unit: 'Types'
-            });
-            donutChart.init();
-            $("#alarm-time").text(resolution_time["Alarm"]);
-            $('#alarm-types .labels .label').css("font-size", "12px");
-            $('#alarm-types .chart-legend').css('display', 'none');
         }
     });
 
+        ////////////////// Pass - Fail Analysis ///////////////////
+        $.ajax({
+            url: "api/dashboardapi/pass-fail",
+            type: "GET",
+            data: Data,
+            success: function (res) {
+    
+                ////////////////// Pass / Fail status (per visit)
+                const element = document.getElementById('pass-fail');
+                var vpassedResult = res[1].value["passed_per_visit"];
+                var vfailedResult = res[1].value["failed_per_visit"];
+                var resolvedResult = res[1].value["resolved_per_visit"];
+                var resolution = res[1].value["avg_resolution"];
+                var medians = res[1].value["median_resolution"];
+    
+                var alarmpassed = res[0].value["resolved_per_visit"];
+                var alarmfailed = res[0].value["failed_per_visit"];
+                var alarmresolution = res[0].value["avg_resolution"];
+    
+                var passed_per_visit = {
+                    "VSWR": vpassedResult["vswr"] ? vpassedResult["vswr"] : 0,
+                    "RSSI UMTS": vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0,
+                    "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
+                    "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
+                    "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
+                    "Alarm": alarmpassed["alarm"] ? alarmpassed["alarm"] : 0
+                }
+                var failed_per_visit = {
+                    "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,
+                    "RSSI UMTS": vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0,
+                    "RSSI-LTE FDD": vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
+                    "RSSI-LTE TDD": vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
+                    "RSSI-NR": vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
+                    "Alarm": alarmfailed["alarm"] ? alarmfailed["alarm"] : 0
+                }
+                var resolved_per_visit = {
+                    "VSWR": resolvedResult["vswr"] ? resolvedResult["vswr"] : 0,
+                    "RSSI UMTS": resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0,
+                    "RSSI-LTE FDD": resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
+                    "RSSI-LTE TDD": resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
+                    "RSSI-NR": resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
+                    "Alarm": alarmpassed["alarm"] ? alarmpassed["alarm"] : 0
+                }
+                var resolution_time = {
+                    "VSWR": resolution["vswr"] ? resolution["vswr"] : 0,
+                    "RSSI UMTS": resolution["rssi_umts"] ? resolution["rssi_umts"] : 0,
+                    "RSSI-LTE FDD": resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
+                    "RSSI-LTE TDD": resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
+                    "RSSI-NR": resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
+                    "Alarm": alarmresolution["alarm"] ? alarmresolution["alarm"] : 0
+                }
+                var medians_time = {
+                    "VSWR": medians["vswr"] ? medians["vswr"] : 0,
+                    "RSSI UMTS": medians["rssi_umts"] ? medians["rssi_umts"] : 0,
+                    "RSSI-LTE FDD": medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
+                    "RSSI-LTE TDD": medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
+                    "RSSI-NR": medians["rssi-nr"] ? medians["rssi-nr"] : 0,
+                    "Alarm": medians["alarm"] ? medians["alarm"] : 0
+                }
+    
+                element.innerHTML = '';
+                const chart = new eds.HorizontalBarChartStacked({
+                    element: element,
+                    data: {
+                        "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
+                        "series": [
+                            { "name": "Passed FTR", "values": Object.values(passed_per_visit) },
+                            { "name": "Failed", "values": Object.values(failed_per_visit) },
+                        ]
+                    },
+                    x: { unit: 'Nodes' }
+                });
+                chart.init();
+    
+                document.querySelector('#get-command').addEventListener('selectOption', (evt) => {
+                    var selectedValue = $('.item.command.active')[0].innerHTML;
+                    if (selectedValue === "Passed / Failed") {
+                        document.getElementById("pass-fail").style.display = 'block';
+                        document.getElementById("resolved").style.display = 'none';
+                    }
+                    else {
+    
+                        document.getElementById("pass-fail").style.display = 'none';
+                        document.getElementById("resolved").style.display = 'block';
+    
+                        $("#command").text(selectedValue);
+                        $("#resolved-number").text(resolved_per_visit[selectedValue]);
+                        $("#avg-time").text(resolution_time[selectedValue]);
+                        //$("#median-time").text(medians_time[selectedValue]);
+                        //var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                        var percentage = (resolved_per_visit[selectedValue] / passed_per_visit[selectedValue]) * 100;
+                        $("#total-nodes").text("/ " + passed_per_visit[selectedValue]);
+                        $("#progress-bar").val(Math.round(percentage));
+                        $("#progress-value").text(Math.round(percentage) + " %");
+    
+                    }
+                });
+    
+                ////////// Alarm types analysis
+                var alarmsList = [];
+                var fieldList=[]
+                var remoteList=[]
+                var miscList = []
+                var alarmTypes = res[1].value["alarm_types"];
+                var fieldAlarms = res[1].value["field_alarms"];
+                var remoteAlarms = res[1].value["remote_alarms"];
+                var miscAlarms = res[1].value["misc_alarms"];
+    
+                for (const [key, value] of Object.entries(fieldAlarms))
+                    fieldList.push({ "name": key, "values": [value] })
+                for (const [key, value] of Object.entries(remoteAlarms))
+                    remoteList.push({ "name": key, "values": [value] })
+                for (const [key, value] of Object.entries(miscAlarms))
+                    miscList.push({ "name": key, "values": [value] })
+                
+                const alarms1 = document.getElementById('field-types');
+                const alarms2 = document.getElementById('remote-types');
+                const alarms3 = document.getElementById('misc-types');
+                
+                alarms1.innerHTML = '';
+                const donutChart1 = new eds.Donut({
+                    element: alarms1,
+                    data: {
+                        "series": fieldList
+                    },
+                    unit: 'Types'
+                });
+                donutChart1.init();
+    
+                alarms2.innerHTML = '';
+                const donutChart2 = new eds.Donut({
+                    element: alarms2,
+                    data: {
+                        "series": remoteList
+                    },
+                    unit: 'Types'
+                });
+                donutChart2.init();
+    
+                alarms3.innerHTML = '';
+                const donutChart3 = new eds.Donut({
+                    element: alarms3,
+                    data: {
+                        "series": miscList
+                    },
+                    unit: 'Types'
+                });
+                donutChart3.init();
+                $('.alarm-types .labels .label').css("font-size", "12px");
+                $('.alarm-types .chart-legend').css('display', 'none');
+    
+                document.querySelector('#get-alarmtype').addEventListener('selectOption', (evt) => {
+                    var selectedValue = $('.item.alarmtype.active')[0].innerHTML;
+                    switch(selectedValue) {
+                        case "Field":
+                            $('#field-types').css('display', 'block');
+                            $('#remote-types').css('display', 'none');
+                            $('#misc-types').css('display', 'none');
+                            break;
+                        case "Remote":
+                            $('#field-types').css('display', 'none');
+                            $('#remote-types').css('display', 'block');
+                            $('#misc-types').css('display', 'none');           
+                            break;
+                        case "Misc":
+                            $('#field-types').css('display', 'none');
+                            $('#remote-types').css('display', 'none');
+                            $('#misc-types').css('display', 'block');
+                            break;
+                
+                    }
+                });
+    
+            }
+        });
+
+
+    //////////////// Alarm Best / Worst Countries ///////////////////
+    $.ajax({
+        url: "api/dashboardapi/resolved-countries",
+        type: "GET",
+        data: { start: startdate, end: enddate, marketArea: marketArea },
+        success: function (res) {
+            $('#top-list').empty();
+            $('#worst-list').empty();
+
+            var top = res.slice(0, 3);
+            var worst = res.slice(-3).reverse();
+
+            top.forEach(element => {
+                var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                element["key"] +
+                '</h4><div class="content">' +
+                element["value"] + 
+                ' mins</div></div>';
+                $('#top-list').append(html)
+            });
+            worst.forEach(element => {
+                var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                element["key"] +
+                '</h4><div class="content">' +
+                element["value"] +
+                ' mins</div></div>';
+                $('#worst-list').append(html)
+            });
+        }
+    });
+
+    fillAverageTable(countries, operators);
     ////////////////// Top Revisits //////////////////
     $.ajax({
         url: "api/dashboardapi/top-revisits",
@@ -1189,6 +1276,7 @@ function getData(startdate, enddate, countries, operators) {
     $.ajax({
         url: "api/dashboardapi/ratings",
         type: "Get",
+        data: Data,
         success: function (res) {
             const cardContainer = document.getElementById('rating-card-container');
             console.log(res);
@@ -1209,9 +1297,12 @@ function getData(startdate, enddate, countries, operators) {
             const starPercentageRounded = `${(Math.round(averageRating * 2) * 10)}%`;
             console.log(document.querySelectorAll(".stars-inner"));
             document.querySelectorAll(".stars-inner").forEach(e => {
-                e.style.width = starPercentageRounded;
+                e.style.width = ratingValues.length ? starPercentageRounded : "0%";
             });
             $("average-rate-val").text(averageRating);
+            var reviewsfield = document.querySelector("#total-reviews");
+            if (reviewsfield)
+                reviewsfield.innerHTML = mappedData.length == 1 ? 1 + " review" : mappedData.length > 1000 ? mappedData.length / 1000 + "K reviews" : mappedData.length + " reviews";
             const cardsHTML = mappedData.map(e => {
                 console.log(e.answers);
                 const answers = e.answers.map(a => (a && a.trim() !== "Other") ? `<p style="margin-bottom:0;">${a}</p>` : "")?.toString()?.replace(/,/g, '');
@@ -1221,8 +1312,10 @@ function getData(startdate, enddate, countries, operators) {
                     `<div class="card" style="margin-top: 0px; margin-bottom: 0px;" >
                           <div class="header">
                             <div class="left">
-                              <div class="title">${e.userName}</div>
+                              <div class="title">${e.userName} </div>
                               <div class="subtitle">
+                        ${e.country?
+                       `<div style="color:gray;">${e.country}</div>` : ""}
                                 ${e.date ? `<div>${e.date}</div>` : ""}
                                          <div class="stars-outer">
                                         <div class="stars-inner" style="width:${(Math.round(e.rate * 2) * 10)}%;" > </div>
@@ -1232,7 +1325,7 @@ function getData(startdate, enddate, countries, operators) {
                             </div>
                           <div class="content">
                             <div>${answers}</div>
-${e.comment ? ` <p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
+                    ${e.comment ? `<p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
                           </div>
                         </div> `       ;
                 return _card;
@@ -1245,11 +1338,95 @@ ${e.comment ? ` <p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.
                     card.init();
                 });
             }
+            const rows = [];
+            var today = new Date();
+
+            rows.push(['UserName',
+                'UserEmail',
+                'Country',
+                'Rate',
+                'RatingDate',
+                'Answers',
+                'Comments'
+            ]);
+            mappedData.forEach(e => {
+                rows.push([e.userName, e.email, e.country, e.rate, e.date, e.questions, e.comment?.trim()]);
+            })
+            document.querySelector('#export-ratings')?.addEventListener('click', () => {
+                const notification = new eds.Notification({
+                    title: 'Export data',
+                    description: 'Ratings data is exported to RatingsReport_' + today.toISOString().slice(0, 16) + '.csv file',
+                });
+                notification.init();
+                _exportToCsv("RatingsReport_" + today.toISOString().slice(0, 16), rows);
+            })
         }
 
     })
 
 }
+
+
+function fillAverageTable(countries, operators) {    
+    var thisWeek = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(6, 'days').format('YYYY-MM-DD')), end: decodeURIComponent(moment().format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-1').html(tmp == null ? 'N/A' : tmp);
+            }
+        })
+        return tmp;
+    }();
+    var thisMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-2').html(tmp == null ? 'N/A' : tmp);
+
+            }
+        })
+        return tmp;
+    }();
+    var lastMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(1, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-3').html(tmp == null ? 'N/A' : tmp);
+            }
+        })
+        return tmp;
+    }();
+    var earlierMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(2, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(2, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-4').html(tmp == null ? 'N/A' : tmp);
+            }
+        })
+        return tmp;
+    }();
+}
+
 
 
 function search() {
@@ -1311,6 +1488,28 @@ function _search(e) {
 
 }
 
+
+function showAlarms() {
+    var type = document.querySelector('input[name="alarmType"]:checked').value;
+    switch(type) {
+        case "field":
+            $('#field-types').css('display', 'block');
+            $('#remote-types').css('display', 'none');
+            $('#misc-types').css('display', 'none');
+            break;
+        case "remote":
+            $('#field-types').css('display', 'none');
+            $('#remote-types').css('display', 'block');
+            $('#misc-types').css('display', 'none');           
+            break;
+        case "misc":
+            $('#field-types').css('display', 'none');
+            $('#remote-types').css('display', 'none');
+            $('#misc-types').css('display', 'block');
+            break;
+
+    }
+}
 
 function mapData(result) {
     var dates = [];
@@ -1467,6 +1666,24 @@ function toggleVersions(version) {
     }
 
 }
+
+function toggleTopCountries(category) {
+    if (category == "top") {
+        $('#top-list').css('display', 'block');
+        $('#worst-list').css('display', 'none');
+        $("#switch-list").val("worst");
+        $("#switch-list").html('Best Performers');
+    }
+    else if (category == "worst") {
+        $('#top-list').css('display', 'none');
+        $('#worst-list').css('display', 'block');
+        $("#switch-list").val("top");
+        $("#switch-list").html('Worst Performers');
+    }
+
+}
+
+
 
 /////////////////////////////////////////////// GLOBES 
 var chart = am4core.create(document.getElementById("chartdiv"), am4maps.MapChart);

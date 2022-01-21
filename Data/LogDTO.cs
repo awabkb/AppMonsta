@@ -11,6 +11,7 @@ namespace Data
         public double Latitude { get; set; }
         public JsonObject[] Result { get; set; }
         public long ResponseTime { get; set; }
+        public string TimeOfAction { get; set; }
 
     }
 }

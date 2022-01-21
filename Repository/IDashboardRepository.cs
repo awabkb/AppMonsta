@@ -26,11 +26,15 @@ namespace IMK_web.Repository
         Task<ActionResult> GetNewProfiles(string start, string end, string marketArea);
         Task<ActionResult> GetTopRevisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators);
+        Task<ActionResult> GetAlarmAnalysis(string start, string end, string countries, string operators);
+        Task<ActionResult> GetCountriesResolutionTimes(string start, string end, string marketArea);
         Task<ActionResult> GetSiteIntegrations(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteIntegrationUsage(string start, string end, string marketArea);
         Task<ActionResult> GetAlarmTypes();
+        Task<ActionResult> GetResolutionTimes(string start, string end);
+        string GetAlarmType(string _alarm);
         string GetRole(string email);
-        Task<ActionResult> GetRatings();
+        Task<ActionResult> GetRatings(string start, string end);
 
 
 

@@ -48,7 +48,10 @@ namespace IMK_web.Repository
         {
             return await _context.Users.SingleOrDefaultAsync(x => x.Email.Equals(email));
         }
-
+        public async Task<IEnumerable<Country>> GetCountries()
+        {
+            return await _context.Countries.OrderBy(x => x.Name).ToListAsync();
+        }
         public async Task<Country> GetCountryByName(string country)
         {
             return await _context.Countries.FirstOrDefaultAsync(x => x.Name.Equals(country));
@@ -67,6 +70,19 @@ namespace IMK_web.Repository
         public async Task<IEnumerable<AspCompany>> GetAspCompanies()
         {
             return await _context.AspCompanies.Include(x => x.Country).ToListAsync();
+        }
+        public async Task<IEnumerable<Rating>> GetRatings()
+        {
+            return await _context.Ratings.ToListAsync();
+        }
+        public async Task<IEnumerable<RatingQuestion>> GetRatingQuestions()
+        {
+            return await _context.RatingQuestions.ToListAsync();
+        }
+        public async Task<RatingQuestion> GetRatingQuestion(int id)
+        {
+            var question = await _context.RatingQuestions.SingleOrDefaultAsync(x => x.Id == id);
+            return question;
         }
 
         public async Task<ActionResult> GetLogs(string start, string end)

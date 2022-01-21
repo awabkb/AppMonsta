@@ -10,11 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using System.Net.Http;
-using Microsoft.Extensions.Options;
-using System.Web;
-using Newtonsoft.Json.Linq;
-using IMK_web.Models.ModelHelper;
 
 namespace IMK_web.Controllers
 {
@@ -25,16 +20,10 @@ namespace IMK_web.Controllers
     public class DashboardApiController : Controller
     {
         private readonly IDashboardRepository _dashRepository;
-        private static string _azureMapKey;
-        private static HttpClient _client;
-        private static string _azureMapURL;
 
-        public DashboardApiController(IDashboardRepository dashboardRepository, IOptions<AppSettings> appSettings)
+        public DashboardApiController(IDashboardRepository dashboardRepository)
         {
             _dashRepository = dashboardRepository;
-            _azureMapKey = appSettings.Value.AzureMapsKey;
-            _azureMapURL = appSettings.Value.AzureMapsURL;
-            _client = new HttpClient();
         }
 
         ////// Filtering //////
@@ -52,39 +41,6 @@ namespace IMK_web.Controllers
         {
             var countries = await _dashRepository.GetIMKCountriesByMA(marketArea);
             return countries.Select(c => c.Country).Distinct().ToList();
-        }
-
-        [HttpGet("getCountry")]
-        public async Task<ActionResult> geCountryFromAzureMaps(string latitude, string longtiude)
-        {
-            var azureMapAddress = _azureMapURL;
-
-            var uriBuilder = new UriBuilder(azureMapAddress);
-
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-            query["subscription-key"] = _azureMapKey;
-            query["api-version"] = "1.0";
-            var coordinates = latitude + ',' + longtiude;
-            var q = Uri.EscapeDataString(coordinates);
-            query["query"] = coordinates;
-            query["query"] = HttpUtility.UrlDecode(query["query"]);
-            uriBuilder.Query = query.ToString();
-            azureMapAddress = uriBuilder.ToString();
-
-            var response = await _client.GetAsync(azureMapAddress);
-            var data = response.Content.ReadAsStringAsync().Result;
-
-            JObject json = JObject.Parse(data);
-
-            var addressesArray = json.GetValue("addresses")[0];
-            var firstAddress = JObject.Parse(addressesArray.ToString());
-            var countryInfo = new
-            {
-                countryName = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("country").ToString(),
-                countryCode = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("countryCode").ToString()
-            };
-
-            return new JsonResult(countryInfo);
         }
 
         [HttpGet("operators")]
@@ -182,12 +138,19 @@ namespace IMK_web.Controllers
             return data;
         }
 
-        [HttpGet("commands")]
-        public async Task<ActionResult[]> getCommandStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        [HttpGet("pass-fail")]
+        public async Task<ActionResult[]> getPassFailStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
             ActionResult[] data = new ActionResult[2];
-            data[0] = await _dashRepository.GetCommandStatus(start, end, countries, operators);
+            data[0] = await _dashRepository.GetAlarmAnalysis(start, end, countries, operators);
             data[1] = await _dashRepository.GetResolvedFailures(start, end, countries, operators);
+
+            return data;
+        }
+        [HttpGet("commands")]
+        public async Task<ActionResult> getCommandStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetCommandStatus(start, end, countries, operators);
 
             return data;
         }
@@ -204,7 +167,14 @@ namespace IMK_web.Controllers
         [HttpGet("resolved")]
         public async Task<ActionResult> getResolvedFailures([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
-            var data = await _dashRepository.GetResolvedFailures(start, end, countries, operators);
+            var data = await _dashRepository.GetAlarmAnalysis(start, end, countries, operators);
+            return data;
+        }
+        
+        [HttpGet("resolved-countries")]
+        public async Task<ActionResult> getResolutionPerCountries([FromQuery] string start, [FromQuery] string end, [FromQuery] string marketArea)
+        {
+            var data = await _dashRepository.GetCountriesResolutionTimes(start, end, marketArea);
             return data;
         }
 
@@ -213,8 +183,14 @@ namespace IMK_web.Controllers
         {
             var data = await _dashRepository.GetSiteIntegrations(start, end, countries, operators);
             return data;
-        }
-
+        }   
+        
+        [HttpGet("resolution-times")]
+        public async Task<ActionResult> getResolutionTimes([FromQuery] string start, [FromQuery] string end) {
+            var resolutions = await _dashRepository.GetResolutionTimes(start, end);
+            return resolutions;
+        }           
+                
         [HttpGet("alarms")]
         public async Task<ActionResult> getAlarms()
         {
@@ -265,9 +241,9 @@ namespace IMK_web.Controllers
             return data;
         }
         [HttpGet("ratings")]
-        public async Task<ActionResult> GetRatings()
+        public async Task<ActionResult> GetRatings(string start, string end)
         {
-            var result = await _dashRepository.GetRatings();
+            var result = await _dashRepository.GetRatings(start, end);
             return result;
         }
     }

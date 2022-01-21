@@ -20,11 +20,36 @@ var inactiveData = getInactive();
 var deactivatedData = getDeactivated();
 var approversData = getApprovers();
 var aspData = getAsps();
+var ratingsData = getRatings();
 
 
 function init() {
     daterange();
     getData(true);
+}
+
+function getCountries() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/countries",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+                var html1='';
+                var html2 = '';
+                res.forEach(element => {
+                    html1 += "<div class='item asp-country' data-value='" + element.code + "'>"+ element.name + "</div>"
+                    html2 += "<div class='item approver-country' data-value='" + element.code + "'>"+ element.name + "</div>"
+                });
+                $(".options-list.asp").append(html1);
+                $(".options-list.approver").append(html2);
+            }
+        })
+        return tmp;
+    }();
+    return data;
 }
 
 function getActive() {
@@ -96,6 +121,22 @@ function getAsps() {
         var tmp = null;
         $.ajax({
             url: "api/cms/asps",
+            type: "GET",
+            async: false,
+            success: function (res) {
+                tmp = res;
+            }
+        })
+        return tmp;
+    }();
+    return data;
+}
+
+function getRatings() {
+    var data = function () {
+        var tmp = null;
+        $.ajax({
+            url: "api/cms/questions",
             type: "GET",
             async: false,
             success: function (res) {
@@ -724,10 +765,84 @@ document.querySelector('#export-asps').addEventListener('click', () => {
 
 });
 
+////////////////////////// User Ratings //////////////////////////
+
+
+const tableDOM6 = document.querySelector('#t-ratings');
+tableDOM6.innerHTML = '';
+const ratingsTable = new eds.Table(tableDOM6, {
+    data: ratingsData,
+    columns: [
+        {
+            key: 'id',
+            title: 'Id',
+            width: '1%',
+        },
+        {
+            key: 'question',
+            title: 'Question',
+            sort: 'none'
+        },      
+
+    ],
+    actions: true,
+    rowsPerPage: 50,
+    onCreatedActionsCell: (td) => {
+        td.innerHTML = `<button class="btn-icon delete"><i class="icon icon-trashcan"></i></button>`;
+
+        td.querySelector('button.delete').addEventListener('click', (evt) => {
+            var tr = evt.target.closest('tr');
+            var id = $(tr).find('td').eq(0).text();
+            var result = confirm("Are you sure you want to delete this statement?");
+            if (result) {
+                $.ajax({
+                    url: "api/cms/question?id=" + id,
+                    type: "DELETE",
+                    success: function (res) {
+                        const notification = new eds.Notification({
+                            title: "Rating Action",
+                            description:'Statement has been deleted',
+                        });
+                        notification.init();
+                        $('#t-ratings').dataTable().fnDestroy();
+                        ratingsTable.update(getRatings());
+                        $('#t-ratings').dataTable({
+                            "searching": true,
+                            "bSort": false
+                        });
+                    }
+                });
+            }
+        });
+    }
+});
+
+ratingsTable.init();
+$('#t-ratings').dataTable({
+    "searching": true,
+    "bSort": false
+});
+document.querySelector('#export-ratings').addEventListener('click', () => {
+    const notification = new eds.Notification({
+        title: 'Export data',
+        description: 'Table data is exported to IMK_Rating_Questions.csv file',
+    });
+    notification.init();
+    var rows = [];
+    rows.push(['Questions']);
+    ratingsTable.data.forEach(row => {
+        rows.push([row["question"]]); 
+    });
+    exportToCsv("IMK_Rating_Questions.csv", rows)
+
+});
+
 
 
 
 function getData(first) {
+
+    getCountries();
     var startdate = $('#start').attr('value');
     var enddate = $('#end').attr('value');
 
@@ -911,7 +1026,7 @@ $('#menu li.item').on('click', function () {
 
 $('#submit-approver').on('click', function (e) {
     e.preventDefault();
-    var values = "name=" + $("#member-name").val() + "&email=" + $("#member-email").val() + "&role=" + $('input[name="role"]:checked').val() + "&country=" + $('.item.country.active').text();
+    var values = "name=" + $("#member-name").val() + "&email=" + $("#member-email").val() + "&role=" + $('input[name="role"]:checked').val() + "&country=" + $('.item.approver-country.active').text();
     $.ajax({
         url: "api/cms/approver?" + values,
         type: "POST",
@@ -933,7 +1048,7 @@ $('#submit-approver').on('click', function (e) {
 
 $('#submit-asp').on('click', function (e) {
     e.preventDefault();
-    var values = "name=" + $("#asp-name").val() + "&country=" + $('.item.country.active').text();
+    var values = "name=" + $("#asp-name").val() + "&country=" + $('.item.asp-country.active').text();
     $.ajax({
         url: "api/cms/asp?" + values,
         type: "POST",
@@ -946,6 +1061,28 @@ $('#submit-asp').on('click', function (e) {
             $('#t-asps').dataTable().fnDestroy();
             aspTable.update(getAsps());
             $('#t-asps').dataTable({
+                "searching": true,
+                "bSort": false
+            });               
+        }
+    });
+});
+
+$('#submit-question').on('click', function (e) {
+    e.preventDefault();
+    var values = "name=" + $("#question-name").val();
+    $.ajax({
+        url: "api/cms/question?" + values,
+        type: "POST",
+        success: function (res) {
+            const notification = new eds.Notification({
+                title: "Rating Action",
+                description: 'New Rating Statement has been added',
+            });
+            notification.init();
+            $('#t-ratings').dataTable().fnDestroy();
+            ratingsTable.update(getRatings());
+            $('#t-ratings').dataTable({
                 "searching": true,
                 "bSort": false
             });               

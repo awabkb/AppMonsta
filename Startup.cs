@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using IMK_web.Models.ModelHelper;
+using IMK_web.Services;
 
 namespace IMK_web
 {
@@ -39,16 +40,17 @@ namespace IMK_web
 
             // services.AddDbContext<DataContext>(x=> { x.UseMySql(Configuration.GetConnectionString("default"), new MySqlServerVersion(new Version(14,14)));});
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("default")));
-            services.AddMvc().AddNewtonsoftJson(opt=>{
-            opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            services.AddMvc().AddNewtonsoftJson(opt =>
+            {
+                opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             services.AddTransient<Seed>();
-            services.AddScoped<IDashboardRepository,DashboardRepository>();
-            services.AddScoped<IAppRepository,AppRepository>();
-            services.AddScoped<IPortalRepository,PortalRepository>();
-            //services.AddScoped<>
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
+            services.AddScoped<IAppRepository, AppRepository>();
+            services.AddScoped<IPortalRepository, PortalRepository>();
+            services.AddScoped<IIMKHelperService, IMKHelperService>();
 
 
             services.AddAuthentication()
@@ -59,15 +61,15 @@ namespace IMK_web
             })
             .AddMicrosoftIdentityWebApp(Configuration.GetSection("AzureAd"));
 
-                       
+
             services.AddControllersWithViews(options =>
            {
-                var policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
+               var policy = new AuthorizationPolicyBuilder()
+                   .RequireAuthenticatedUser()
+                   .Build();
                options.Filters.Add(new AuthorizeFilter(policy));
-            }).AddMicrosoftIdentityUI();
-            
+           }).AddMicrosoftIdentityUI();
+
             services.AddRazorPages();
 
         }
@@ -87,8 +89,6 @@ namespace IMK_web
             }
             //seeder.seedUsers();
             //seeder.seedCountries();
-
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

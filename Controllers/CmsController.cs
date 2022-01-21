@@ -28,6 +28,13 @@ namespace IMK_web.Controllers
             _portalRepository = portalRepository;
         }
 
+        [HttpGet("countries")]
+        public async Task<ActionResult> getCountries()
+        {
+            var countries = await _portalRepository.GetCountries();
+            return Ok(countries);
+        }
+
         [HttpPost("approver")]
         public async Task<ActionResult> addAspManager([FromQuery] string name, [FromQuery] string email, [FromQuery] string role, [FromQuery] string country)
         {
@@ -151,6 +158,42 @@ namespace IMK_web.Controllers
             await _portalRepository.SaveChanges();
             return Ok(allEmails);
         }
+
+        [HttpGet("ratings")]
+        public async Task<ActionResult> getRating()
+        {
+            var ratings = await _portalRepository.GetRatings();
+            return Ok(ratings);
+        }    
+        
+        [HttpGet("questions")]
+        public async Task<ActionResult> getRatingQuestions()
+        {
+            var questions = await _portalRepository.GetRatingQuestions();
+            return Ok(questions);
+        }    
+        
+        [HttpPost("question")]
+        public async Task<ActionResult> addRatingQuestion([FromQuery] string name)
+        {
+
+            RatingQuestion question = new RatingQuestion();
+            question.Question = name;
+            _portalRepository.Add(question);
+            await _portalRepository.SaveChanges();
+
+            return Ok(question);
+        }
+
+        [AllowAnonymous]
+        [HttpDelete("question")]
+        public async Task<ActionResult> removeQuestion([FromQuery] int id)
+        {
+            RatingQuestion question = await _portalRepository.GetRatingQuestion(id);
+            _portalRepository.Remove(question);
+            await _portalRepository.SaveChanges();
+            return Ok("Removed");
+        }  
 
         [HttpGet("logs")]
         public async Task<ActionResult> getLogs([FromQuery] string start, [FromQuery] string end)

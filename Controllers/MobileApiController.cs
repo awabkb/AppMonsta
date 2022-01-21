@@ -8,6 +8,7 @@ using IMK_web.Repository;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,8 +23,7 @@ using SendGrid.Helpers.Mail;
 using System.Web;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
-using AzureMapsToolkit.Search;
-using AzureMapsToolkit;
+
 using IMK_web.Models.ModelHelper;
 using Newtonsoft.Json.Linq;
 
@@ -154,44 +154,47 @@ namespace IMK_web.Controllers
         }
 
         ////////////////////////// New Site Visit ////////////////////////////
+        ///
         [HttpPost("sitevisit")]
         public async Task<IActionResult> CreateSiteVisit(SiteVisitDto siteVisitDto)
         {
             var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
             User user = await _appRepository.GetUser(userId);
-
+            var countryCalledInfo = await geCountryFromAzureMaps(siteVisitDto.Latitude, siteVisitDto.Longitude);
             if (user == null)
             {
                 return BadRequest("User not found " + userId);
             }
-            if (siteVisitDto.SiteName == null || siteVisitDto.Country == null)
+            if (siteVisitDto.SiteName == null || countryCalledInfo.CountryName == null)
                 return BadRequest("Upload Failed");
-
-            if (siteVisitDto.CountryCode == null)
+            if (countryCalledInfo == null || String.IsNullOrEmpty(countryCalledInfo.CountryName) || String.IsNullOrEmpty(countryCalledInfo.CountryCode))
             {
-                user.IsActive = false;
-                user.IsDeactivated = true;
-                user.Status = "System deactivation - old version";
-                _appRepository.Update(user);
-                await _appRepository.SaveChanges();
-                return BadRequest("Your device is using and old version of IMK please update");
+                if (siteVisitDto.CountryCode == null)
+                {
+                    user.IsActive = false;
+                    user.IsDeactivated = true;
+                    user.Status = "System deactivation - old version";
+                    _appRepository.Update(user);
+                    await _appRepository.SaveChanges();
+                    return BadRequest("Your device is using and old version of IMK please update");
+                }
             }
 
             SiteVisit siteVisit = new SiteVisit();
 
             siteVisit.User = await _appRepository.GetUser(userId);
 
-            Site site = await _appRepository.GetSite(siteVisitDto.SiteName, siteVisitDto.Country);
+            Site site = await _appRepository.GetSite(siteVisitDto.SiteName, countryCalledInfo.CountryName);
 
             Operator op = new Operator();
-            var ops = await _appRepository.GetOperatorByCountry(siteVisitDto.CountryCode);
+            var ops = await _appRepository.GetOperatorByCountry(countryCalledInfo.CountryCode);
             if (ops == null)
                 op = null;
             else
             {
                 if (ops.Operators.Count() > 1)
                 {
-                    var opname = this.GetOperatorBySite(siteVisitDto.SiteName, siteVisitDto.Country);
+                    var opname = this.GetOperatorBySite(siteVisitDto.SiteName, countryCalledInfo.CountryName);
                     op = ops.Operators.FirstOrDefault(x => x.Name.Equals(opname));
                 }
                 else
@@ -202,7 +205,7 @@ namespace IMK_web.Controllers
             if (site == null)
             {
                 site = new Site();
-                site.Country = _appRepository.GetCountry(siteVisitDto.CountryCode).Result.Name;
+                site.Country = _appRepository.GetCountry(countryCalledInfo.CountryCode).Result.Name;
                 site.Latitude = Convert.ToDouble(siteVisitDto.Latitude);
                 site.Longitude = Convert.ToDouble(siteVisitDto.Longitude);
                 site.Name = siteVisitDto.SiteName;
@@ -234,12 +237,14 @@ namespace IMK_web.Controllers
                     Longitude = logDto.Longitude,
                     Latitude = logDto.Latitude,
                     Result = JsonConvert.SerializeObject(logDto.Result),
-                    ResponseTime = logDto.ResponseTime
+                    ResponseTime = logDto.ResponseTime,
+                    TimeOfAction = DateTime.ParseExact(logDto.TimeOfAction,"ddd MMM dd HH:mm:ss 'GMT'K yyyy",CultureInfo.InvariantCulture),
                 });
             }
             siteVisit.Logs = logs;
             siteVisit.AppVersion = siteVisitDto.AppVersion;
             siteVisit.RPIVersion = siteVisitDto.RpiVersion;
+            //siteVisit.MacAddress = siteVisitDto.MacAddress;
             //siteVisit.ImkVersion = await _appRepository.GetImkVersion(siteVisitDto.RpiVersion, siteVisitDto.AppVersion);
 
             Dictionary<string, int> imkFunctionsDic = new Dictionary<string, int>();
@@ -396,13 +401,13 @@ namespace IMK_web.Controllers
                 CountryCode = siteIntegration.CountryCode,
                 CountryName = siteIntegration.CountryName,
                 AppVersion = siteIntegration.AppVersion,
-                // Error = siteIntegration.Error,
-                //Progress = siteIntegration.Progress,
-                //AiLog = siteIntegration.AiLog,
-                //InitiatedAt = siteIntegration.InitiatedAt
+                Error = siteIntegration.Error,
+                Progress = siteIntegration.Progress,
+                AiLog = siteIntegration.AiLog,
+                InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            // siteIntegration.AiLog = null;
+            siteIntegration.AiLog = null;
             return Ok(siteIntegration);
 
         }
@@ -423,7 +428,10 @@ namespace IMK_web.Controllers
                 Rate = userRating.Rate,
                 Questions = userRating.Questions,
                 Comment = userRating.Comment,
-                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault()
+                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
+                Date = userRating.Date,
+                Latitude = userRating.Latitude,
+                Longitude = userRating.Longitude
             });
             await _appRepository.SaveChanges();
             return Ok(userRating);
@@ -607,8 +615,9 @@ namespace IMK_web.Controllers
             return signum;
         }
 
+        [AllowAnonymous]
         [HttpGet("getCountryFromAzureApi")]
-        public async Task<ActionResult> geCountryFromAzureMaps(string latitude, string longtiude)
+        public async Task<AzureCountryResultModel> geCountryFromAzureMaps(string latitude, string longtiude)
         {
             var azureMapAddress = _azureMapURL;
             var uriBuilder = new UriBuilder(azureMapAddress);
@@ -616,6 +625,10 @@ namespace IMK_web.Controllers
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query["subscription-key"] = _azureMapKey;
             query["api-version"] = "1.0";
+            if (String.IsNullOrEmpty(latitude) || String.IsNullOrEmpty(longtiude))
+            {
+                return null;
+            }
             query["query"] = latitude + ',' + longtiude;
 
             uriBuilder.Query = query.ToString();
@@ -628,13 +641,13 @@ namespace IMK_web.Controllers
 
             var addressesArray = json.GetValue("addresses")[0];
             var firstAddress = JObject.Parse(addressesArray.ToString());
-            var countryInfo = new
+            var countryInfo = new AzureCountryResultModel()
             {
-                countryName = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("country").ToString(),
-                countryCode = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("countryCode").ToString()
+                CountryName = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("country").ToString(),
+                CountryCode = JObject.Parse(firstAddress.GetValue("address").ToString()).GetValue("countryCode").ToString()
             };
 
-            return new JsonResult(countryInfo);
+            return countryInfo;
         }
 
     }
