@@ -120,7 +120,7 @@ namespace IMK_web.Repository
             var date = "";
             foreach (var v in res)
             {
-                date = v.First().StartTime.Date.ToString("yyyy-MM-dd");
+                date = v.FirstOrDefault().StartTime.Date.ToString("yyyy-MM-dd");
 
                 Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
@@ -176,7 +176,7 @@ namespace IMK_web.Repository
             var date = "";
             foreach (var v in res)
             {
-                date = v.First().StartTime.ToString("yyyy-MM-dd");
+                date = v.FirstOrDefault().StartTime.ToString("yyyy-MM-dd");
 
                 Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
@@ -190,7 +190,7 @@ namespace IMK_web.Repository
         }
 
 
-        // get site revisits during T = 12 hrs 
+        // get site revisits during T = 8 hrs 
         public async Task<ActionResult> GetSiteRevisits(string start, string end, string countries, string operators)
         {
 
@@ -225,7 +225,7 @@ namespace IMK_web.Repository
 
             foreach (var site in res)
             {
-                country = site.First().Country;
+                country = site.FirstOrDefault().Country;
                 // List<Dictionary<string,int>> list = new List<Dictionary<string, int>>();
                 Dictionary<string, int> siterevisit = new Dictionary<string, int>();
 
@@ -240,7 +240,7 @@ namespace IMK_web.Repository
                         for (int i = 1; i < visits.Count(); i++)
                         {
                             var revisitedOn = "";
-                            if (visits[i].StartTime >= T.AddHours(12))
+                            if (visits[i].StartTime >= T.AddHours(8))
                             {
                                 revisitedOn = visits[i].StartTime.Date.ToString("yyyy-MM-dd");
                                 if (siterevisit.ContainsKey(revisitedOn))
@@ -393,7 +393,7 @@ namespace IMK_web.Repository
 
             var asp = allVisits.AsEnumerable().GroupBy(x => x.User.Name).Select(y => new
             {
-                name = y.Key + " - " + (y.Select(i => i.Site.Country).First()),
+                name = y.Key + " - " + (y.Select(i => i.Site.Country).FirstOrDefault()),
                 sites = y.Select(i => i.Site.SiteId).Distinct().Count()
             });
             var topasp = asp.OrderByDescending(s => s.sites).Take(10);
@@ -558,14 +558,14 @@ namespace IMK_web.Repository
                 if (siterevisit.ContainsKey(vd.siteName))
                 {
                     var T = siterevisit[vd.siteName];
-                    if (vd.date.First() >= T.AddHours(12))
+                    if (vd.date.FirstOrDefault() >= T.AddHours(8))
                     {
                         revisit = true;
-                        siterevisit[vd.siteName] = vd.date.First();
+                        siterevisit[vd.siteName] = vd.date.FirstOrDefault();
                     }
                 }
                 else
-                    siterevisit.Add(vd.siteName, vd.date.First());
+                    siterevisit.Add(vd.siteName, vd.date.FirstOrDefault());
 
                 if (vd.date.Count() > 1)
                 {
@@ -573,13 +573,13 @@ namespace IMK_web.Repository
                     var T = d[0];
                     VisitDetail v1 = new VisitDetail();
                     v1.SiteName = vd.siteName;
-                    v1.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Phone = vd.phone.First();
-                    v1.Email = vd.email.First();
-                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                    v1.ASP = vd.asp.First();
+                    v1.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Phone = vd.phone.FirstOrDefault();
+                    v1.Email = vd.email.FirstOrDefault();
+                    v1.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                    v1.ASP = vd.asp.FirstOrDefault();
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
@@ -588,17 +588,17 @@ namespace IMK_web.Repository
 
                     for (var i = 1; i < d.Length; i++)
                     {
-                        if (d[i] >= T.AddHours(12))
+                        if (d[i] >= T.AddHours(8))
                         {
                             VisitDetail v = new VisitDetail();
                             v.SiteName = vd.siteName;
-                            v.Country = vd.country.First();
-                            v.User = vd.user.First();
-                            v.Phone = vd.phone.First();
-                            v.Email = vd.email.First();
-                            v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                            v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                            v.ASP = vd.asp.First();
+                            v.Country = vd.country.FirstOrDefault();
+                            v.User = vd.user.FirstOrDefault();
+                            v.Phone = vd.phone.FirstOrDefault();
+                            v.Email = vd.email.FirstOrDefault();
+                            v.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                            v.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                            v.ASP = vd.asp.FirstOrDefault();
                             v.Date = d[i].Date.ToString("yyyy-MM-dd");
                             v.IsRevisit = revisit;
                             uniqueVisits.Add(v);
@@ -610,14 +610,14 @@ namespace IMK_web.Repository
                 {
                     VisitDetail v1 = new VisitDetail();
                     v1.SiteName = vd.siteName;
-                    v1.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Phone = vd.phone.First();
-                    v1.Email = vd.email.First();
-                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                    v1.ASP = vd.asp.First();
-                    v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
+                    v1.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Phone = vd.phone.FirstOrDefault();
+                    v1.Email = vd.email.FirstOrDefault();
+                    v1.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                    v1.ASP = vd.asp.FirstOrDefault();
+                    v1.Date = vd.date.FirstOrDefault().Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
                 }
@@ -652,23 +652,23 @@ namespace IMK_web.Repository
             foreach (var integration in integrations)
             {
 
-                User user = await this.GetUser(integration.First().UserId);
-                Site site = await this.GetSite(integration.First().SiteName, integration.First().CountryName);
+                User user = await this.GetUser(integration.FirstOrDefault().UserId);
+                Site site = await this.GetSite(integration.FirstOrDefault().SiteName, integration.FirstOrDefault().CountryName);
 
                 IntegrationDetail visit = new IntegrationDetail();
-                visit.SiteName = integration.First().SiteName;
-                visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
+                visit.SiteName = integration.FirstOrDefault().SiteName;
+                visit.Country = integration.FirstOrDefault().CountryName == null ? user.AspCompany.Country.Name : integration.FirstOrDefault().CountryName;
                 visit.User = user.Name;
                 visit.Asp = user.AspCompany.Name;
                 visit.Operator = site == null ? null : site.Operator.Name;
-                visit.DownloadStart = integration.First().DownloadStart.ToString();
+                visit.DownloadStart = integration.FirstOrDefault().DownloadStart.ToString();
                 visit.DownloadEnd = integration.Last().DownloadEnd?.ToString();
-                visit.IntegrateStart = integration.First().IntegrateStart;
+                visit.IntegrateStart = integration.FirstOrDefault().IntegrateStart;
                 visit.IntegrateEnd = integration.Last().IntegrateEnd;
                 visit.Outcome = integration.Last().Outcome;
                 visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
                     "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
-                visit.AndroidVersion = integration.First().AppVersion;
+                visit.AndroidVersion = integration.FirstOrDefault().AppVersion;
                 lmts.Add(visit);
 
             }
@@ -678,7 +678,7 @@ namespace IMK_web.Repository
                 return new JsonResult(null);
             else if (countries == "all")
             {
-                allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany)
+                allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                 .ToListAsync();
                 filteredIntegrations = lmts;
@@ -689,7 +689,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                     .ToListAsync();
                     filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).ToList();
@@ -700,7 +700,7 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                         .ToListAsync();
@@ -721,7 +721,7 @@ namespace IMK_web.Repository
                 asp = y.Select(i => i.User.AspCompany.Name),
                 date = y.Select(i => i.StartTime),
                 id = y.Select(i => i.VisitId),
-
+                logs = y.Select(i => i.Logs)
                 //contact = x.Site.AspCompany.ApsMentor.Email
             });
             List<VisitDetail> uniqueVisits = new List<VisitDetail>();
@@ -739,83 +739,190 @@ namespace IMK_web.Repository
                 if (siterevisit.ContainsKey(vd.siteName))
                 {
                     var T = siterevisit[vd.siteName];
-                    if (vd.date.First() >= T.AddHours(12))
+                    if (vd.date.FirstOrDefault() >= T.AddHours(8))
                     {
                         revisit = true;
-                        siterevisit[vd.siteName] = vd.date.First();
+                        siterevisit[vd.siteName] = vd.date.FirstOrDefault();
                     }
                 }
                 else
-                    siterevisit.Add(vd.siteName, vd.date.First());
+                    siterevisit.Add(vd.siteName, vd.date.FirstOrDefault());
 
                 if (vd.date.Count() > 1)
                 {
+                    var _a = new List<Log>(); ;
+
+                    vd.logs.ToList().ForEach(l =>
+                    {
+                        l.ToList().ForEach(sl =>
+                        {
+                            _a.Add(sl);
+                        });
+                    });
 
                     var d = vd.date.ToArray();
                     var T = d[0];
                     VisitDetail v1 = new VisitDetail();
                     v1.SiteName = vd.siteName;
-                    v1.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Phone = vd.phone.First();
-                    v1.Email = vd.email.First();
-                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                    v1.ASP = vd.asp.First();
-                    v1.Date = d[0].ToString("yyyy-MM-dd HH-mm");
+                    v1.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Phone = vd.phone.FirstOrDefault();
+                    v1.Email = vd.email.FirstOrDefault();
+                    v1.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                    v1.ASP = vd.asp.FirstOrDefault();
+                    v1.Date = d[0].ToString("yyyy-MM-dd HH:mm");
                     v1.IsRevisit = revisit;
+                    v1.Logs = _a;
                     //v1.SiteIntegration = integrations.FirstOrDefault(item => item.Key.SiteName == y.Key.Name);
                     v1.SiteIntegration = lmtRecord;
                     v1.Diagnostic = true;
                     //v1.IsIntegrated = vd.isIntegrated;
                     uniqueVisits.Add(v1);
 
-
-
-
                     for (var i = 1; i < d.Length; i++)
                     {
 
-                        if (d[i] >= T.AddHours(12))
+                        if (d[i] >= T.AddHours(8))
                         {
+                            var a = new List<Log>(); ;
+
+                            vd.logs.ToList().ForEach(l =>
+                            {
+                                l.ToList().ForEach(sl =>
+                                {
+                                    a.Add(sl);
+                                });
+                            });
                             VisitDetail v = new VisitDetail();
                             v.SiteName = vd.siteName;
-                            v.Country = vd.country.First();
-                            v.User = vd.user.First();
-                            v.Phone = vd.phone.First();
-                            v.Email = vd.email.First();
-                            v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                            v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                            v.ASP = vd.asp.First();
-                            v.Date = d[i].ToString("yyyy-MM-dd HH-mm");
+                            v.Country = vd.country.FirstOrDefault();
+                            v.User = vd.user.FirstOrDefault();
+                            v.Phone = vd.phone.FirstOrDefault();
+                            v.Email = vd.email.FirstOrDefault();
+                            v.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                            v.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                            v.ASP = vd.asp.FirstOrDefault();
+                            v.Date = d[i].ToString("yyyy-MM-dd HH:mm");
                             v.IsRevisit = revisit;
-                            //  v.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.First());
+                            v.Logs = a;
+                            //  v.Diagnostic = logs.FirstOrDefault(item => item.SiteVisit.VisitId == vd.id.FirstOrDefault());
                             v.SiteIntegration = lmtRecord;
                             v.Diagnostic = true;
                             uniqueVisits.Add(v);
                         }
+
                         T = d[i];
                     }
                 }
                 else
                 {
+                    var a = new List<Log>(); ;
+
+                    vd.logs.ToList().ForEach(l =>
+                    {
+                        l.ToList().ForEach(sl =>
+                        {
+                            a.Add(sl);
+                        });
+                    });
                     VisitDetail v1 = new VisitDetail();
                     v1.SiteName = vd.siteName;
-                    v1.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Phone = vd.phone.First();
-                    v1.Email = vd.email.First();
-                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                    v1.ASP = vd.asp.First();
-                    v1.Date = vd.date.First().ToString("yyyy-MM-dd HH:mm");
+                    v1.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Phone = vd.phone.FirstOrDefault();
+                    v1.Email = vd.email.FirstOrDefault();
+                    v1.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                    v1.ASP = vd.asp.FirstOrDefault();
+                    v1.Date = vd.date.FirstOrDefault().ToString("yyyy-MM-dd HH:mm");
                     v1.IsRevisit = revisit;
                     v1.SiteIntegration = lmtRecord;
                     v1.Diagnostic = true;
+                    v1.Logs = a;
                     uniqueVisits.Add(v1);
                 }
 
             }
+
+            foreach (var visit in uniqueVisits.OrderBy(x => x.Date))
+            {
+                Dictionary<string, int> alarmTypes = new Dictionary<string, int>();
+                Dictionary<string, string> commands = new Dictionary<string, string>();
+                List<string> alarms = new List<string>();
+                IEnumerable<string> clearedAlarms = new List<string>();
+                visit.FTR = null;
+                visit.AlarmClearTime = null;
+                visit.AlarmTime = null;
+                //////////// Alarms
+                bool recorded = false;
+                bool alarmsChecked = false;
+
+                foreach (var log in visit.Logs.OrderBy(x => x.TimeOfAction))
+                {
+                    List<string> currentAlarms = new List<string>();
+
+                    if (log.Command.Equals("alarm"))
+                    {
+                        dynamic results = null;
+                        alarmsChecked = true;
+
+
+                        if (!log.Result.Equals("null"))
+                        {
+                            results = JsonConvert.DeserializeObject(log.Result);
+
+                            foreach (var alarm in results)
+                            {
+                                string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
+                                if (GetAlarmType(alarmType).Equals("Field"))
+                                {
+                                    if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                    {
+                                        if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                    }
+                                    if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
+                                    else alarmTypes[alarmType] = 1;
+                                    if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
+                                    if (!recorded)
+                                    {
+                                        visit.Date = log.TimeOfAction.ToString("yyyy-MM-dd HH:mm");
+                                        recorded = true;
+                                    }
+                                }
+
+                            }
+                            clearedAlarms = alarms.Except(currentAlarms);
+                            IEnumerable<string> newAlarms = currentAlarms.Except(alarms);
+                            if (!clearedAlarms.Any() && !alarms.Any())
+                            {
+                                visit.FTR = true;
+                                visit.AlarmClearTime = null;
+                            }
+                            if (clearedAlarms.Any())
+                            {
+                                visit.FTR = true;
+                                alarms.RemoveAll(a => clearedAlarms.Contains(a));
+                                visit.AlarmClearTime = log.TimeOfAction.ToString("yyyy-MM-dd HH:mm");
+                            }
+                            foreach (var item in newAlarms) alarms.Add(item);
+                        }
+
+
+
+                    }
+
+                }
+
+                if (alarms.Any() || !alarmsChecked)
+                {
+                    visit.FTR = false;
+                    visit.AlarmClearTime = null;
+                }
+                visit.Logs = null;
+
+            }
+
             uniqueVisits.AddRange(filteredIntegrations.OrderByDescending(x => x.DownloadStart).Select(e => new VisitDetail
             {
                 SiteName = e.SiteName,
@@ -823,7 +930,7 @@ namespace IMK_web.Repository
                 SiteIntegration = e,
                 Diagnostic = false,
                 IsRevisit = false,
-                Date = e.DownloadStart
+                Date = e.DownloadStart,
 
             }));
             // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
@@ -831,8 +938,87 @@ namespace IMK_web.Repository
 
         }
 
+        /* public async Task<ActionResult> GetData (string start, string end, string countries, string operators)
+         {
+             List<SiteVisit> allVisits = null;
+             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
 
+             var siteIntegrations = new List<IntegrationDetail>();
+             //get diagnostics
+             var _siteIntegrations = _context.SiteIntegrations.Where(x => x.SiteName != null)
+                          .Where(x => x.DownloadStart != null)
+                          .OrderByDescending(x => x.DownloadStart).ToList();
 
+             var integrations = _siteIntegrations
+             .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
+             .GroupBy(x => new
+             {
+                 x.SiteName,
+                 x.UserId,
+                 start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
+
+             });
+             List<IntegrationDetail> filteredIntegrations = null;
+             foreach (var integration in integrations)
+             {
+
+                 User user = await this.GetUser(integration.FirstOrDefault().UserId);
+                 Site site = await this.GetSite(integration.FirstOrDefault().SiteName, integration.FirstOrDefault().CountryName);
+
+                 IntegrationDetail visit = new IntegrationDetail();
+                 visit.SiteName = integration.FirstOrDefault().SiteName;
+                 visit.Country = integration.FirstOrDefault().CountryName == null ? user.AspCompany.Country.Name : integration.FirstOrDefault().CountryName;
+                 visit.User = user.Name;
+                 visit.Asp = user.AspCompany.Name;
+                 visit.Operator = site == null ? null : site.Operator.Name;
+                 visit.DownloadStart = integration.FirstOrDefault().DownloadStart.ToString();
+                 visit.DownloadEnd = integration.Last().DownloadEnd?.ToString();
+                 visit.IntegrateStart = integration.FirstOrDefault().IntegrateStart;
+                 visit.IntegrateEnd = integration.Last().IntegrateEnd;
+                 visit.Outcome = integration.Last().Outcome;
+                 visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
+                     "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
+                 visit.AndroidVersion = integration.FirstOrDefault().AppVersion;
+                 lmts.Add(visit);
+
+             }
+             if (countries == null)
+                 return new JsonResult(null);
+             else if (countries == "all")
+             {
+                 allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany)
+                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                 .ToListAsync();
+                 filteredIntegrations = lmts;
+
+             }
+             else
+             {
+                 if (operators == null)
+                 {
+                     string[] arrCountries = countries.Split(",");
+                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                     .ToListAsync();
+                     filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).ToList();
+
+                 }
+                 else
+                 {
+                     string[] arrCountries = countries.Split(",");
+                     string[] arrOps = operators.Split(",");
+
+                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
+                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                         .ToListAsync();
+                     filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).Where(c => arrOps.Contains(c.Operator)).ToList();
+
+                 }
+             }
+         }
+
+         */
         ///////////////////////////////////////////////////// GLOBES /////////////////////////////////////////////////////
 
         // get # of sites usage (num of site visits by country)
@@ -934,10 +1120,10 @@ namespace IMK_web.Repository
                     });
             foreach (var integration in integrations)
             {
-                User user = await this.GetUser(integration.First().UserId);
+                User user = await this.GetUser(integration.FirstOrDefault().UserId);
                 IntegrationDetail visit = new IntegrationDetail();
-                visit.SiteName = integration.First().SiteName;
-                visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
+                visit.SiteName = integration.FirstOrDefault().SiteName;
+                visit.Country = integration.FirstOrDefault().CountryName == null ? user.AspCompany.Country.Name : integration.FirstOrDefault().CountryName;
                 visit.Outcome = integration.Last().Outcome;
                 lmts.Add(visit);
 
@@ -1011,7 +1197,7 @@ namespace IMK_web.Repository
 
             foreach (var site in res)
             {
-                siteName = site.First().Name;
+                siteName = site.FirstOrDefault().Name;
                 // List<Dictionary<string,int>> list = new List<Dictionary<string, int>>();
                 Dictionary<string, int> siterevisit = new Dictionary<string, int>();
 
@@ -1026,7 +1212,7 @@ namespace IMK_web.Repository
                         for (int i = 1; i < visits.Count(); i++)
                         {
                             var country = "";
-                            if (visits[i].StartTime >= T.AddHours(12))
+                            if (visits[i].StartTime >= T.AddHours(8))
                             {
                                 country = visits[i].Site.Country;
                                 if (siterevisit.ContainsKey(country))
@@ -1060,7 +1246,7 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetCommandStatus(string start, string end, string countries, string operators)
         {
             Dictionary<string, Dictionary<string, int>> returnList = new Dictionary<string, Dictionary<string, int>>();
-            string [] alarmCommands = new string[] {"vswr", "rssi_umts", "rssi-nr", "rssi-lte EUtranCellFDD", "rssi-lte EUtranCellTDD", "alarm"};
+            string[] alarmCommands = new string[] { "vswr", "rssi_umts", "rssi-nr", "rssi-lte EUtranCellFDD", "rssi-lte EUtranCellTDD", "alarm" };
 
             List<SiteVisit> visitLogs = null;
             if (countries == null)
@@ -1068,7 +1254,7 @@ namespace IMK_web.Repository
 
             else if (countries == "all")
             {
-                visitLogs = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command)))
+                visitLogs = await _context.SiteVisits.Include(x => x.Logs.Where(y => alarmCommands.Contains(y.Command)))
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                 .ToListAsync();
 
@@ -1079,7 +1265,7 @@ namespace IMK_web.Repository
                 {
 
                     string[] arrCountries = countries.Split(",");
-                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Where(c => arrCountries.Contains(c.Site.Country))
+                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs.Where(y => alarmCommands.Contains(y.Command))).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                     .ToListAsync();
                 }
@@ -1088,7 +1274,7 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include(x => x.Site.Operator)
+                    visitLogs = await _context.SiteVisits.Include("Site").Include(x => x.Logs.Where(y => alarmCommands.Contains(y.Command))).Include(x => x.Site.Operator)
                     .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
                     .ToListAsync();
@@ -1313,18 +1499,18 @@ namespace IMK_web.Repository
             foreach (var integration in integrations)
             {
 
-                User user = await this.GetUser(integration.First().UserId);
-                Site site = await this.GetSite(integration.First().SiteName, integration.First().CountryName);
+                User user = await this.GetUser(integration.FirstOrDefault().UserId);
+                Site site = await this.GetSite(integration.FirstOrDefault().SiteName, integration.FirstOrDefault().CountryName);
 
                 IntegrationDetail visit = new IntegrationDetail();
-                visit.SiteName = integration.First().SiteName;
-                visit.Country = integration.First().CountryName == null ? user.AspCompany.Country.Name : integration.First().CountryName;
+                visit.SiteName = integration.FirstOrDefault().SiteName;
+                visit.Country = integration.FirstOrDefault().CountryName == null ? user.AspCompany.Country.Name : integration.FirstOrDefault().CountryName;
                 visit.User = user.Name;
                 visit.Asp = user.AspCompany.Name;
                 visit.Operator = site == null ? null : site.Operator.Name;
-                visit.DownloadStart = integration.First().DownloadStart;
+                visit.DownloadStart = integration.FirstOrDefault().DownloadStart;
                 visit.DownloadEnd = integration.Last().DownloadEnd;
-                visit.IntegrateStart = integration.First().IntegrateStart;
+                visit.IntegrateStart = integration.FirstOrDefault().IntegrateStart;
                 visit.IntegrateEnd = integration.Last().IntegrateEnd;
                 visit.Outcome = integration.Last().Outcome;
                 visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
@@ -1364,7 +1550,7 @@ namespace IMK_web.Repository
 
         public async Task<ActionResult> GetResolvedFailures(string start, string end, string countries, string operators)
         {
-            string [] alarmCommands = new string[] {"vswr", "rssi_umts", "rssi-nr", "rssi-lte EUtranCellFDD", "rssi-lte EUtranCellTDD", "alarm"};
+            string[] alarmCommands = new string[] { "vswr", "rssi_umts", "rssi-nr", "rssi-lte EUtranCellFDD", "rssi-lte EUtranCellTDD", "alarm" };
             List<SiteVisit> allVisits = null;
 
             if (countries == null)
@@ -1372,9 +1558,9 @@ namespace IMK_web.Repository
 
             else if (countries == "all")
             {
-                allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany)
+                allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .Where(x => x.Logs.Any(x =>alarmCommands.Contains(x.Command)))
+                .Where(x => x.Logs.Any(x => alarmCommands.Contains(x.Command)))
                 .ToListAsync();
             }
             else
@@ -1383,9 +1569,9 @@ namespace IMK_web.Repository
                 {
                     string[] arrCountries = countries.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                    .Where(x => x.Logs.Any(x =>alarmCommands.Contains(x.Command)))
+                    .Where(x => x.Logs.Any(x => alarmCommands.Contains(x.Command)))
                     .ToListAsync();
                 }
                 else
@@ -1393,10 +1579,10 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y=> alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => alarmCommands.Contains(y.Command))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                        .Where(x => x.Logs.Any(x =>alarmCommands.Contains(x.Command)))
+                        .Where(x => x.Logs.Any(x => alarmCommands.Contains(x.Command)))
                         .ToListAsync();
                 }
             }
@@ -1411,7 +1597,7 @@ namespace IMK_web.Repository
 
                 Dictionary<string, string> commands = new Dictionary<string, string>();
                 List<string> alarms = new List<string>();
-                var initialAlarmTime = visit.First().StartTime;
+                var initialAlarmTime = visit.FirstOrDefault().StartTime;
                 foreach (var session in visit)
                 {   //session details
                     foreach (var log in session.Logs)
@@ -1449,7 +1635,7 @@ namespace IMK_web.Repository
                             alarms.RemoveAll(a => clearedAlarms.Contains(a));
                             foreach (var item in newAlarms) alarms.Add(item);
 
-                            if(alarms.Count() == 0)      
+                            if (alarms.Count() == 0)
                             {
                                 commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (session.StartTime - initialAlarmTime).TotalMinutes });
                             }
@@ -1459,7 +1645,7 @@ namespace IMK_web.Repository
                             // }
                             else
                                 commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = session.StartTime });
-                               //commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Time = session.StartTime });
+                            //commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Time = session.StartTime });
                         }
 
                         else
@@ -1533,22 +1719,23 @@ namespace IMK_web.Repository
             Dictionary<string, int> remoteAlarms = new Dictionary<string, int>();
             Dictionary<string, int> miscAlarms = new Dictionary<string, int>();
 
-            foreach (KeyValuePair<string, int> entry in alarmTypes) {
+            foreach (KeyValuePair<string, int> entry in alarmTypes)
+            {
                 // alarmTypes[entry.Key] = (int)Math.Round((double)(entry.Value / totalTypes) * 100);
                 if (GetAlarmType(entry.Key).Equals("Field"))
                 {
                     if (fieldAlarms.ContainsKey(entry.Key)) fieldAlarms[entry.Key]++;
-                        else fieldAlarms[entry.Key] = entry.Value;
+                    else fieldAlarms[entry.Key] = entry.Value;
                 }
                 else if (GetAlarmType(entry.Key).Equals("Remote"))
                 {
                     if (remoteAlarms.ContainsKey(entry.Key)) remoteAlarms[entry.Key]++;
-                        else remoteAlarms[entry.Key] = entry.Value;
-                }                
-                else 
+                    else remoteAlarms[entry.Key] = entry.Value;
+                }
+                else
                 {
                     if (miscAlarms.ContainsKey(entry.Key)) miscAlarms[entry.Key]++;
-                        else miscAlarms[entry.Key] = entry.Value;
+                    else miscAlarms[entry.Key] = entry.Value;
                 }
 
             }
@@ -1698,7 +1885,7 @@ namespace IMK_web.Repository
 
         //////////////////////////////////////////////////////////////////// Alarms ////////////////////////////////////////////////////////////////////////////
 
-        //get site visits T = 12 hours
+        //get site visits T = 8 hours
         public async Task<ActionResult> GetResolutionTimes(string start, string end) //TODO
         {
 
@@ -1729,14 +1916,14 @@ namespace IMK_web.Repository
                 if (siterevisit.ContainsKey(vd.siteName))
                 {
                     var T = siterevisit[vd.siteName];
-                    if (vd.date.First() >= T.AddHours(12))
+                    if (vd.date.FirstOrDefault() >= T.AddHours(8))
                     {
                         revisit = true;
-                        siterevisit[vd.siteName] = vd.date.First();
+                        siterevisit[vd.siteName] = vd.date.FirstOrDefault();
                     }
                 }
                 else
-                    siterevisit.Add(vd.siteName, vd.date.First());
+                    siterevisit.Add(vd.siteName, vd.date.FirstOrDefault());
 
                 if (vd.date.Count() > 1)
                 {
@@ -1744,13 +1931,13 @@ namespace IMK_web.Repository
                     var T = d[0];
                     VisitDetail v1 = new VisitDetail();
                     v1.SiteName = vd.siteName;
-                    v1.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Phone = vd.phone.First();
-                    v1.Email = vd.email.First();
-                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                    v1.ASP = vd.asp.First();
+                    v1.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Phone = vd.phone.FirstOrDefault();
+                    v1.Email = vd.email.FirstOrDefault();
+                    v1.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                    v1.ASP = vd.asp.FirstOrDefault();
                     v1.Date = d[0].Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
@@ -1759,17 +1946,17 @@ namespace IMK_web.Repository
 
                     for (var i = 1; i < d.Length; i++)
                     {
-                        if (d[i] >= T.AddHours(12))
+                        if (d[i] >= T.AddHours(8))
                         {
                             VisitDetail v = new VisitDetail();
                             v.SiteName = vd.siteName;
-                            v.Country = vd.country.First();
-                            v.User = vd.user.First();
-                            v.Phone = vd.phone.First();
-                            v.Email = vd.email.First();
-                            v.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                            v.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                            v.ASP = vd.asp.First();
+                            v.Country = vd.country.FirstOrDefault();
+                            v.User = vd.user.FirstOrDefault();
+                            v.Phone = vd.phone.FirstOrDefault();
+                            v.Email = vd.email.FirstOrDefault();
+                            v.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                            v.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                            v.ASP = vd.asp.FirstOrDefault();
                             v.Date = d[i].Date.ToString("yyyy-MM-dd");
                             v.IsRevisit = revisit;
                             uniqueVisits.Add(v);
@@ -1781,14 +1968,14 @@ namespace IMK_web.Repository
                 {
                     VisitDetail v1 = new VisitDetail();
                     v1.SiteName = vd.siteName;
-                    v1.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Phone = vd.phone.First();
-                    v1.Email = vd.email.First();
-                    v1.AppVersion = ((double)vd.androidVersion.First()).ToString("0.00");
-                    v1.RpiVersion = ((double)vd.rpVersion.First()).ToString("0.00");
-                    v1.ASP = vd.asp.First();
-                    v1.Date = vd.date.First().Date.ToString("yyyy-MM-dd");
+                    v1.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Phone = vd.phone.FirstOrDefault();
+                    v1.Email = vd.email.FirstOrDefault();
+                    v1.AppVersion = ((double)vd.androidVersion.FirstOrDefault()).ToString("0.00");
+                    v1.RpiVersion = ((double)vd.rpVersion.FirstOrDefault()).ToString("0.00");
+                    v1.ASP = vd.asp.FirstOrDefault();
+                    v1.Date = vd.date.FirstOrDefault().Date.ToString("yyyy-MM-dd");
                     v1.IsRevisit = revisit;
                     uniqueVisits.Add(v1);
                 }
@@ -1800,14 +1987,14 @@ namespace IMK_web.Repository
 
         public async Task<ActionResult> GetCountriesResolutionTimes(string start, string end, string marketArea)
         {
-            string [] alarmCommands = new string[] {"alarm"};
+            string[] alarmCommands = new string[] { "alarm" };
             var countries = await this.GetIMKCountriesByMA(marketArea);
             var c = countries.Select(c => c.Country).Distinct().ToList();
 
             var allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm"))).Include("Site")
             .Include("User")
             .Where(x => c.Contains(x.Site.Country))
-            .Where(x => x.Logs.Any(x =>x.Command.Equals("alarm")))
+            .Where(x => x.Logs.Any(x => x.Command.Equals("alarm")))
             .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
             .ToListAsync();
 
@@ -1833,26 +2020,27 @@ namespace IMK_web.Repository
                     var T = d[0];
                     SiteVisit v1 = new SiteVisit();
                     v1.Site = vd.site;
-                    v1.Site.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.StartTime = vd.date.First();
-                    newLogs= sv[0].Logs.ToList();
+                    v1.Site.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.StartTime = vd.date.FirstOrDefault();
+                    newLogs = sv[0].Logs.ToList();
 
                     for (var i = 1; i < d.Length; i++)
                     {
-                        if (d[i] >= T.AddHours(12))
+                        if (d[i] >= T.AddHours(8))
                         {
                             SiteVisit v = new SiteVisit();
                             v.Site = vd.site;
-                            v.Site.Country = vd.country.First();
-                            v.User = vd.user.First();
+                            v.Site.Country = vd.country.FirstOrDefault();
+                            v.User = vd.user.FirstOrDefault();
                             v.Logs = sv[i].Logs;
-                            v.StartTime = sv[i].StartTime;                            
+                            v.StartTime = sv[i].StartTime;
                             uniqueVisits.Add(v);
                         }
-                        else {
-                            foreach(Log log in sv[i].Logs)
-                            newLogs.Add(log);
+                        else
+                        {
+                            foreach (Log log in sv[i].Logs)
+                                newLogs.Add(log);
                         }
                         T = d[i];
                     }
@@ -1863,10 +2051,10 @@ namespace IMK_web.Repository
                 {
                     SiteVisit v1 = new SiteVisit();
                     v1.Site = vd.site;
-                    v1.Site.Country = vd.country.First();
-                    v1.User = vd.user.First();
+                    v1.Site.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
                     v1.Logs = vd.logs;
-                    v1.StartTime = vd.date.First();
+                    v1.StartTime = vd.date.FirstOrDefault();
                     uniqueVisits.Add(v1);
                 }
 
@@ -1878,7 +2066,7 @@ namespace IMK_web.Repository
             {
                 Dictionary<string, string> commands = new Dictionary<string, string>();
                 List<string> alarms = new List<string>();
-                var initialAlarmTime = visit.Logs.First().TimeOfAction;
+                var initialAlarmTime = visit.Logs.OrderBy(x => x.TimeOfAction).FirstOrDefault().TimeOfAction;
 
                 foreach (var log in visit.Logs.OrderBy(x => x.TimeOfAction))
                 {
@@ -1914,11 +2102,24 @@ namespace IMK_web.Repository
                         // update the alarms left
                         alarms.RemoveAll(a => clearedAlarms.Contains(a));
                         foreach (var item in newAlarms) alarms.Add(item);
-
-                        if (alarms.Count() == 0)
+                        List<string> fieldAlarmsOnly = new List<string>();
+                        alarmTypes.ToList().ForEach(alarmToGetType =>
+                        {
+                            if (GetAlarmType(alarmToGetType.Key).Equals("Field"))
+                            {
+                                if (alarms.Count == 0)
+                                {
+                                    var firstLog = visit.Logs.FirstOrDefault(item => !String.IsNullOrEmpty(item.Result) && item.Result.Contains(alarmToGetType.Key));
+                                    initialAlarmTime = firstLog != null ? firstLog.TimeOfAction : initialAlarmTime;
+                                }
+                                fieldAlarmsOnly.Add(alarmToGetType.Key);
+                            }
+                        });
+                        if (alarms.Count == 0 && fieldAlarmsOnly.Any())
+                        {
                             commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (log.TimeOfAction - initialAlarmTime).TotalMinutes, Country = visit.Site.Country });
-                        else
-                            commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = visit.StartTime, Country = visit.Site.Country });
+                        }
+
                     }
 
                 }
@@ -1949,7 +2150,7 @@ namespace IMK_web.Repository
             Dictionary<string, int> resolved = new Dictionary<string, int>(); //resolved per visit
             Dictionary<string, int> resolvedtime = new Dictionary<string, int>(); //avg resolution time
             Dictionary<string, List<double>> resolvedByCountry = new Dictionary<string, List<double>>();
-            Dictionary<string, double> resolvedAvgByCountry = new Dictionary<string,double>();
+            Dictionary<string, double> resolvedAvgByCountry = new Dictionary<string, double>();
 
 
 
@@ -1962,9 +2163,9 @@ namespace IMK_web.Repository
                     dynamic info = JsonConvert.DeserializeObject(j);
                     double time = info.Duration;
                     string country = info.Country;
-                    if(resolvedByCountry.ContainsKey(country))
+                    if (resolvedByCountry.ContainsKey(country))
                         resolvedByCountry[country].Add(time);
-                    else 
+                    else
                         resolvedByCountry.Add(country, new List<double> { time });
 
                 }
@@ -1980,7 +2181,7 @@ namespace IMK_web.Repository
 
         public async Task<ActionResult> GetAlarmAnalysis(string start, string end, string countries, string operators)
         {
-            string [] alarmCommands = new string[] {"alarm"};
+            string[] alarmCommands = new string[] { "alarm" };
 
             List<SiteVisit> allVisits = null;
             if (countries == null)
@@ -1990,7 +2191,7 @@ namespace IMK_web.Repository
             {
                 allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm"))).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .Where(x => x.Logs.Any(x =>x.Command.Equals("alarm")))
+                .Where(x => x.Logs.Any(x => x.Command.Equals("alarm")))
                 .ToListAsync();
             }
             else
@@ -2000,7 +2201,6 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm"))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                    .Where(x => x.Logs.Any(x =>x.Command.Equals("alarm")))
                     .ToListAsync();
                 }
                 else
@@ -2011,20 +2211,19 @@ namespace IMK_web.Repository
                     allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm"))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                        .Where(x => x.Logs.Any(x =>x.Command.Equals("alarm")))      
                         .ToListAsync();
                 }
             }
 
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null)
             .Where(x => x.Logs.Any(y => !(GetAlarmType(y.Result)).Equals("Remote")))
-            .GroupBy(x => new { x.Site, x.User.UserId }).Select(y => new
+            .GroupBy(x => new { x.Site, x.User?.UserId, x.StartTime.Date }).Select(y => new
             {
                 site = y.Key.Site,
                 country = y.Select(i => i.Site.Country),
                 user = y.Select(i => i.User),
                 date = y.Select(i => i.StartTime),
-                logs = y.SelectMany(i => i.Logs)
+                logs = y.Select(i => i.Logs)
             });
             List<SiteVisit> uniqueVisits = new List<SiteVisit>();
 
@@ -2032,46 +2231,78 @@ namespace IMK_web.Repository
             {
                 if (vd.date.Count() > 1)
                 {
+                    var _a = new List<Log>(); ;
+
+                    vd.logs.ToList().ForEach(l =>
+                    {
+                        l.ToList().ForEach(sl =>
+                        {
+                            _a.Add(sl);
+                        });
+                    });
                     var newLogs = new List<Log>();
                     var d = vd.date.ToArray();
                     var sv = vd.site.SiteVisits.ToArray();
                     var T = d[0];
                     SiteVisit v1 = new SiteVisit();
                     v1.Site = vd.site;
-                    v1.Site.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.StartTime = vd.date.First();
-                    newLogs= sv[0].Logs.ToList();
+                    v1.Site.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.StartTime = vd.date.FirstOrDefault();
+                    newLogs = sv[0].Logs.ToList();
+                    v1.Logs = _a;
+
 
                     for (var i = 1; i < d.Length; i++)
                     {
-                        if (d[i] >= T.AddHours(12))
+                        if (d[i] >= T.AddHours(8))
                         {
+                            var a = new List<Log>(); ;
+
+                            vd.logs.ToList().ForEach(l =>
+                            {
+                                l.ToList().ForEach(sl =>
+                                {
+                                    a.Add(sl);
+                                });
+                            });
                             SiteVisit v = new SiteVisit();
                             v.Site = vd.site;
-                            v.Site.Country = vd.country.First();
-                            v.User = vd.user.First();
-                            v.Logs = sv[i].Logs;
+                            v.Site.Country = vd.country.FirstOrDefault();
+                            v.User = vd.user.FirstOrDefault();
+                            //v.Logs = sv[i].Logs;
+                            v.Logs = a;
                             v.StartTime = sv[i].StartTime;
                             uniqueVisits.Add(v);
                         }
-                        else {
-                            foreach(Log log in sv[i].Logs)
-                            newLogs.Add(log);
+                        else
+                        {
+                            foreach (Log log in sv[i].Logs)
+                                newLogs.Add(log);
                         }
                         T = d[i];
                     }
-                    v1.Logs = newLogs;
+                    // v1.Logs = newLogs;
+                    //v1.Logs = a
                     uniqueVisits.Add(v1);
                 }
                 else
                 {
+                    var a = new List<Log>(); ;
+
+                    vd.logs.ToList().ForEach(l =>
+                    {
+                        l.ToList().ForEach(sl =>
+                        {
+                            a.Add(sl);
+                        });
+                    });
                     SiteVisit v1 = new SiteVisit();
                     v1.Site = vd.site;
-                    v1.Site.Country = vd.country.First();
-                    v1.User = vd.user.First();
-                    v1.Logs = vd.logs;
-                    v1.StartTime = vd.date.First();
+                    v1.Site.Country = vd.country.FirstOrDefault();
+                    v1.User = vd.user.FirstOrDefault();
+                    v1.Logs = a;
+                    v1.StartTime = vd.date.FirstOrDefault();
                     uniqueVisits.Add(v1);
                 }
 
@@ -2083,8 +2314,8 @@ namespace IMK_web.Repository
             {
                 Dictionary<string, string> commands = new Dictionary<string, string>();
                 List<string> alarms = new List<string>();
-                var initialAlarmTime = visit.Logs.First().TimeOfAction;
-
+                IEnumerable<string> clearedAlarms = new List<string>();
+                var initialAlarmTime = visit.Logs?.OrderBy(x => x.TimeOfAction)?.FirstOrDefault()?.TimeOfAction;
                 foreach (var log in visit.Logs.OrderBy(x => x.TimeOfAction))
                 {
                     //////////// Alarms
@@ -2101,31 +2332,52 @@ namespace IMK_web.Repository
                             foreach (var alarm in results)
                             {
                                 string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
-
-                                if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                if (GetAlarmType(alarmType).Equals("Field"))
                                 {
-                                    if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                    if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                    {
+                                        if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                    }
+                                    if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
+                                    else alarmTypes[alarmType] = 1;
+                                    if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
+                                    initialAlarmTime = log.TimeOfAction;
                                 }
-                                if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
-                                else alarmTypes[alarmType] = 1;
-                                if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
+                            }
+                            clearedAlarms = alarms.Except(currentAlarms);
+                            IEnumerable<string> newAlarms = currentAlarms.Except(alarms);
+
+                            // update the alarms left
+                            //alarms.RemoveAll(a => clearedAlarms.Contains(a));
+                            foreach (var item in newAlarms) alarms.Add(item);
+                            //var _alarms = new List<string>();
+                            // List<string> fieldAlarmsOnly = new List<string>();
+                            if (clearedAlarms.Any())
+                            {
+                                alarms.RemoveAll(a => clearedAlarms.Contains(a));
+                                commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (log.TimeOfAction - initialAlarmTime)?.TotalMinutes, Country = visit.Site.Country });
+                                //commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
 
                             }
+                            else if (alarms.Any())
+                            {
+
+                                commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = visit.StartTime, Country = visit.Site.Country });
+
+                            }
+                            else if (!clearedAlarms.Any() && !alarms.Any())
+                            {
+                                commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
+                            }
+                            else
+                            {
+                                continue;
+                            }
+
+                            foreach (var item in newAlarms) alarms.Add(item);
                         }
 
-                        IEnumerable<string> clearedAlarms = alarms.Except(currentAlarms);
-                        IEnumerable<string> newAlarms = currentAlarms.Except(alarms);
 
-                        // update the alarms left
-                        alarms.RemoveAll(a => clearedAlarms.Contains(a));
-                        foreach (var item in newAlarms) alarms.Add(item);
-
-                        if (alarms.Count() == 0)
-                        {
-                            commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (log.TimeOfAction - initialAlarmTime).TotalMinutes, Country = visit.Site.Country });
-                        }
-                        else
-                            commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = visit.StartTime, Country = visit.Site.Country });
                     }
 
                 }
@@ -2163,6 +2415,7 @@ namespace IMK_web.Repository
             {
                 resolved.Add(i.Key, i.Value.Where(x => x.Contains("Resolved")).Count());
                 vfailed.Add(i.Key, i.Value.Where(x => x.Contains("Failed")).Count());
+                vpassed.Add(i.Key, i.Value.Where(x => x.Contains("Passed")).Count());
 
                 List<double> duration = new List<double>();
                 foreach (var j in i.Value.Where(x => x.Contains("Resolved")))
@@ -2181,7 +2434,8 @@ namespace IMK_web.Repository
             Dictionary<string, int> remoteAlarms = new Dictionary<string, int>();
             Dictionary<string, int> miscAlarms = new Dictionary<string, int>();
 
-            foreach (KeyValuePair<string, int> entry in alarmTypes) {
+            foreach (KeyValuePair<string, int> entry in alarmTypes)
+            {
                 alarmTypes[entry.Key] = (int)Math.Round((double)(entry.Value / totalTypes) * 100);
                 var type = (entry.Key).Split(",")[0];
                 if (GetAlarmType(type).Equals("Field"))
@@ -2193,8 +2447,8 @@ namespace IMK_web.Repository
                 {
                     if (remoteAlarms.ContainsKey(type)) remoteAlarms[type]++;
                     else remoteAlarms[type] = entry.Value;
-                }                
-                else 
+                }
+                else
                 {
                     if (miscAlarms.ContainsKey(type)) miscAlarms[type]++;
                     else miscAlarms[type] = entry.Value;
@@ -2203,10 +2457,16 @@ namespace IMK_web.Repository
             }
             Dictionary<string, Dictionary<string, int>> returnList = new Dictionary<string, Dictionary<string, int>>();
             returnList.Add("failed_per_visit", vfailed);
+            returnList.Add("passed_per_visit", vpassed);
             returnList.Add("resolved_per_visit", resolved);
             returnList.Add("avg_resolution", resolvedtime);
             return new JsonResult(returnList);
         }
+
+        /* public async Task<ActionResult> newGetAlarmAnalysis(string start, string end, string countries, string operators)
+         {
+
+         }*/
 
 
         public async Task<Log> GetLatestAlarm(string start, string end, int siteId)
@@ -2224,7 +2484,7 @@ namespace IMK_web.Repository
             else
                 return null;
         }
-        
+
 
         public string GetAlarmType(string _alarm)
         {
@@ -2232,9 +2492,11 @@ namespace IMK_web.Repository
             dynamic alarms = JsonConvert.DeserializeObject(alarmData);
             var type = "";
 
-            foreach(var alarm in alarms){
+            foreach (var alarm in alarms)
+            {
                 string alarmStatement = alarm.alarm;
-                if(alarmStatement.Contains(_alarm)) {
+                if (alarmStatement.ToUpper().Contains(_alarm.ToUpper()))
+                {
                     type = alarm.type;
                 }
             }

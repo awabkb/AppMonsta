@@ -238,7 +238,7 @@ namespace IMK_web.Controllers
                     Latitude = logDto.Latitude,
                     Result = JsonConvert.SerializeObject(logDto.Result),
                     ResponseTime = logDto.ResponseTime,
-                    TimeOfAction = DateTime.ParseExact(logDto.TimeOfAction,"ddd MMM dd HH:mm:ss 'GMT'K yyyy",CultureInfo.InvariantCulture),
+                    TimeOfAction = DateTime.ParseExact(logDto.TimeOfAction, "ddd MMM dd HH:mm:ss 'GMT'K yyyy", CultureInfo.InvariantCulture),
                 });
             }
             siteVisit.Logs = logs;
@@ -401,13 +401,13 @@ namespace IMK_web.Controllers
                 CountryCode = siteIntegration.CountryCode,
                 CountryName = siteIntegration.CountryName,
                 AppVersion = siteIntegration.AppVersion,
-                Error = siteIntegration.Error,
-                Progress = siteIntegration.Progress,
-                AiLog = siteIntegration.AiLog,
-                InitiatedAt = siteIntegration.InitiatedAt
+                // Error = siteIntegration.Error,
+                // Progress = siteIntegration.Progress,
+                //AiLog = siteIntegration.AiLog,
+                //InitiatedAt = siteIntegration.InitiatedAt
             });
             await _appRepository.SaveChanges();
-            siteIntegration.AiLog = null;
+            // siteIntegration.AiLog = null;
             return Ok(siteIntegration);
 
         }

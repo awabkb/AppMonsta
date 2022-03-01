@@ -25,6 +25,7 @@ namespace IMK_web.Repository
         Task<IEnumerable<Rating>> GetRatings();
         Task<IEnumerable<RatingQuestion>> GetRatingQuestions();
         Task<RatingQuestion> GetRatingQuestion(int id);
+        AspCompany GetSingleAspCompany(string companyName, string countryName);
 
     }
 }

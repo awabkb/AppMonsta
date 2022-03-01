@@ -21,5 +21,14 @@ namespace Data
         public IntegrationDetail SiteIntegration { get; set; }
         [NotMapped]
         public bool Diagnostic { get; set; }
+        [NotMapped]
+        public bool? FTR { get; set; }
+        [NotMapped]
+        public IEnumerable<Log> Logs { get; set; }
+        [NotMapped]
+        public String AlarmClearTime { get; set; }
+        [NotMapped]
+        public DateTime? AlarmTime { get; set; }
+
     }
 }

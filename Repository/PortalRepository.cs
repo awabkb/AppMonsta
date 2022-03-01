@@ -37,7 +37,7 @@ namespace IMK_web.Repository
         {
             return await _context.SaveChangesAsync() > 0;
         }
-         public async Task<IEnumerable<User>> GetAllUsers()
+        public async Task<IEnumerable<User>> GetAllUsers()
         {
             return await _context.Users.Include(x => x.AspCompany).Include(x => x.AspCompany.Country)
             .Include(x => x.SiteVisits)
@@ -56,7 +56,7 @@ namespace IMK_web.Repository
         {
             return await _context.Countries.FirstOrDefaultAsync(x => x.Name.Equals(country));
         }
-      
+
         public async Task<IEnumerable<AspManager>> GetApprovers()
         {
             return await _context.AspManagers.OrderBy(x => x.Country).ToListAsync();
@@ -70,6 +70,10 @@ namespace IMK_web.Repository
         public async Task<IEnumerable<AspCompany>> GetAspCompanies()
         {
             return await _context.AspCompanies.Include(x => x.Country).ToListAsync();
+        }
+        public AspCompany GetSingleAspCompany(string companyName, string countryName)
+        {
+            return _context.AspCompanies.FirstOrDefault(item => item.Name == companyName && item.Country.Name == countryName);
         }
         public async Task<IEnumerable<Rating>> GetRatings()
         {

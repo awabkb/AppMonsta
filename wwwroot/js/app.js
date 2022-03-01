@@ -1,3 +1,4 @@
+
 const treeDOM = document.querySelector('.tree.navigation');
 const tree = new eds.Tree(treeDOM);
 tree.init();
@@ -27,7 +28,7 @@ const multiPanelTile = new eds.MultiPanelTile(document.querySelector('.multi-pan
 
 ////////////// Graphs //////////////////
 
-
+var showDetails = false;
 var countriesFilter = [];
 var operatorsFilter = [];
 var marketArea = '';
@@ -46,7 +47,7 @@ function init() {
     getCountries(marketArea);
     // dateFilter();
     initMap(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), marketArea);
-    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter,marketArea);
+    getData(datestart.format('YYYY-MM-DD'), dateend.format('YYYY-MM-DD'), countriesFilter, operatorsFilter, marketArea);
 
 }
 function daterange() {
@@ -72,6 +73,9 @@ function daterange() {
         cb(start, end);
     });
 }
+
+document.getElementById("details-rows").style.visibility = showDetails ? 'visible' : 'hidden';
+document.getElementById("loading-details").style.visibility = 'hidden';
 
 
 $('#filter').on('submit', function (e) {
@@ -144,12 +148,53 @@ $('#filter').on('reset', function (e) {
 
 
 
-
 $("#market-areas li").on("click", function () {
     $(this).parent().find("li.active").removeClass("active");
     $(this).addClass("active");
     sessionStorage['marketArea'] = $(this).attr('value');
     getCountries($(this).attr('value'));
+});
+
+$("#get-alarms-data-details").on("click", function () {
+    var c = [];
+    var o = [];
+    const checkedCountries = document.querySelectorAll(".country[type='checkbox']:checked");
+    const checkedOperators = document.querySelectorAll(".operator[type='checkbox']:checked");
+    var ma = $('#market-areas li.active').attr('value');
+    var s = $('#start').attr('value');
+    var e = $('#end').attr('value');
+
+    checkedCountries.forEach(element => {
+        c.push($(element).attr('value'));
+    });
+
+    checkedOperators.forEach(element => {
+        o.push($(element).attr('value'));
+    });
+    sessionStorage['countries'] = c;
+    sessionStorage['operators'] = o;
+    sessionStorage['start'] = s;
+    sessionStorage['end'] = e;
+
+    // var selectedCountry = $('.item.country.active')[0].innerHTML;
+    var startDate = $('#start').attr('value');
+    var endDate = $('#end').attr('value');
+    marketArea = sessionStorage['marketArea'] != undefined ? sessionStorage['marketArea'] : '';
+    countriesFilter = sessionStorage['countries'] != undefined ? sessionStorage['countries'] : "all";
+    operatorsFilter = sessionStorage['operators'] != undefined ? sessionStorage['operators'] : [];
+    var countriesList = countriesFilter.split(',');
+
+    if (countriesList?.length > 1) {
+        const notification = new eds.Notification({
+            title: 'Please selecet only one country to see the details',
+        });
+        notification.init();
+        return;
+    }
+    document.getElementById("loading-details").style.visibility = 'visible';
+
+    getAlarms(startDate, endDate, countriesFilter, operatorsFilter);
+
 });
 
 function getCountries(ma) {
@@ -168,7 +213,7 @@ function getCountries(ma) {
                     '</span>' +
                     '</li>';
             }
-
+            var countriesList = "";
             for (var i = 0; i < res.length; i++) {
                 countries +=
                     '<li>' +
@@ -176,9 +221,17 @@ function getCountries(ma) {
                     '<input class="country" name=\"countries[]\" onclick="checkCountry()" type="checkbox" id="c-' + i + '"value="' + res[i] + '" checked>' +
                     '<label for="c-' + i + '">' + res[i] + '</label>' +
                     '</span>' +
-                    '</li>'
+                    '</li>';
+                countriesList += `<div class="item country">${res[i]}</div>`;
+
             }
             document.getElementById('countries').innerHTML = countries;
+            /* document.getElementById('countries-alarms').innerHTML = countriesList;
+             document.querySelector('#get-countries-alarms').addEventListener('selectOption', (evt) => {
+                 var selectedValue = $('.item.country.active')[0].innerHTML;
+ 
+             });*/
+
             getOperators();
             document.getElementById('all-countries').checked = true;
 
@@ -272,6 +325,8 @@ function filter(s, e, ma, c, o) {
 
 function getData(startdate, enddate, countries, operators, marketArea) {
     var Data = { start: decodeURIComponent(startdate), end: decodeURIComponent(enddate), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) }
+    showDetails = false;
+    document.getElementById("details-rows").style.visibility = showDetails ? 'visible' : 'hidden';
 
     $.ajax({
         url: "api/dashboardapi/unique_sites",
@@ -467,132 +522,312 @@ function getData(startdate, enddate, countries, operators, marketArea) {
 
 
 
-    /*$.ajax({
-        url: "api/dashboardapi/site_details",
+    //////////////// Alarm Best / Worst Countries ///////////////////
+    /* $.ajax({
+         url: "api/dashboardapi/resolved-countries",
+         type: "GET",
+         data: { start: startdate, end: enddate, marketArea: marketArea },
+         success: function (res) {
+             $('#top-list').empty();
+             $('#worst-list').empty();
+ 
+             var top = res?.filter(item => item.value)?.slice(0, 3);
+             var worst = res?.filter(item => item.value)?.slice(-3).reverse();
+ 
+             top.forEach(element => {
+                 var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                     element["key"] +
+                     '</h4><div class="content">' +
+                     element["value"] +
+                     ' mins</div></div>';
+                 $('#top-list').append(html)
+             });
+             worst.forEach(element => {
+                 var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                     element["key"] +
+                     '</h4><div class="content">' +
+                     element["value"] +
+                     ' mins</div></div>';
+                 $('#worst-list').append(html)
+             });
+         }
+     });*/
+
+    ////////////////// Top Revisits //////////////////
+    $.ajax({
+        url: "api/dashboardapi/top-revisits",
         type: "GET",
         data: Data,
         success: function (res) {
-            const tableDOM = document.querySelector('#site-details');
-            tableDOM.innerHTML = '';
-            const table = new eds.Table(tableDOM, {
-                data: res,
-                columns: [
-                    {
-                        key: 'date',
-                        title: 'Date',
-                        sort: 'desc'
-                    },
-                    {
-                        key: 'siteName',
-                        title: 'Site Name',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'country',
-                        title: 'Country',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'user',
-                        title: 'Field Engineer',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'appVersion',
-                        title: 'Android Version',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'rpiVersion',
-                        title: 'IMK Version',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'asp',
-                        title: 'ASP',
-                        sort: 'none'
-                    },
-                    {
-                        key: 'isRevisit',
-                        title: 'Revisit',
-                        sort: 'none',
-                        onCreatedCell: (td, cellData) => {
-                            if (cellData === true)
-                                td.innerHTML = `<span class="color-green"><i class="icon icon-alarm-level4"></i></span>`;
-                        },
-    
-                    },
-                    {
-                        key: 'phone',
-                        title: 'Phone',
-                        hidden: true
-                    },
-                    {
-                        key: 'email',
-                        title: 'Email',
-                        hidden: true
-                    }
-                ],
-                sortable: true,
-                actions: true,
-                resize: true,
-                height: '500px',
-    
-                onCreatedActionsCell: (td) => {
-                    td.innerHTML = `<button class="btn-icon info"><i class="icon icon-info"></i></button>`;
-    
-                    td.querySelector('button.info').addEventListener('click', (evt) => {
-                        var tr = evt.target.closest('tr');
-                        var siteEngineer = $(tr).find('td').eq(3).text();
-                        var phone = $(tr).find('td').eq(8).text();
-                        var email = $(tr).find('td').eq(9).text();
-    
-                        const notification = new eds.Notification({
-                            title: "Field Engineer Info",
-                            description: 'Name: ' + siteEngineer + '\nPhone: ' + phone + '\nEmail: ' + email,
-                        });
-                        notification.init();
-    
-                    });
-                },
-    
-                onCreatedHead: (thead, headData) => {
-                    var ths = thead.getElementsByTagName("th");
-                    ths.forEach(th => {
-                        if (th.cellIndex != 7 && th.cellIndex != 8 && th.cellIndex != 9 && th.cellIndex != 10)
-                            th.innerHTML += '<br><input type="text" style="width:100%" id="find-' + th.cellIndex + '" onkeyup="search()" class="with-icon" placeholder="search..."></input>';
-                    });
+            const element = document.getElementById('top-revisits');
+            element.innerHTML = '';
+            var sites = [];
+            var revisits = [];
+
+            for (var i in res) {
+                for (j in res[i]) {
+                    sites.push(i + " - " + j);
+                    revisits.push(res[i][j]);
                 }
+            }
+            const chart = new eds.HorizontalBarChart({
+                element: element,
+                data: {
+                    "common": sites,
+                    series: [{ "name": "Revisits", "values": revisits }],
+                },
+                x: { unit: 'Total' },
+                thresholds: [
+                    {
+                        "moreThan": 1,
+                        "color": "yellow"
+                    },
+                ]
             });
-            table.init();
-    
+
+            chart.init();
+        }
+    });
+
+
+    ////////////////// Total Pass - Fail ///////////////////
+    $.ajax({
+        url: "api/dashboardapi/commands",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+
+            $('#total-pf').empty()
+
+            var passed = res["passed"];
+            var failed = res["failed"];
+
+            var total_passed = {
+                "VSWR": passed["vswr"] ? passed["vswr"] : 0,
+                "RSSI UMTS": passed["umts"] ? passed["umts"] : 0,
+                "RSSI-LTE FDD": passed["fdd"] ? passed["fdd"] : 0,
+                "RSSI-LTE TDD": passed["tdd"] ? passed["tdd"] : 0,
+                "RSSI-NR": passed["nr"] ? passed["nr"] : 0,
+            };
+            var total_failed = {
+                "VSWR": failed["vswr"] ? failed["vswr"] : 0,
+                "RSSI UMTS": failed["umts"] ? failed["umts"] : 0,
+                "RSSI-LTE FDD": failed["fdd"] ? failed["fdd"] : 0,
+                "RSSI-LTE TDD": failed["tdd"] ? failed["tdd"] : 0,
+                "RSSI-NR": failed["nr"] ? failed["nr"] : 0,
+            };
+
+            for (let i = 0; i < 6; i++) {
+                let row = $('<tr>');
+                row.append($('<td >').html(Object.keys(total_passed)[i]));
+                row.append($('<td>').html(Object.values(total_passed)[i]));
+                row.append($('<td>').html(Object.values(total_failed)[i]));
+                $('#total-pf').append(row);
+            }
+
+        }
+    });
+
+
+    $.ajax({
+        url: "api/dashboardapi/ratings",
+        type: "Get",
+        data: Data,
+        success: function (res) {
+            const cardContainer = document.getElementById('rating-card-container');
+            console.log(res);
+            const ratingValues = res.map(item => item.rate);
+            const mappedData = res.map(item => {
+                const element = {
+                    ...item,
+                    userName: item.user.name,
+                    email: item.user.email,
+                    answers: item.questions?.split(','),
+                    date: item.date ? new Date(item.date).toISOString().slice(0, 16) : ""
+
+                };
+                return element;
+            });
+            console.log(mappedData);
+            const averageRating = ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length;
+            const starPercentageRounded = `${(Math.round(averageRating * 2) * 10)}%`;
+            console.log(document.querySelectorAll(".stars-inner"));
+            document.querySelectorAll(".stars-inner").forEach(e => {
+                e.style.width = ratingValues.length ? starPercentageRounded : "0%";
+            });
+            $("average-rate-val").text(averageRating);
+            var reviewsfield = document.querySelector("#total-reviews");
+            if (reviewsfield)
+                reviewsfield.innerHTML = mappedData.length == 1 ? 1 + " review" : mappedData.length > 1000 ? mappedData.length / 1000 + "K reviews" : mappedData.length + " reviews";
+            const cardsHTML = mappedData.map(e => {
+                console.log(e.answers);
+                const answers = e.answers.map(a => (a && a.trim() !== "Other") ? `<p style="margin-bottom:0;">${a}</p>` : "")?.toString()?.replace(/,/g, '');
+                console.log(answers);
+
+                const _card =
+                    `<div class="card" style="margin-top: 0px; margin-bottom: 0px;" >
+                          <div class="header">
+                            <div class="left">
+                              <div class="title">${e.userName} </div>
+                              <div class="subtitle">
+                        ${e.country ?
+                        `<div style="color:gray;">${e.country}</div>` : ""}
+                                ${e.date ? `<div>${e.date}</div>` : ""}
+                                         <div class="stars-outer">
+                                        <div class="stars-inner" style="width:${(Math.round(e.rate * 2) * 10)}%;" > </div>
+                                    </div>
+                               </div>
+                             </div>
+                            </div>
+                          <div class="content">
+                            <div>${answers}</div>
+                    ${e.comment ? `<p style="margin-top: 14px; margin-bottom: 0px;">Comments:  ${e.comment} </p>` : ""}
+                          </div>
+                        </div> `       ;
+                return _card;
+            });
+            cardContainer.innerHTML = cardsHTML;
+            const cards = document.querySelectorAll('.card');
+            if (cards) {
+                Array.from(cards)?.forEach((cardDOM) => {
+                    const card = new eds.Card(cardDOM);
+                    card.init();
+                });
+            }
+            const rows = [];
             var today = new Date();
-            var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-            var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-            var dateTime = date + 'T' + time;
-            document.querySelector('#export-data').addEventListener('click', () => {
+
+            rows.push(['UserName',
+                'UserEmail',
+                'Country',
+                'Rate',
+                'RatingDate',
+                'Answers',
+                'Comments'
+            ]);
+            mappedData.forEach(e => {
+                rows.push([e.userName, e.email, e.country, e.rate, e.date, e.questions, e.comment?.trim()]);
+            })
+            document.querySelector('#export-ratings')?.addEventListener('click', () => {
                 const notification = new eds.Notification({
                     title: 'Export data',
-                    description: 'Site Details data is exported to IMK_Dashboard' + dateTime + '.csv file',
+                    description: 'Ratings data is exported to RatingsReport_' + today.toISOString().slice(0, 16) + '.csv file',
                 });
                 notification.init();
-                var rows = [];
-                rows.push(['Date', 'Site Name', 'Country', 'Field Engineer', 'Android Version', 'IMK Version', 'ASP', 'Revisit']);
-                table.data.forEach(row => {
-                    rows.push([row["date"], row["siteName"], row["country"], row["user"], row["appVersion"], row["rpiVersion"], row["asp"], row["isRevisit"]]);
-                });
-    
-                exportToCsv(dateTime + "IMK_Dashboard.csv", rows)
-    
-            });
+                _exportToCsv("RatingsReport_" + today.toISOString().slice(0, 16), rows);
+            })
         }
-    });*/
+
+    })
+
+
+
+}
+
+
+function getAlarmType(alarm) {
+    var allAlarms = alarms;
+    console.log(allAlarms);
+    console.log(alarm);
+    console.log(allAlarms.find(item => item.alarm === alarm)?.type);
+    return allAlarms.find(item => item.alarm == alarm)?.type;
+}
+
+function fillAverageTable(countries, operators) {
+    var thisWeek = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(6, 'days').format('YYYY-MM-DD')), end: decodeURIComponent(moment().format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: operators };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-1').html(tmp == null ? 'N/A' : tmp);
+            }
+        })
+        return tmp;
+    }();
+    var thisMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: operators };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-2').html(tmp == null ? 'N/A' : tmp);
+
+            }
+        })
+        return tmp;
+    }();
+    var lastMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(1, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: operators };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-3').html(tmp == null ? 'N/A' : tmp);
+            }
+        })
+        return tmp;
+    }();
+    var earlierMonth = function () {
+        var tmp = null;
+        var passedData = { start: decodeURIComponent(moment().subtract(2, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(2, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: operators };
+        $.ajax({
+            url: "api/dashboardapi/resolved",
+            type: "GET",
+            data: passedData,
+            success: function (res) {
+                tmp = res["avg_resolution"]["alarm"];
+                $('#avg-4').html(tmp == null ? 'N/A' : tmp);
+            }
+        })
+        return tmp;
+    }();
+}
+
+function mapSitesData(data) {
+    console.log(data);
+    var details = data.map(e => {
+
+        var alarmResult = e.logs?.map(l => {
+            var r = [];
+            r.push(JSON.parse(l.result)?.Description);
+            var mappedLog = {
+                ...l,
+                result: r?.filter(r => getAlarmType(r) === "Field"),
+            };
+            return mappedLog;
+
+        })
+        var mappedItem = {
+            ...e,
+            logs: alarmResult
+        };
+        return mappedItem;
+    });
+    console.log(details);
+}
+
+function getAlarms(startDate, endDate, country, operators) {
+    var Data = { start: decodeURIComponent(startDate), end: decodeURIComponent(endDate), countries: decodeURIComponent(country), operators: operators }
+
     ///////////////////////////new site details//////////////////
     $.ajax({
         url: "api/dashboardapi/site_details_new",
         type: "GET",
         data: Data,
         success: function (res) {
+            showDetails = true;
+            document.getElementById("details-rows").style.visibility = showDetails ? 'visible' : 'hidden';
+            document.getElementById("loading-details").style.visibility = 'hidden';
             const tableData = res.map((e, index) => {
                 const el = {
                     ...e,
@@ -612,12 +847,19 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                             rpiVersion: e.rpiVersion,
                             appVersion: e.appVersion,
                             startTime: e.date,
+                            //alarmTime: e.alarmTime?.slice(0, 16) || ""
+
+
 
                         }
-                    } : null)
+                    } : null),
+                    //resolutionTime: e.alarmClearTime,
+                    ftr: !e.diagnostic ? null : (e.ftr == true ? "Yes" : e.ftr == false ? "No" : ""),
+                    resolutionTime: e.alarmClearTime?.slice(0, 16) || ""
                 };
                 return el;
             });
+            console.log(tableData);
             const tableDOM = document.querySelector('#site-details-updated');
             tableDOM.innerHTML = '';
             const search = [];
@@ -641,7 +883,7 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                     key: 'siteName',
                     title: 'Node Name',
                     sort: 'none',
-                    width: '8%'
+                    width: '7%'
                 },
                 {
                     key: "integrationStartTime",
@@ -677,9 +919,9 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                         const integrationResult = tableData.find(item => item.id == rowId)?.integrationResult;
                         if (integrationResult) {
                             const integration = cellData;
-                            if (integration.toUpperCase() === 'SUCCESS')
+                            if (integration?.toUpperCase() === 'SUCCESS')
                                 td.innerHTML = `<span class="pill severity-cleared"><b>Success</b></span>`;
-                            else if (integration.toUpperCase === 'FAILED')
+                            else if (integration?.toUpperCase() === 'FAILED')
                                 td.innerHTML = `<span class="pill"><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span>`;
                             else
                                 td.innerHTML = `<span class="pill"><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span>`;
@@ -723,6 +965,28 @@ function getData(startdate, enddate, countries, operators, marketArea) {
 
                 },
                 {
+                    key: 'resolutionTime',
+                    title: 'Resolution Time',
+                    sort: 'none',
+                    width: '5%',
+                },
+                {
+                    key: 'ftr',
+                    title: 'FTR',
+                    sort: 'none',
+                    onCreatedCell: (td, cellData) => {
+                        if (cellData == "Yes")
+                            td.innerHTML = `<span class="pill" style="background-color: #e6f1eb;">${cellData}</span>`;
+                        else if (cellData == "No")
+                            td.innerHTML = `<span class="pill" style="background-color: rgb(249, 226, 225);">${cellData}</span>`;
+                        else
+                            td.innerHTML = "";
+                    },
+                    hideFilter: true,
+                    width: '3%'
+
+                },
+                {
                     key: 'isRevisit',
                     title: 'Revisit',
                     sort: 'none',
@@ -733,7 +997,7 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                     hideFilter: true,
                     width: '3%'
 
-                }
+                },
 
             ]
 
@@ -765,21 +1029,25 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                     //////////////////////prepare data to export/////////////////////////////
                     const rows = [];
                     rows.push(['Country',
-                        'SiteName',
-                        'IntegrationAspCompany',
-                        'IntegrationStart',
-                        'IntegrationEnd',
-                        'IntegrationDuration',
-                        'IntegrationFieldEngineer',
-                        'IntegrationAppVersion',
-                        'IntegrationResult',
-                        'DiagnosticsAspCompany',
-                        'DiagnosticsStartTime',
-                        'DiagnosticsFieldEngineer',
-                        'DiagnosticsFieldEngineerPhone',
-                        'DiagnosticsFieldEngineerEmail',
-                        'DiagnosticsIMK_Version',
-                        'DiagnosticsAppVersion']);
+                        'Site Name',
+                        'Integration Asp Company',
+                        'Integration Start',
+                        'Integration End',
+                        'Integration Duration',
+                        'Integration Field Engineer',
+                        'Integration App Version',
+                        'Integration Result',
+                        'Diagnostics Asp Company',
+                        'Diagnostics Start Time',
+                        'Diagnostics Field Engineer',
+                        'Diagnostics Field Engineer Phone',
+                        'Diagnostics Field Engineer Email',
+                        'Diagnostics IMK_Version',
+                        'Diagnostics App Version',
+                        'Resolution Time',
+                        'FTR Status',
+
+                    ]);
                     var currentTable = document.getElementById("site-details-updated");
                     var siteNames = [];
                     var trs = currentTable.tBodies[0].getElementsByTagName("tr");
@@ -813,7 +1081,11 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                         e.diagnostic?.siteVisit?.user?.phone || "",
                         e.diagnostic?.siteVisit?.user?.email || "",
                         e.diagnostic?.siteVisit?.rpiVersion || "",
-                        e.diagnostic?.siteVisit?.appVersion || ""]);
+                        e.diagnostic?.siteVisit?.appVersion || "",
+                        e.resolutionTime || "",
+                        e.ftr || ""
+                        ],
+                        );
                     });
 
                     /////////////////////////////////////////////////////////////////////
@@ -891,104 +1163,460 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         }
     });
 
+    ////////////////// Pass - Fail Analysis ///////////////////
+    $.ajax({
+        url: "api/dashboardapi/pass-fail",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const _res = [{
+                "contentType": null, "serializerSettings": null, "statusCode": null,
+                "value": { "failed_per_visit": { "alarm": 8 }, "resolved_per_visit": { "alarm": 2 }, "avg_resolution": { "alarm": 0 } }
+            }, {
+                "contentType": null, "serializerSettings": null, "statusCode": null,
+                "value": {
+                    "passed_per_visit": { "rssi-nr": 16, "rssi-lte EUtranCellFDD": 10, "rssi_umts": 0, "vswr": 17, "rssi-lte EUtranCellTDD": 6, "alarm": 2 }, "failed_per_visit": { "rssi-nr": 18, "rssi-lte EUtranCellFDD": 34, "rssi_umts": 45, "vswr": 3, "rssi-lte EUtranCellTDD": 2, "alarm": 8 }, "resolved_per_visit": { "rssi-nr": 1, "rssi-lte EUtranCellFDD": 3, "rssi_umts": 0, "vswr": 4, "rssi-lte EUtranCellTDD": 1, "alarm": 2 }, "avg_resolution": { "rssi-nr": 332, "rssi-lte EUtranCellFDD": 14, "rssi_umts": 0, "vswr": 26, "rssi-lte EUtranCellTDD": 0, "alarm": 0 }, "median_resolution": { "rssi-nr": 332, "rssi-lte EUtranCellFDD": 0, "rssi_umts": 0, "vswr": 13, "rssi-lte EUtranCellTDD": 0, "alarm": 0 },
+                    "alarm_types": { "X2 link problem to one or several neighbouring eNodeBs": 6, "Timeout while waiting for response from radio that is unable to synchronize": 3, "Key file fault in Managed Element": 3, "Not in operation": 2, "No Additional Info": 2, "No PTP messages": 1, "Time and phase sync accuracy crossed the threshold for TDD": 1 }, "field_alarms": { "Timeout while waiting for response from radio that is unable to synchronize": 3, "Not in operation": 2 }, "remote_alarms": { "X2 link problem to one or several neighbouring eNodeBs": 6, "Key file fault in Managed Element": 3, "No Additional Info": 2, "No PTP messages": 1, "Time and phase sync accuracy crossed the threshold for TDD": 1 }, "misc_alarms": {}
+                }
+            }];
+            ////////////////// Pass / Fail status (per visit)
+            const element = document.getElementById('pass-fail');
+            var vpassedResult = res[1].value["passed_per_visit"];
+            var vfailedResult = res[1].value["failed_per_visit"];
+            var resolvedResult = res[1].value["resolved_per_visit"];
+            var resolution = res[1].value["avg_resolution"];
+            var medians = res[1].value["median_resolution"];
 
-    ////////////////// LMT Details ///////////////////
-    /*   $.ajax({
-           url: "api/dashboardapi/site_integrations",
-           type: "GET",
-           data: Data,
-           success: function (res) {
-               const tableDOM = document.querySelector('#lmt-details');
-               tableDOM.innerHTML = '';
-               const table = new eds.Table(tableDOM, {
-                   data: res,
-                   columns: [
-                       {
-                           key: 'siteName',
-                           title: 'Site',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold',
-                           cellStyle: 'color:steelblue'
-                       },
-                       {
-                           key: 'outcome',
-                           title: 'Status',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold',
-                           onCreatedCell: (td, cellData) => {
-                               if (cellData === 'success')
-                                   td.innerHTML = `<span class="pill severity-cleared" > <b>Success</b></span> `;
-                               else if (cellData === 'Failed')
-                                   td.innerHTML = `<span class="pill" ><span class="color-red"><i class="icon icon-alarm-level4"></i></span><b>Fail</b></span> `;
-                               else
-                                   td.innerHTML = `<span class="pill" ><span class="color-yellow"><i class="icon icon-alarm-level4"></i></span><b>Incomplete</b></span> `;
-                           },
-     
-                       },
-                       {
-                           key: 'country',
-                           title: 'Country',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold'
-                       },
-                       {
-                           key: 'downloadStart',
-                           title: 'Integration Start',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold'
-                       },
-                       {
-                           key: 'integrateEnd',
-                           title: 'Integration End',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold'
-                       },
-                       {
-                           key: 'integrationTime',
-                           title: 'Duration',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold'
-                       },
-                       {
-                           key: 'asp',
-                           title: 'ASP',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold'
-                       },
-                       {
-                           key: 'user',
-                           title: 'User',
-                           sort: 'none',
-                           headerStyle: 'font-weight:bold'
-                       },
-                   ],
-                   sortable: true,
-                   resize: true,
-                   rowsPerPage: 5,
-     
-               });
-               table.init();
-     
-               var today = new Date();
-               var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-               var time = today.getHours() + "_" + today.getMinutes() + "_" + today.getSeconds();
-               var dateTime = date + 'T' + time;
-               document.querySelector('#export-lmt').addEventListener('click', () => {
-                   const notification = new eds.Notification({
-                       title: 'Export data',
-                       description: 'LMT data is exported to IMK_LMT' + dateTime + '.csv file',
-                   });
-                   notification.init();
-                   var rows = [];
-                   rows.push(['Site Name', 'Status', 'Country', 'Integration Start', 'Integration End', 'Duration', 'ASP', 'User']);
-                   table.data.forEach(row => {
-                       rows.push([row["siteName"], row["outcome"], row["country"], row["downloadStart"], row["integrateEnd"], row["integrationTime"], row["asp"], row["user"]]);
-                   });
-                   exportToCsv(dateTime + "IMK_LMT.csv", rows)
-     
-               });
-           }
-       });*/
+            var alarmpassed = res[0].value["passed_per_visit"];
+            var alarmresolved = res[0].value["resolved_per_visit"];
+            var alarmfailed = res[0].value["failed_per_visit"];
+            var alarmresolution = res[0].value["avg_resolution"];
+
+            var passed_per_visit = {
+                "VSWR": vpassedResult["vswr"] ? vpassedResult["vswr"] : 0,
+                "RSSI UMTS": vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0,
+                "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
+                "Field Alarm": alarmpassed["alarm"] ? alarmpassed["alarm"] : 0
+            }
+            var failed_per_visit = {
+                "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,
+                "RSSI UMTS": vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0,
+                "RSSI-LTE FDD": vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
+                "Field Alarm": alarmfailed["alarm"] ? alarmfailed["alarm"] : 0
+            }
+            var resolved_per_visit = {
+                "VSWR": resolvedResult["vswr"] ? resolvedResult["vswr"] : 0,
+                "RSSI UMTS": resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0,
+                "RSSI-LTE FDD": resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
+                "Field Alarm": alarmresolved["alarm"] ? alarmresolved["alarm"] : 0
+            }
+            var resolution_time = {
+                "VSWR": resolution["vswr"] ? resolution["vswr"] : 0,
+                "RSSI UMTS": resolution["rssi_umts"] ? resolution["rssi_umts"] : 0,
+                "RSSI-LTE FDD": resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
+                "Field Alarm": alarmresolution["alarm"] ? alarmresolution["alarm"] : 0
+            }
+            var medians_time = {
+                "VSWR": medians["vswr"] ? medians["vswr"] : 0,
+                "RSSI UMTS": medians["rssi_umts"] ? medians["rssi_umts"] : 0,
+                "RSSI-LTE FDD": medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
+                "RSSI-LTE TDD": medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
+                "RSSI-NR": medians["rssi-nr"] ? medians["rssi-nr"] : 0,
+                "Field Alarm": medians["alarm"] ? medians["alarm"] : 0
+            }
+
+            element.innerHTML = '';
+            const chart = new eds.HorizontalBarChartStacked({
+                element: element,
+                data: {
+                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Field Alarm"],
+                    "series": [
+                        { "name": "Passed FTR", "values": Object.values(passed_per_visit) },
+                        { "name": "Failed", "values": Object.values(failed_per_visit) },
+                    ]
+                },
+                x: { unit: 'Nodes' }
+            });
+            chart.init();
+
+            document.querySelector('#get-command').addEventListener('selectOption', (evt) => {
+                var selectedValue = $('.item.command.active')[0].innerHTML;
+                if (selectedValue === "Passed / Failed") {
+                    document.getElementById("pass-fail").style.display = 'block';
+                    document.getElementById("resolved").style.display = 'none';
+                }
+                else {
+
+                    document.getElementById("pass-fail").style.display = 'none';
+                    document.getElementById("resolved").style.display = 'block';
+
+                    $("#command").text(selectedValue);
+                    $("#resolved-number").text(resolved_per_visit[selectedValue]);
+                    $("#avg-time").text(resolution_time[selectedValue]);
+                    //$("#median-time").text(medians_time[selectedValue]);
+                    //var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
+                    var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue];
+                    var percentage = (resolved_per_visit[selectedValue] / passed_per_visit[selectedValue]) * 100;
+                    $("#total-nodes").text("/ " + passed_per_visit[selectedValue]);
+                    $("#progress-bar").val(Math.round(percentage || 0));
+                    $("#progress-value").text(Math.round(percentage || 0) + " %");
+
+                }
+            });
+
+            ////////// Alarm types analysis
+            var alarmsList = [];
+            var fieldList = []
+            var remoteList = []
+            var miscList = []
+            var alarmTypes = res[1].value["alarm_types"];
+            var fieldAlarms = res[1].value["field_alarms"];
+            var remoteAlarms = res[1].value["remote_alarms"];
+            var miscAlarms = res[1].value["misc_alarms"];
+
+            for (const [key, value] of Object.entries(fieldAlarms))
+                fieldList.push({ "name": key, "values": [value] })
+            for (const [key, value] of Object.entries(remoteAlarms))
+                remoteList.push({ "name": key, "values": [value] })
+            for (const [key, value] of Object.entries(miscAlarms))
+                miscList.push({ "name": key, "values": [value] })
+
+            const alarms1 = document.getElementById('field-types');
+            const alarms2 = document.getElementById('remote-types');
+            const alarms3 = document.getElementById('misc-types');
+
+            alarms1.innerHTML = '';
+            const donutChart1 = new eds.Donut({
+                element: alarms1,
+                data: {
+                    "series": fieldList
+                },
+                unit: 'Types'
+            });
+            donutChart1.init();
+
+            alarms2.innerHTML = '';
+            const donutChart2 = new eds.Donut({
+                element: alarms2,
+                data: {
+                    "series": remoteList
+                },
+                unit: 'Types'
+            });
+            donutChart2.init();
+
+            alarms3.innerHTML = '';
+            const donutChart3 = new eds.Donut({
+                element: alarms3,
+                data: {
+                    "series": miscList
+                },
+                unit: 'Types'
+            });
+            donutChart3.init();
+            $('.alarm-types .labels .label').css("font-size", "12px");
+            $('.alarm-types .chart-legend').css('display', 'none');
+
+            document.querySelector('#get-alarmtype').addEventListener('selectOption', (evt) => {
+                var selectedValue = $('.item.alarmtype.active')[0].innerHTML;
+                switch (selectedValue) {
+                    case "Field":
+                        $('#field-types').css('display', 'block');
+                        $('#remote-types').css('display', 'none');
+                        $('#misc-types').css('display', 'none');
+                        $('#art-table').css('visibility', '');
+
+                        break;
+                    case "Remote":
+                        $('#field-types').css('display', 'none');
+                        $('#remote-types').css('display', 'block');
+                        $('#misc-types').css('display', 'none');
+                        $('#art-table').css('visibility', 'hidden');
+                        break;
+                    case "Misc":
+                        $('#field-types').css('display', 'none');
+                        $('#remote-types').css('display', 'none');
+                        $('#misc-types').css('display', 'block');
+                        $('#art-table').css('visibility', 'hidden');
+                        break;
+
+                }
+            });
+
+        }
+    });
+
+    fillAverageTable(country, null);
+
+    $.ajax({
+        url: "api/dashboardapi/unique_sites",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('unique-sites');
+            element.innerHTML = '';
+            var data = mapData(res)
+            const chart1 = new eds.HorizontalBarChartStacked({
+                element: element,
+                data: {
+                    "common": data[0],
+                    "series": data[1]
+                },
+                x: { unit: 'Sites' },
+            });
+
+            chart1.init();
+        }
+    });
+
+    $.ajax({
+        url: "api/dashboardapi/countryview",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('unique-nodes');
+            element.innerHTML = '';
+            var data = mapData(res)
+            const chart1 = new eds.HorizontalBarChartStacked({
+                element: element,
+                data: {
+                    "common": data[0],
+                    "series": data[1]
+                },
+                x: { unit: 'Nodes' },
+            });
+
+            chart1.init();
+        }
+    });
+
+    $.ajax({
+        url: "api/dashboardapi/revisits",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('site-revisits');
+            element.innerHTML = '';
+            var data = mapData(res)
+            const chart1 = new eds.HorizontalBarChartStacked({
+                element: element,
+                data: {
+                    "common": data[0],
+                    "series": data[1]
+                },
+                x: { unit: 'Revisits' },
+            });
+
+            chart1.init();
+        }
+    });
+
+
+    $.ajax({
+        url: "api/dashboardapi/imkfunctions",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('imk-functions');
+            element.innerHTML = '';
+            var functions = [];
+
+            if (res == null)
+                functions.push(0);
+            else {
+                for (var i in res[0]) {
+                    if (i != 'sgwStatus')
+                        functions.push(res[0][i]);
+                }
+            }
+            const chart = new eds.HorizontalBarChart({
+                element: element,
+                data: {
+                    "common": ['FRU Status', 'FRU State', 'FRU Serial', 'FRU Prod No', 'RET Serial', 'TMA', 'RET Antenna', 'VSWR', 'CPRI', 'Transport', 'Transport Routes', 'Transport Interfaces',
+                        'MME Status', 'GSM-TRX', 'GSM-State', 'Traffic-3G', 'Traffic-4G', 'Traffic-5G', 'RSSI UMTS', 'RSSI-LTE FDD', 'RSSI-LTE TDD', 'RSSI-NR', 'External Alarm', 'Alarm'],
+                    series: [{ "name": "Functions", "values": functions }],
+                },
+                x: { unit: 'Total' },
+                thresholds: [
+                    {
+                        "moreThan": 1,
+                        "color": "green"
+                    },
+                ]
+            });
+
+            chart.init();
+        }
+    });
+
+    $.ajax({
+        url: "api/dashboardapi/topasp",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('top-asp');
+            element.innerHTML = '';
+            var names = [];
+            var sites = [];
+
+            if (res == null) {
+                names.push("None");
+                sites.push(0);
+            }
+            else {
+                for (var i in res) {
+                    names.push(res[i]["name"])
+                    sites.push(res[i]["sites"]);
+                }
+            }
+
+            const chart = new eds.HorizontalBarChart({
+                element: element,
+                data: {
+                    "common": names,
+                    "series": [{ "name": "Top Asp", "values": sites }]
+                },
+                x: { unit: 'Sites' },
+                thresholds: [
+                    {
+                        "moreThan": 1,
+                        "color": "orange"
+                    },
+                ]
+                // onSelect: common => openE2E(common),
+            });
+
+            chart.init()
+        }
+    });
+
+    $.ajax({
+        url: "api/dashboardapi/appversion",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('app-version');
+            element.innerHTML = '';
+            var data = [];
+            for (var i in res) {
+                res[i]["values"] = [res[i]["values"]]
+                data.push(res[i]);
+            }
+            const chart = new eds.Donut({
+                element: element,
+                data: {
+                    "series": data
+                },
+                showValue: false,
+                unit: 'Versions'
+            });
+            chart.init()
+        }
+    });
+
+
+    $.ajax({
+        url: "api/dashboardapi/rpversion",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('imk-version');
+            element.innerHTML = '';
+            var data = [];
+            for (var i in res) {
+                res[i]["values"] = [res[i]["values"]]
+                data.push(res[i]);
+            }
+            const chart = new eds.Donut({
+                element: element,
+                data: {
+                    "series": data
+                },
+                showValue: false,
+                unit: 'Versions',
+                width: 400
+            });
+            chart.init()
+        }
+    });
+
+
+
+    //////////////// Alarm Best / Worst Countries ///////////////////
+    /* $.ajax({
+         url: "api/dashboardapi/resolved-countries",
+         type: "GET",
+         data: { start: startdate, end: enddate, marketArea: marketArea },
+         success: function (res) {
+             $('#top-list').empty();
+             $('#worst-list').empty();
+ 
+             var top = res?.filter(item => item.value)?.slice(0, 3);
+             var worst = res?.filter(item => item.value)?.slice(-3).reverse();
+ 
+             top.forEach(element => {
+                 var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                     element["key"] +
+                     '</h4><div class="content">' +
+                     element["value"] +
+                     ' mins</div></div>';
+                 $('#top-list').append(html)
+             });
+             worst.forEach(element => {
+                 var html = '<li class="entry"><div class="target"><h4 class="title">' +
+                     element["key"] +
+                     '</h4><div class="content">' +
+                     element["value"] +
+                     ' mins</div></div>';
+                 $('#worst-list').append(html)
+             });
+         }
+     });*/
+
+    ////////////////// Top Revisits //////////////////
+    $.ajax({
+        url: "api/dashboardapi/top-revisits",
+        type: "GET",
+        data: Data,
+        success: function (res) {
+            const element = document.getElementById('top-revisits');
+            element.innerHTML = '';
+            var sites = [];
+            var revisits = [];
+
+            for (var i in res) {
+                for (j in res[i]) {
+                    sites.push(i + " - " + j);
+                    revisits.push(res[i][j]);
+                }
+            }
+            const chart = new eds.HorizontalBarChart({
+                element: element,
+                data: {
+                    "common": sites,
+                    series: [{ "name": "Revisits", "values": revisits }],
+                },
+                x: { unit: 'Total' },
+                thresholds: [
+                    {
+                        "moreThan": 1,
+                        "color": "yellow"
+                    },
+                ]
+            });
+
+            chart.init();
+        }
+    });
+
 
     ////////////////// Total Pass - Fail ///////////////////
     $.ajax({
@@ -1028,250 +1656,6 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         }
     });
 
-        ////////////////// Pass - Fail Analysis ///////////////////
-        $.ajax({
-            url: "api/dashboardapi/pass-fail",
-            type: "GET",
-            data: Data,
-            success: function (res) {
-    
-                ////////////////// Pass / Fail status (per visit)
-                const element = document.getElementById('pass-fail');
-                var vpassedResult = res[1].value["passed_per_visit"];
-                var vfailedResult = res[1].value["failed_per_visit"];
-                var resolvedResult = res[1].value["resolved_per_visit"];
-                var resolution = res[1].value["avg_resolution"];
-                var medians = res[1].value["median_resolution"];
-    
-                var alarmpassed = res[0].value["resolved_per_visit"];
-                var alarmfailed = res[0].value["failed_per_visit"];
-                var alarmresolution = res[0].value["avg_resolution"];
-    
-                var passed_per_visit = {
-                    "VSWR": vpassedResult["vswr"] ? vpassedResult["vswr"] : 0,
-                    "RSSI UMTS": vpassedResult["rssi_umts"] ? vpassedResult["rssi_umts"] : 0,
-                    "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
-                    "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
-                    "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
-                    "Alarm": alarmpassed["alarm"] ? alarmpassed["alarm"] : 0
-                }
-                var failed_per_visit = {
-                    "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,
-                    "RSSI UMTS": vfailedResult["rssi_umts"] ? vfailedResult["rssi_umts"] : 0,
-                    "RSSI-LTE FDD": vfailedResult["rssi-lte EUtranCellFDD"] ? vfailedResult["rssi-lte EUtranCellFDD"] : 0,
-                    "RSSI-LTE TDD": vfailedResult["rssi-lte EUtranCellTDD"] ? vfailedResult["rssi-lte EUtranCellTDD"] : 0,
-                    "RSSI-NR": vfailedResult["rssi-nr"] ? vfailedResult["rssi-nr"] : 0,
-                    "Alarm": alarmfailed["alarm"] ? alarmfailed["alarm"] : 0
-                }
-                var resolved_per_visit = {
-                    "VSWR": resolvedResult["vswr"] ? resolvedResult["vswr"] : 0,
-                    "RSSI UMTS": resolvedResult["rssi_umts"] ? resolvedResult["rssi_umts"] : 0,
-                    "RSSI-LTE FDD": resolvedResult["rssi-lte EUtranCellFDD"] ? resolvedResult["rssi-lte EUtranCellFDD"] : 0,
-                    "RSSI-LTE TDD": resolvedResult["rssi-lte EUtranCellTDD"] ? resolvedResult["rssi-lte EUtranCellTDD"] : 0,
-                    "RSSI-NR": resolvedResult["rssi-nr"] ? resolvedResult["rssi-nr"] : 0,
-                    "Alarm": alarmpassed["alarm"] ? alarmpassed["alarm"] : 0
-                }
-                var resolution_time = {
-                    "VSWR": resolution["vswr"] ? resolution["vswr"] : 0,
-                    "RSSI UMTS": resolution["rssi_umts"] ? resolution["rssi_umts"] : 0,
-                    "RSSI-LTE FDD": resolution["rssi-lte EUtranCellFDD"] ? resolution["rssi-lte EUtranCellFDD"] : 0,
-                    "RSSI-LTE TDD": resolution["rssi-lte EUtranCellTDD"] ? resolution["rssi-lte EUtranCellTDD"] : 0,
-                    "RSSI-NR": resolution["rssi-nr"] ? resolution["rssi-nr"] : 0,
-                    "Alarm": alarmresolution["alarm"] ? alarmresolution["alarm"] : 0
-                }
-                var medians_time = {
-                    "VSWR": medians["vswr"] ? medians["vswr"] : 0,
-                    "RSSI UMTS": medians["rssi_umts"] ? medians["rssi_umts"] : 0,
-                    "RSSI-LTE FDD": medians["rssi-lte EUtranCellFDD"] ? medians["rssi-lte EUtranCellFDD"] : 0,
-                    "RSSI-LTE TDD": medians["rssi-lte EUtranCellTDD"] ? medians["rssi-lte EUtranCellTDD"] : 0,
-                    "RSSI-NR": medians["rssi-nr"] ? medians["rssi-nr"] : 0,
-                    "Alarm": medians["alarm"] ? medians["alarm"] : 0
-                }
-    
-                element.innerHTML = '';
-                const chart = new eds.HorizontalBarChartStacked({
-                    element: element,
-                    data: {
-                        "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Alarm"],
-                        "series": [
-                            { "name": "Passed FTR", "values": Object.values(passed_per_visit) },
-                            { "name": "Failed", "values": Object.values(failed_per_visit) },
-                        ]
-                    },
-                    x: { unit: 'Nodes' }
-                });
-                chart.init();
-    
-                document.querySelector('#get-command').addEventListener('selectOption', (evt) => {
-                    var selectedValue = $('.item.command.active')[0].innerHTML;
-                    if (selectedValue === "Passed / Failed") {
-                        document.getElementById("pass-fail").style.display = 'block';
-                        document.getElementById("resolved").style.display = 'none';
-                    }
-                    else {
-    
-                        document.getElementById("pass-fail").style.display = 'none';
-                        document.getElementById("resolved").style.display = 'block';
-    
-                        $("#command").text(selectedValue);
-                        $("#resolved-number").text(resolved_per_visit[selectedValue]);
-                        $("#avg-time").text(resolution_time[selectedValue]);
-                        //$("#median-time").text(medians_time[selectedValue]);
-                        //var total = passed_per_visit[selectedValue] + failed_per_visit[selectedValue] + resolved_per_visit[selectedValue];
-                        var percentage = (resolved_per_visit[selectedValue] / passed_per_visit[selectedValue]) * 100;
-                        $("#total-nodes").text("/ " + passed_per_visit[selectedValue]);
-                        $("#progress-bar").val(Math.round(percentage));
-                        $("#progress-value").text(Math.round(percentage) + " %");
-    
-                    }
-                });
-    
-                ////////// Alarm types analysis
-                var alarmsList = [];
-                var fieldList=[]
-                var remoteList=[]
-                var miscList = []
-                var alarmTypes = res[1].value["alarm_types"];
-                var fieldAlarms = res[1].value["field_alarms"];
-                var remoteAlarms = res[1].value["remote_alarms"];
-                var miscAlarms = res[1].value["misc_alarms"];
-    
-                for (const [key, value] of Object.entries(fieldAlarms))
-                    fieldList.push({ "name": key, "values": [value] })
-                for (const [key, value] of Object.entries(remoteAlarms))
-                    remoteList.push({ "name": key, "values": [value] })
-                for (const [key, value] of Object.entries(miscAlarms))
-                    miscList.push({ "name": key, "values": [value] })
-                
-                const alarms1 = document.getElementById('field-types');
-                const alarms2 = document.getElementById('remote-types');
-                const alarms3 = document.getElementById('misc-types');
-                
-                alarms1.innerHTML = '';
-                const donutChart1 = new eds.Donut({
-                    element: alarms1,
-                    data: {
-                        "series": fieldList
-                    },
-                    unit: 'Types'
-                });
-                donutChart1.init();
-    
-                alarms2.innerHTML = '';
-                const donutChart2 = new eds.Donut({
-                    element: alarms2,
-                    data: {
-                        "series": remoteList
-                    },
-                    unit: 'Types'
-                });
-                donutChart2.init();
-    
-                alarms3.innerHTML = '';
-                const donutChart3 = new eds.Donut({
-                    element: alarms3,
-                    data: {
-                        "series": miscList
-                    },
-                    unit: 'Types'
-                });
-                donutChart3.init();
-                $('.alarm-types .labels .label').css("font-size", "12px");
-                $('.alarm-types .chart-legend').css('display', 'none');
-    
-                document.querySelector('#get-alarmtype').addEventListener('selectOption', (evt) => {
-                    var selectedValue = $('.item.alarmtype.active')[0].innerHTML;
-                    switch(selectedValue) {
-                        case "Field":
-                            $('#field-types').css('display', 'block');
-                            $('#remote-types').css('display', 'none');
-                            $('#misc-types').css('display', 'none');
-                            break;
-                        case "Remote":
-                            $('#field-types').css('display', 'none');
-                            $('#remote-types').css('display', 'block');
-                            $('#misc-types').css('display', 'none');           
-                            break;
-                        case "Misc":
-                            $('#field-types').css('display', 'none');
-                            $('#remote-types').css('display', 'none');
-                            $('#misc-types').css('display', 'block');
-                            break;
-                
-                    }
-                });
-    
-            }
-        });
-
-
-    //////////////// Alarm Best / Worst Countries ///////////////////
-    $.ajax({
-        url: "api/dashboardapi/resolved-countries",
-        type: "GET",
-        data: { start: startdate, end: enddate, marketArea: marketArea },
-        success: function (res) {
-            $('#top-list').empty();
-            $('#worst-list').empty();
-
-            var top = res.slice(0, 3);
-            var worst = res.slice(-3).reverse();
-
-            top.forEach(element => {
-                var html = '<li class="entry"><div class="target"><h4 class="title">' +
-                element["key"] +
-                '</h4><div class="content">' +
-                element["value"] + 
-                ' mins</div></div>';
-                $('#top-list').append(html)
-            });
-            worst.forEach(element => {
-                var html = '<li class="entry"><div class="target"><h4 class="title">' +
-                element["key"] +
-                '</h4><div class="content">' +
-                element["value"] +
-                ' mins</div></div>';
-                $('#worst-list').append(html)
-            });
-        }
-    });
-
-    fillAverageTable(countries, operators);
-    ////////////////// Top Revisits //////////////////
-    $.ajax({
-        url: "api/dashboardapi/top-revisits",
-        type: "GET",
-        data: Data,
-        success: function (res) {
-            const element = document.getElementById('top-revisits');
-            element.innerHTML = '';
-            var sites = [];
-            var revisits = [];
-
-            for (var i in res) {
-                for (j in res[i]) {
-                    sites.push(i + " - " + j);
-                    revisits.push(res[i][j]);
-                }
-            }
-            const chart = new eds.HorizontalBarChart({
-                element: element,
-                data: {
-                    "common": sites,
-                    series: [{ "name": "Revisits", "values": revisits }],
-                },
-                x: { unit: 'Total' },
-                thresholds: [
-                    {
-                        "moreThan": 1,
-                        "color": "yellow"
-                    },
-                ]
-            });
-
-            chart.init();
-        }
-    });
 
     $.ajax({
         url: "api/dashboardapi/ratings",
@@ -1314,8 +1698,8 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                             <div class="left">
                               <div class="title">${e.userName} </div>
                               <div class="subtitle">
-                        ${e.country?
-                       `<div style="color:gray;">${e.country}</div>` : ""}
+                        ${e.country ?
+                        `<div style="color:gray;">${e.country}</div>` : ""}
                                 ${e.date ? `<div>${e.date}</div>` : ""}
                                          <div class="stars-outer">
                                         <div class="stars-inner" style="width:${(Math.round(e.rate * 2) * 10)}%;" > </div>
@@ -1364,70 +1748,8 @@ function getData(startdate, enddate, countries, operators, marketArea) {
 
     })
 
+
 }
-
-
-function fillAverageTable(countries, operators) {    
-    var thisWeek = function () {
-        var tmp = null;
-        var passedData = { start: decodeURIComponent(moment().subtract(6, 'days').format('YYYY-MM-DD')), end: decodeURIComponent(moment().format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
-        $.ajax({
-            url: "api/dashboardapi/resolved",
-            type: "GET",
-            data: passedData,
-            success: function (res) {
-                tmp = res["avg_resolution"]["alarm"];
-                $('#avg-1').html(tmp == null ? 'N/A' : tmp);
-            }
-        })
-        return tmp;
-    }();
-    var thisMonth = function () {
-        var tmp = null;
-        var passedData = { start: decodeURIComponent(moment().startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
-        $.ajax({
-            url: "api/dashboardapi/resolved",
-            type: "GET",
-            data: passedData,
-            success: function (res) {
-                tmp = res["avg_resolution"]["alarm"];
-                $('#avg-2').html(tmp == null ? 'N/A' : tmp);
-
-            }
-        })
-        return tmp;
-    }();
-    var lastMonth = function () {
-        var tmp = null;
-        var passedData = { start: decodeURIComponent(moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(1, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
-        $.ajax({
-            url: "api/dashboardapi/resolved",
-            type: "GET",
-            data: passedData,
-            success: function (res) {
-                tmp = res["avg_resolution"]["alarm"];
-                $('#avg-3').html(tmp == null ? 'N/A' : tmp);
-            }
-        })
-        return tmp;
-    }();
-    var earlierMonth = function () {
-        var tmp = null;
-        var passedData = { start: decodeURIComponent(moment().subtract(2, 'month').startOf('month').format('YYYY-MM-DD')), end: decodeURIComponent(moment().subtract(2, 'month').endOf('month').format('YYYY-MM-DD')), countries: decodeURIComponent(countries), operators: decodeURIComponent(operators) };
-        $.ajax({
-            url: "api/dashboardapi/resolved",
-            type: "GET",
-            data: passedData,
-            success: function (res) {
-                tmp = res["avg_resolution"]["alarm"];
-                $('#avg-4').html(tmp == null ? 'N/A' : tmp);
-            }
-        })
-        return tmp;
-    }();
-}
-
-
 
 function search() {
 
@@ -1466,6 +1788,7 @@ function _search(e) {
     var input1 = document.getElementById("siteNameFIND");
     var input2 = document.getElementById("integrationStartTimeFIND");
     var input3 = document.getElementById("diagnosticStartTimeFIND");
+    var input4 = document.getElementById("resolutionTimeFIND");
     var table = document.getElementById("site-details-updated");
 
     var trs = table.tBodies[0].getElementsByTagName("tr");
@@ -1477,6 +1800,7 @@ function _search(e) {
             && tds[2].innerHTML.toUpperCase().indexOf(input1?.value.toUpperCase()) > -1
             && tds[3].innerHTML.toUpperCase().indexOf(input2?.value.toUpperCase()) > -1
             && tds[5].innerHTML.toUpperCase().indexOf(input3?.value.toUpperCase()) > -1
+            && tds[6].innerHTML.toUpperCase().indexOf(input4?.value.toUpperCase()) > -1
         ) {
             trs[i].style.display = "";
             trs[i].hidden = false;
@@ -1491,7 +1815,7 @@ function _search(e) {
 
 function showAlarms() {
     var type = document.querySelector('input[name="alarmType"]:checked').value;
-    switch(type) {
+    switch (type) {
         case "field":
             $('#field-types').css('display', 'block');
             $('#remote-types').css('display', 'none');
@@ -1500,7 +1824,7 @@ function showAlarms() {
         case "remote":
             $('#field-types').css('display', 'none');
             $('#remote-types').css('display', 'block');
-            $('#misc-types').css('display', 'none');           
+            $('#misc-types').css('display', 'none');
             break;
         case "misc":
             $('#field-types').css('display', 'none');
@@ -1667,7 +1991,7 @@ function toggleVersions(version) {
 
 }
 
-function toggleTopCountries(category) {
+/*function toggleTopCountries(category) {
     if (category == "top") {
         $('#top-list').css('display', 'block');
         $('#worst-list').css('display', 'none');
@@ -1681,7 +2005,7 @@ function toggleTopCountries(category) {
         $("#switch-list").html('Worst Performers');
     }
 
-}
+}*/
 
 
 
@@ -1690,7 +2014,6 @@ var chart = am4core.create(document.getElementById("chartdiv"), am4maps.MapChart
 var chart2 = am4core.create(document.getElementById("chartdiv2"), am4maps.MapChart);
 var chart3 = am4core.create(document.getElementById("chartdiv3"), am4maps.MapChart);
 var chart4 = am4core.create(document.getElementById("chartdiv4"), am4maps.MapChart);
-
 var isoCountries = isoCountries = {
     'Afghanistan': 'AF',
     'Aland Islands': 'AX',
@@ -2506,7 +2829,6 @@ function initMap(start, end, m_a) {
     })
 }
 //initMap()
-
 
 
 

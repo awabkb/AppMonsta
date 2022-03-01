@@ -37,11 +37,11 @@ function getCountries() {
             async: false,
             success: function (res) {
                 tmp = res;
-                var html1='';
+                var html1 = '';
                 var html2 = '';
                 res.forEach(element => {
-                    html1 += "<div class='item asp-country' data-value='" + element.code + "'>"+ element.name + "</div>"
-                    html2 += "<div class='item approver-country' data-value='" + element.code + "'>"+ element.name + "</div>"
+                    html1 += "<div class='item asp-country' data-value='" + element.code + "'>" + element.name + "</div>"
+                    html2 += "<div class='item approver-country' data-value='" + element.code + "'>" + element.name + "</div>"
                 });
                 $(".options-list.asp").append(html1);
                 $(".options-list.approver").append(html2);
@@ -124,6 +124,7 @@ function getAsps() {
             type: "GET",
             async: false,
             success: function (res) {
+
                 tmp = res;
             }
         })
@@ -362,7 +363,7 @@ const inactiveTable = new eds.Table(tableDOM2, {
                         $('#i-users').dataTable({
                             "searching": true,
                             "bSort": false
-                        });                    
+                        });
                     }
                 });
             }
@@ -387,7 +388,7 @@ const inactiveTable = new eds.Table(tableDOM2, {
                         $('#i-users').dataTable({
                             "searching": true,
                             "bSort": false
-                        });                    
+                        });
                     }
                 });
             }
@@ -404,8 +405,8 @@ $('#i-users').dataTable({
 const toggleActivateBtn2 = () => {
     (document.querySelector('#activate-users')).style.display =
         (inactiveTable.selected.length === 0) ? 'none' : '';
-    
-        (document.querySelector('#deactivate-iusers')).style.display =
+
+    (document.querySelector('#deactivate-iusers')).style.display =
         (inactiveTable.selected.length === 0) ? 'none' : '';
 };
 document.querySelector('#activate-users').addEventListener('click', () => {
@@ -425,7 +426,7 @@ document.querySelector('#activate-users').addEventListener('click', () => {
                 $('#i-users').dataTable({
                     "searching": true,
                     "bSort": false
-                });   
+                });
                 const notification = new eds.Notification({
                     title: "User Action",
                     description: 'Selected users have been activated',
@@ -453,7 +454,7 @@ document.querySelector('#deactivate-iusers').addEventListener('click', () => {
                 $('#i-users').dataTable({
                     "searching": true,
                     "bSort": false
-                });   
+                });
                 const notification = new eds.Notification({
                     title: "User Action",
                     description: 'Selected users have been deactivated',
@@ -564,7 +565,7 @@ const deactivatedTable = new eds.Table(tableDOM3, {
                         $('#d-users').dataTable({
                             "searching": true,
                             "bSort": false
-                        });                             
+                        });
                     }
                 });
             }
@@ -603,7 +604,7 @@ document.querySelector('#reactivate-users').addEventListener('click', () => {
                     title: "User Action",
                     description: 'Selected users have been reactivated',
                 });
-                notification.init();   
+                notification.init();
             }
         });
     }
@@ -692,7 +693,7 @@ const approverTable = new eds.Table(tableDOM4, {
                         $('#t-approvers').dataTable({
                             "searching": true,
                             "bSort": false
-                        });                             
+                        });
                     }
                 });
             }
@@ -782,7 +783,7 @@ const ratingsTable = new eds.Table(tableDOM6, {
             key: 'question',
             title: 'Question',
             sort: 'none'
-        },      
+        },
 
     ],
     actions: true,
@@ -801,7 +802,7 @@ const ratingsTable = new eds.Table(tableDOM6, {
                     success: function (res) {
                         const notification = new eds.Notification({
                             title: "Rating Action",
-                            description:'Statement has been deleted',
+                            description: 'Statement has been deleted',
                         });
                         notification.init();
                         $('#t-ratings').dataTable().fnDestroy();
@@ -831,7 +832,7 @@ document.querySelector('#export-ratings').addEventListener('click', () => {
     var rows = [];
     rows.push(['Questions']);
     ratingsTable.data.forEach(row => {
-        rows.push([row["question"]]); 
+        rows.push([row["question"]]);
     });
     exportToCsv("IMK_Rating_Questions.csv", rows)
 
@@ -857,7 +858,7 @@ function getData(first) {
         url: "api/cms/logs",
         type: "GET",
         data: LogData,
-        beforeSend: function() {
+        beforeSend: function () {
             $('#loader').show()
         },
         success: function (res) {
@@ -932,7 +933,7 @@ function getData(first) {
 
             });
         },
-        complete: function() {
+        complete: function () {
             $('#loader').hide()
         },
     });
@@ -958,20 +959,20 @@ if (dialogs) {
 
 const datepickers = document.querySelectorAll('.datepicker');
 if (datepickers) {
-  Array.from(datepickers).forEach((datepickerDOM) => {
-    const datepicker = new eds.Datepicker(datepickerDOM);
-    datepicker.init();
-  });
+    Array.from(datepickers).forEach((datepickerDOM) => {
+        const datepicker = new eds.Datepicker(datepickerDOM);
+        datepicker.init();
+    });
 }
 
 const collapse = document.querySelector('.action');
-const collapsed = function(evt) {
+const collapsed = function (evt) {
     const contentDiv = evt.target.closest('.tile').querySelector('#logs-filter');
-    if(contentDiv.style.display == 'none') 
+    if (contentDiv.style.display == 'none')
         contentDiv.style.display = 'block';
-    else 
+    else
         contentDiv.style.display = 'none';
-  }
+}
 collapse.addEventListener('click', collapsed);
 
 
@@ -987,40 +988,40 @@ $('#menu li.item').on('click', function () {
             $('#a-users').dataTable({
                 "searching": true,
                 "bSort": false
-            }); 
-        break;
+            });
+            break;
         case 'i-users':
             $('#i-users').dataTable().fnDestroy();
             inactiveTable.update(getInactive());
             $('#i-users').dataTable({
                 "searching": true,
                 "bSort": false
-            }); 
-        break;
+            });
+            break;
         case 'd-users':
             $('#d-users').dataTable().fnDestroy();
             deactivatedTable.update(getDeactivated());
             $('#d-users').dataTable({
                 "searching": true,
                 "bSort": false
-            }); 
-        break;
+            });
+            break;
         case 't-approvers':
             $('#t-approvers').dataTable().fnDestroy();
             approverTable.update(getApprovers());
             $('#t-approvers').dataTable({
                 "searching": true,
                 "bSort": false
-            }); 
-        break;
+            });
+            break;
         case 't-asps':
             $('#t-asps').dataTable().fnDestroy();
             aspTable.update(getAsps());
             $('#t-asps').dataTable({
                 "searching": true,
                 "bSort": false
-            }); 
-        break;
+            });
+            break;
     }
 });
 
@@ -1041,7 +1042,7 @@ $('#submit-approver').on('click', function (e) {
             $('#t-approvers').dataTable({
                 "searching": true,
                 "bSort": false
-            });               
+            });
         }
     });
 });
@@ -1053,6 +1054,14 @@ $('#submit-asp').on('click', function (e) {
         url: "api/cms/asp?" + values,
         type: "POST",
         success: function (res) {
+            if (!res) {
+                const notification = new eds.Notification({
+                    title: "Adding ASP Company",
+                    description: "ASP Company Already Exist!",
+                });
+                notification.init();
+                return;
+            }
             const notification = new eds.Notification({
                 title: "ASP Action",
                 description: 'New ASP has been added',
@@ -1063,7 +1072,7 @@ $('#submit-asp').on('click', function (e) {
             $('#t-asps').dataTable({
                 "searching": true,
                 "bSort": false
-            });               
+            });
         }
     });
 });
@@ -1085,7 +1094,7 @@ $('#submit-question').on('click', function (e) {
             $('#t-ratings').dataTable({
                 "searching": true,
                 "bSort": false
-            });               
+            });
         }
     });
 });
@@ -1109,27 +1118,27 @@ function searchTable(search, table) {
 }
 
 function daterange() {
-    
+
     var start = moment().subtract(6, 'days');
     var end = moment();
     $('#start').attr('value', start.format('YYYY-MM-DD'));
     $('#end').attr('value', end.format('YYYY-MM-DD'));
     document.getElementsByName('datepicker-start')[0].placeholder = start.format('YYYY-MM-DD')
     document.getElementsByName('datepicker-end')[0].placeholder = end.format('YYYY-MM-DD')
-   
+
 }
 
-$('#filter-btn').on('click', function(e) {
+$('#filter-btn').on('click', function (e) {
     e.preventDefault();
     var inputs = document.getElementById("logs-form").elements;
 
     var startdate = $('#start').attr('value');
     var enddate = $('#end').attr('value');
-    var Data ={
+    var Data = {
         SiteName: inputs["siteName"].value,
         UserName: inputs["userName"].value,
         Country: inputs["country"].value,
-        StartDate : startdate,
+        StartDate: startdate,
         EndDate: enddate,
         Command: inputs["command"].value,
         Result: inputs["result"].value
@@ -1140,7 +1149,7 @@ $('#filter-btn').on('click', function(e) {
         type: "GET",
         data: Data,
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
             $('#loader').show()
         },
         success: function (res) {
@@ -1217,7 +1226,7 @@ $('#filter-btn').on('click', function(e) {
 
             });
         },
-        complete: function() {
+        complete: function () {
             $('#loader').hide()
         }
     });

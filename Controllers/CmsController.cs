@@ -83,10 +83,17 @@ namespace IMK_web.Controllers
             AspCompany asp = new AspCompany();
             asp.Country = await _portalRepository.GetCountryByName(country);
             asp.Name = name;
+            var company = _portalRepository.GetSingleAspCompany(name, country);
+            if (company != null)
+            {
+                asp = null;
+                return Ok(asp);
+            }
             _portalRepository.Add(asp);
             await _portalRepository.SaveChanges();
 
             return Ok(asp);
+
         }
 
         [HttpGet("users")]
@@ -94,7 +101,7 @@ namespace IMK_web.Controllers
         {
             var users = await _portalRepository.GetAllUsers();
 
-            var active_users = users.Where(x => x.IsActive == active && x.IsDeactivated==false).Select(x => new
+            var active_users = users.Where(x => x.IsActive == active && x.IsDeactivated == false).Select(x => new
             {
                 name = x.Name,
                 country = x.AspCompany.Country.Name,
@@ -113,7 +120,7 @@ namespace IMK_web.Controllers
         {
             var users = await _portalRepository.GetAllUsers();
 
-            var deactived_users = users.Where(x=>x.IsDeactivated == true).Select(x => new
+            var deactived_users = users.Where(x => x.IsDeactivated == true).Select(x => new
             {
                 name = x.Name,
                 country = x.AspCompany.Country.Name,
@@ -131,8 +138,8 @@ namespace IMK_web.Controllers
         [HttpPut("activate")]
         public async Task<ActionResult> ActivateUser([FromQuery] string emails)
         {
-            string [] allEmails = emails.Split(",");
-            foreach(var email in allEmails)
+            string[] allEmails = emails.Split(",");
+            foreach (var email in allEmails)
             {
                 var user = await _portalRepository.GetUserByEmail(email);
                 user.IsActive = true;
@@ -147,8 +154,8 @@ namespace IMK_web.Controllers
         [HttpPut("deactivate")]
         public async Task<ActionResult> DeactivateUser([FromQuery] string emails)
         {
-            string [] allEmails = emails.Split(",");
-            foreach(var email in allEmails)
+            string[] allEmails = emails.Split(",");
+            foreach (var email in allEmails)
             {
                 var user = await _portalRepository.GetUserByEmail(email);
                 user.IsDeactivated = true;
@@ -164,15 +171,15 @@ namespace IMK_web.Controllers
         {
             var ratings = await _portalRepository.GetRatings();
             return Ok(ratings);
-        }    
-        
+        }
+
         [HttpGet("questions")]
         public async Task<ActionResult> getRatingQuestions()
         {
             var questions = await _portalRepository.GetRatingQuestions();
             return Ok(questions);
-        }    
-        
+        }
+
         [HttpPost("question")]
         public async Task<ActionResult> addRatingQuestion([FromQuery] string name)
         {
@@ -193,7 +200,7 @@ namespace IMK_web.Controllers
             _portalRepository.Remove(question);
             await _portalRepository.SaveChanges();
             return Ok("Removed");
-        }  
+        }
 
         [HttpGet("logs")]
         public async Task<ActionResult> getLogs([FromQuery] string start, [FromQuery] string end)
