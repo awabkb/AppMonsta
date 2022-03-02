@@ -854,7 +854,7 @@ function getAlarms(startDate, endDate, country, operators) {
                         }
                     } : null),
                     //resolutionTime: e.alarmClearTime,
-                    ftr: !e.diagnostic ? null : (e.ftr == true ? "Yes" : e.ftr == false ? "No" : ""),
+                    ftr: (e.ftr == true ? "Yes" : e.ftr == false ? "No" : ""),
                     resolutionTime: e.alarmClearTime?.slice(0, 16) || ""
                 };
                 return el;
@@ -876,7 +876,7 @@ function getAlarms(startDate, endDate, country, operators) {
                     key: 'country',
                     title: 'Country',
                     sort: 'none',
-                    width: '5%'
+                    width: '4%'
 
                 },
                 {
@@ -936,7 +936,7 @@ function getAlarms(startDate, endDate, country, operators) {
                 },
                 {
                     key: 'diagnosticStartTime',
-                    title: 'Site Diagnostics',
+                    title: 'First Site Diagnostics',
                     onCreatedCell: (td, cellData) => {
                         if (cellData) {
                             const row = td.closest('tr');
@@ -966,7 +966,7 @@ function getAlarms(startDate, endDate, country, operators) {
                 },
                 {
                     key: 'resolutionTime',
-                    title: 'Resolution Time',
+                    title: 'Last Site Diagnostic',
                     sort: 'none',
                     width: '5%',
                 },
