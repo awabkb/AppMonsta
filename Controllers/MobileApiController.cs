@@ -408,8 +408,12 @@ namespace IMK_web.Controllers
             });
             await _appRepository.SaveChanges();
             siteIntegration.AiLog = null;
-
-            return Ok(siteIntegration);
+            if (Double.Parse(siteIntegration.AppVersion) > 4.47)
+            {
+                return Ok(siteIntegration.Id);
+            }
+            else
+                return Ok(siteIntegration);
 
         }
 
