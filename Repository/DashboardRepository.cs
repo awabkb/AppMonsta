@@ -737,6 +737,22 @@ namespace IMK_web.Repository
                     filteredIntegrations.Remove(lmtRecord);
 
                 }
+                else if (lmtRecord != null && vd.date.FirstOrDefault() >= Convert.ToDateTime(lmtRecord.DownloadStart).AddHours(8))
+                {
+                    if (siterevisit.ContainsKey(vd.siteName))
+                    {
+                        var T = siterevisit[vd.siteName];
+                        if (vd.date.FirstOrDefault() >= T.AddHours(8))
+                        {
+                            revisit = true;
+                            siterevisit[vd.siteName] = Convert.ToDateTime(lmtRecord.DownloadStart);
+                        }
+                    }
+                    else
+                        siterevisit.Add(vd.siteName, Convert.ToDateTime(lmtRecord.DownloadStart));
+                    lmtRecord = null;
+
+                }
                 else
                 {
                     lmtRecord = null;
@@ -870,31 +886,33 @@ namespace IMK_web.Repository
                     if (log.Command.Equals("alarm"))
                     {
                         dynamic results = null;
+
+
                         alarmsChecked = true;
 
-
-
                         results = JsonConvert.DeserializeObject(log.Result);
-
-                        foreach (var alarm in results)
+                        if (results != null)
                         {
-                            string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
-                            if (GetAlarmType(alarmType).Equals("Field"))
+                            foreach (var alarm in results)
                             {
-                                if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
+                                if (GetAlarmType(alarmType).Equals("Field"))
                                 {
-                                    if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                    if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                    {
+                                        if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                    }
+                                    if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
+                                    else alarmTypes[alarmType] = 1;
+                                    if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
+                                    if (!recorded)
+                                    {
+                                        visit.Date = log.TimeOfAction.ToString("yyyy-MM-dd HH:mm");
+                                        recorded = true;
+                                    }
                                 }
-                                if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
-                                else alarmTypes[alarmType] = 1;
-                                if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
-                                if (!recorded)
-                                {
-                                    visit.Date = log.TimeOfAction.ToString("yyyy-MM-dd HH:mm");
-                                    recorded = true;
-                                }
-                            }
 
+                            }
                         }
                         clearedAlarms = alarms.Except(currentAlarms);
                         IEnumerable<string> newAlarms = currentAlarms.Except(alarms);
@@ -936,10 +954,11 @@ namespace IMK_web.Repository
                     visit.FTR = false;
                     visit.AlarmClearTime = null;
                 }
-                /*  if (!alarms.Any() && alarmsChecked)
-                  {
-                      visit.FTR = true;
-                  }*/
+                if (visit.AlarmClearTime != null && visit.SiteIntegration != null && Convert.ToDateTime(visit.AlarmClearTime) > Convert.ToDateTime(visit.SiteIntegration.DownloadStart).AddHours(8))
+                {
+                    visit.FTR = false;
+                    visit.AlarmClearTime = null;
+                }
                 visit.Logs = null;
 
             }
@@ -1634,19 +1653,21 @@ namespace IMK_web.Repository
                             if (!log.Result.Equals("null"))
                             {
                                 results = JsonConvert.DeserializeObject(log.Result);
-
-                                foreach (var alarm in results)
+                                if (results != null)
                                 {
-                                    string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
-
-                                    if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                    foreach (var alarm in results)
                                     {
-                                        if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
-                                    }
-                                    if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
-                                    else alarmTypes[alarmType] = 1;
-                                    if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
+                                        string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
 
+                                        if (!commands.ContainsKey(log.Command)) //first alarm attempt
+                                        {
+                                            if (!alarms.Contains(alarmType)) alarms.Add(alarmType);
+                                        }
+                                        if (alarmTypes.ContainsKey(alarmType)) alarmTypes[alarmType]++;
+                                        else alarmTypes[alarmType] = 1;
+                                        if (!currentAlarms.Contains(alarmType)) currentAlarms.Add(alarmType);
+
+                                    }
                                 }
                             }
 
@@ -2213,7 +2234,7 @@ namespace IMK_web.Repository
             {
                 allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm"))).Include("Site").Include("User").Include(x => x.User.AspCompany)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
-                .Where(x => x.Logs.Any(x => x.Command.Equals("alarm")))
+                //.Where(x => x.Logs.Any(x => x.Command.Equals("alarm")))
                 .ToListAsync();
             }
             else
@@ -2238,7 +2259,7 @@ namespace IMK_web.Repository
             }
 
             var visitDetails = allVisits.OrderBy(y => y.StartTime).Where(y => y.Site.Name != null)
-            .Where(x => x.Logs.Any(y => !(GetAlarmType(y.Result)).Equals("Remote")))
+            //.Where(x => x.Logs.Any(y => !(GetAlarmType(y.Result)).Equals("Remote")))
             .GroupBy(x => new { x.Site, x.User?.UserId, x.StartTime.Date }).Select(y => new
             {
                 site = y.Key.Site,
@@ -2347,10 +2368,10 @@ namespace IMK_web.Repository
                     {
                         dynamic results = null;
 
-                        if (!log.Result.Equals("null"))
-                        {
-                            results = JsonConvert.DeserializeObject(log.Result);
 
+                        results = JsonConvert.DeserializeObject(log.Result);
+                        if (results != null)
+                        {
                             foreach (var alarm in results)
                             {
                                 string alarmType = (alarm.DESCRIPTION).ToString().Split(".")[0];
@@ -2366,38 +2387,40 @@ namespace IMK_web.Repository
                                     initialAlarmTime = log.TimeOfAction;
                                 }
                             }
-                            clearedAlarms = alarms.Except(currentAlarms);
-                            IEnumerable<string> newAlarms = currentAlarms.Except(alarms);
-
-                            // update the alarms left
-                            //alarms.RemoveAll(a => clearedAlarms.Contains(a));
-                            foreach (var item in newAlarms) alarms.Add(item);
-                            //var _alarms = new List<string>();
-                            // List<string> fieldAlarmsOnly = new List<string>();
-                            if (clearedAlarms.Any())
-                            {
-                                alarms.RemoveAll(a => clearedAlarms.Contains(a));
-                                commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (log.TimeOfAction - initialAlarmTime)?.TotalMinutes, Country = visit.Site.Country });
-                                //commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
-
-                            }
-                            else if (alarms.Any())
-                            {
-
-                                commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = visit.StartTime, Country = visit.Site.Country });
-
-                            }
-                            else if (!clearedAlarms.Any() && !alarms.Any())
-                            {
-                                commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
-                            }
-                            else
-                            {
-                                continue;
-                            }
-
-                            foreach (var item in newAlarms) alarms.Add(item);
                         }
+
+                        clearedAlarms = alarms.Except(currentAlarms);
+                        IEnumerable<string> newAlarms = currentAlarms.Except(alarms);
+
+                        // update the alarms left
+                        //alarms.RemoveAll(a => clearedAlarms.Contains(a));
+                        foreach (var item in newAlarms) alarms.Add(item);
+                        //var _alarms = new List<string>();
+                        // List<string> fieldAlarmsOnly = new List<string>();
+                        if (clearedAlarms.Any())
+                        {
+                            alarms.RemoveAll(a => clearedAlarms.Contains(a));
+                            commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (log.TimeOfAction - initialAlarmTime)?.TotalMinutes, Country = visit.Site.Country });
+                            //commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
+
+                        }
+                        else if (alarms.Any())
+                        {
+
+                            commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Failed", Time = visit.StartTime, Country = visit.Site.Country });
+
+                        }
+                        else if (!clearedAlarms.Any() && !alarms.Any())
+                        {
+                            commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
+                        foreach (var item in newAlarms) alarms.Add(item);
+
 
 
                     }

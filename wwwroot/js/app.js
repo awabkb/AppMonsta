@@ -1025,7 +1025,7 @@ function getAlarms(startDate, endDate, country, operators) {
 
             if (document.querySelector('#export-new-visits-admin') != null) {
 
-                document.querySelector('#export-new-visits-admin')?.addEventListener('click', () => {
+                document.querySelector('#export-new-visits-admin')?.addEventListener('click', (e) => {
                     //////////////////////prepare data to export/////////////////////////////
                     const rows = [];
                     rows.push(['Country',
@@ -1046,6 +1046,7 @@ function getAlarms(startDate, endDate, country, operators) {
                         'Diagnostics App Version',
                         'Resolution Time',
                         'FTR Status',
+                        'Is Revisit'
 
                     ]);
                     var currentTable = document.getElementById("site-details-updated");
@@ -1083,7 +1084,8 @@ function getAlarms(startDate, endDate, country, operators) {
                         e.diagnostic?.siteVisit?.rpiVersion || "",
                         e.diagnostic?.siteVisit?.appVersion || "",
                         e.resolutionTime || "",
-                        e.ftr || ""
+                        e.ftr || "",
+                        e.isRevisit
                         ],
                         );
                     });
