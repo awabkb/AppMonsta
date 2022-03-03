@@ -462,8 +462,8 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                         "moreThan": 1,
                         "color": "orange"
                     },
-                ]
-                // onSelect: common => openE2E(common),
+                ],
+                height: 350
             });
 
             chart.init()
@@ -582,7 +582,8 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                         "moreThan": 1,
                         "color": "yellow"
                     },
-                ]
+                ],
+                height: 350
             });
 
             chart.init();
@@ -1486,13 +1487,15 @@ function getAlarms(startDate, endDate, country, operators) {
                     "common": names,
                     "series": [{ "name": "Top Asp", "values": sites }]
                 },
+                height: 350,
                 x: { unit: 'Sites' },
                 thresholds: [
                     {
                         "moreThan": 1,
                         "color": "orange"
                     },
-                ]
+
+                ],
                 // onSelect: common => openE2E(common),
             });
 
@@ -1607,6 +1610,7 @@ function getAlarms(startDate, endDate, country, operators) {
                     series: [{ "name": "Revisits", "values": revisits }],
                 },
                 x: { unit: 'Total' },
+                height: 350,
                 thresholds: [
                     {
                         "moreThan": 1,
