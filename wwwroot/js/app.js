@@ -1171,16 +1171,7 @@ function getAlarms(startDate, endDate, country, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
-            const _res = [{
-                "contentType": null, "serializerSettings": null, "statusCode": null,
-                "value": { "failed_per_visit": { "alarm": 8 }, "resolved_per_visit": { "alarm": 2 }, "avg_resolution": { "alarm": 0 } }
-            }, {
-                "contentType": null, "serializerSettings": null, "statusCode": null,
-                "value": {
-                    "passed_per_visit": { "rssi-nr": 16, "rssi-lte EUtranCellFDD": 10, "rssi_umts": 0, "vswr": 17, "rssi-lte EUtranCellTDD": 6, "alarm": 2 }, "failed_per_visit": { "rssi-nr": 18, "rssi-lte EUtranCellFDD": 34, "rssi_umts": 45, "vswr": 3, "rssi-lte EUtranCellTDD": 2, "alarm": 8 }, "resolved_per_visit": { "rssi-nr": 1, "rssi-lte EUtranCellFDD": 3, "rssi_umts": 0, "vswr": 4, "rssi-lte EUtranCellTDD": 1, "alarm": 2 }, "avg_resolution": { "rssi-nr": 332, "rssi-lte EUtranCellFDD": 14, "rssi_umts": 0, "vswr": 26, "rssi-lte EUtranCellTDD": 0, "alarm": 0 }, "median_resolution": { "rssi-nr": 332, "rssi-lte EUtranCellFDD": 0, "rssi_umts": 0, "vswr": 13, "rssi-lte EUtranCellTDD": 0, "alarm": 0 },
-                    "alarm_types": { "X2 link problem to one or several neighbouring eNodeBs": 6, "Timeout while waiting for response from radio that is unable to synchronize": 3, "Key file fault in Managed Element": 3, "Not in operation": 2, "No Additional Info": 2, "No PTP messages": 1, "Time and phase sync accuracy crossed the threshold for TDD": 1 }, "field_alarms": { "Timeout while waiting for response from radio that is unable to synchronize": 3, "Not in operation": 2 }, "remote_alarms": { "X2 link problem to one or several neighbouring eNodeBs": 6, "Key file fault in Managed Element": 3, "No Additional Info": 2, "No PTP messages": 1, "Time and phase sync accuracy crossed the threshold for TDD": 1 }, "misc_alarms": {}
-                }
-            }];
+
             ////////////////// Pass / Fail status (per visit)
             const element = document.getElementById('pass-fail');
             var vpassedResult = res[1].value["passed_per_visit"];
@@ -1193,6 +1184,7 @@ function getAlarms(startDate, endDate, country, operators) {
             var alarmresolved = res[0].value["resolved_per_visit"];
             var alarmfailed = res[0].value["failed_per_visit"];
             var alarmresolution = res[0].value["avg_resolution"];
+            var alarmFTR = alarmpassed["alarm"] + alarmresolved["alarm"];
 
             var passed_per_visit = {
                 "VSWR": vpassedResult["vswr"] ? vpassedResult["vswr"] : 0,
@@ -1200,7 +1192,7 @@ function getAlarms(startDate, endDate, country, operators) {
                 "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
                 "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
                 "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
-                "Field Alarm": alarmpassed["alarm"] ? alarmpassed["alarm"] : 0
+                "Field Alarm": alarmFTR ? alarmFTR : 0
             }
             var failed_per_visit = {
                 "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,

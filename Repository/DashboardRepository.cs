@@ -2401,8 +2401,6 @@ namespace IMK_web.Repository
                         {
                             alarms.RemoveAll(a => clearedAlarms.Contains(a));
                             commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Resolved", Duration = (log.TimeOfAction - initialAlarmTime)?.TotalMinutes, Country = visit.Site.Country });
-                            //commands[log.Command] = JsonConvert.SerializeObject(new { Status = "Passed", Duration = 0, Country = visit.Site.Country });
-
                         }
                         else if (alarms.Any())
                         {
