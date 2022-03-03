@@ -2394,7 +2394,7 @@ namespace IMK_web.Repository
 
                         // update the alarms left
                         //alarms.RemoveAll(a => clearedAlarms.Contains(a));
-                        foreach (var item in newAlarms) alarms.Add(item);
+                       // foreach (var item in newAlarms) alarms.Add(item);
                         //var _alarms = new List<string>();
                         // List<string> fieldAlarmsOnly = new List<string>();
                         if (clearedAlarms.Any())

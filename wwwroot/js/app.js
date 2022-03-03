@@ -1042,7 +1042,7 @@ function getAlarms(startDate, endDate, country, operators) {
                         'Diagnostics Field Engineer',
                         'Diagnostics Field Engineer Phone',
                         'Diagnostics Field Engineer Email',
-                        'Diagnostics IMK_Version',
+                        'Diagnostics IMK Version',
                         'Diagnostics App Version',
                         'Resolution Time',
                         'FTR Status',
@@ -1107,19 +1107,23 @@ function getAlarms(startDate, endDate, country, operators) {
                     ///////////prepare data to export/////////
                     const rows = [];
                     rows.push(['Country',
-                        'SiteName',
-                        'IntegrationAspCompany',
-                        'IntegrationStart',
-                        'IntegrationEnd',
-                        'IntegrationDuration',
-                        'IntegrationFieldEngineer',
-                        'IntegrationAndroidVersion',
-                        'IntegrationResult',
-                        'DiagnosticsAspCompany',
-                        'DiagnosticsStartTime',
-                        'DiagnosticsFieldEngineer',
-                        'DiagnosticsIMK_Version',
-                        'DiagnosticsAndroidVersion']);
+                        'Site Name',
+                        'Integration Asp Company',
+                        'Integration Start',
+                        'Integration End',
+                        'Integration Duration',
+                        'Integration Field Engineer',
+                        'Integration Android Version',
+                        'Integration Result',
+                        'Diagnostics Asp Company',
+                        'Diagnostics Start Time',
+                        'Diagnostics Field Engineer',
+                        'Diagnostics IMK Version',
+                        'Diagnostics Android Version',
+                        'Resolution Time',
+                        'FTR Status',
+                        'Is Revisit'
+                    ]);
                     var currentTable = document.getElementById("site-details-updated");
                     var siteNames = [];
                     var trs = currentTable.tBodies[0].getElementsByTagName("tr");
@@ -1149,7 +1153,11 @@ function getAlarms(startDate, endDate, country, operators) {
                         e.diagnostic?.siteVisit?.startTime?.slice(0, 16) || "",
                         e.diagnostic?.siteVisit?.user?.name || "",
                         e.diagnostic?.siteVisit?.rpiVersion || "",
-                        e.diagnostic?.siteVisit?.appVersion || ""]);
+                        e.diagnostic?.siteVisit?.appVersion || "",
+                        e.resolutionTime || "",
+                        e.ftr || "",
+                        e.isRevisit
+                        ]);
                     });
 
                     ////////////////////////////////////////////
