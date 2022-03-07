@@ -134,7 +134,7 @@
                             </div>
 
                         </span>
-                        <span class="tooltip" style="margin-left:55%;">
+                        <span class="tooltip dotted" style="margin-left:55%;">
                             <i class="icon icon-download-save" id="export-ratings">
                             </i>
                             <span class="message left">Export to excel</span>
@@ -613,8 +613,22 @@
                                     <div class="table-top">
                                         <div class="table-top-left">
                                             <div class="table-info ml-2"></div>
-                                        </div>
+                                            <div class="progress-bar green" style="margin-left:10px;">
 
+                                                <label style="color: #6a6a6a; font-size:14px;" id="ftr-label"></label>
+                                                <progress id="ftr-percentage" max="100" style="width:300px;"></progress>
+                                                <span>
+
+                                                    <span id="ftr-value" style="color: #6a6a6a; font-size:14px;"></span>
+                                                    <span class="tooltip">
+                                                        <i class="icon icon-info" id="ftr-info">
+                                                        </i>
+                                                        <span class="message right">Revisits are not calculated</span>
+                                                    </span>
+                                                </span>
+
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <table id="site-details-updated" class="table compact striped"></table>

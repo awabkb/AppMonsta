@@ -860,6 +860,14 @@ function getAlarms(startDate, endDate, country, operators) {
                 };
                 return el;
             });
+            ////not considiering revisits////
+            var ftrCount = tableData?.filter(item => item.ftr?.toUpperCase() == "YES" && !item.isRevisit)?.length;
+            var totalCountWithNoRevisit = tableData?.filter(item => !item.isRevisit)?.length;
+            var ftrPercentage = Math.round(ftrCount / totalCountWithNoRevisit * 100);
+            document.getElementById("ftr-percentage").value = ftrPercentage?.toString();
+            document.getElementById("ftr-value").innerHTML = ftrPercentage?.toString() + "%";
+            document.getElementById("ftr-label").innerHTML = "FTR Percentage (" + ftrCount + "/" + totalCountWithNoRevisit + ")";
+
             console.log(tableData);
             const tableDOM = document.querySelector('#site-details-updated');
             tableDOM.innerHTML = '';
