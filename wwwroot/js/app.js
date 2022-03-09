@@ -1117,9 +1117,9 @@ function getAlarms(startDate, endDate, country, operators) {
                     const rows = [];
                     rows.push(['Country',
                         'Site Name',
-                        'Integration Asp Company',
                         'Integration Start',
                         'Integration End',
+                        'Integration Asp Company',
                         'Integration Duration',
                         'Integration Field Engineer',
                         'Integration Android Version',
