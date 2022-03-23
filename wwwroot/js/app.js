@@ -989,7 +989,7 @@ function getAlarms(startDate, endDate, country, operators) {
                         else if (cellData == "No")
                             td.innerHTML = `<span class="pill" style="background-color: rgb(249, 226, 225);">${cellData}</span>`;
                         else
-                            td.innerHTML = "";
+                            td.innerHTML = "N/A"
                     },
                     hideFilter: true,
                     width: '3%'
@@ -1039,6 +1039,7 @@ function getAlarms(startDate, endDate, country, operators) {
                     const rows = [];
                     rows.push(['Country',
                         'Site Name',
+                        'Operator',
                         'Integration Asp Company',
                         'Integration Start',
                         'Integration End',
@@ -1078,6 +1079,7 @@ function getAlarms(startDate, endDate, country, operators) {
                     reportData.forEach(e => {
                         rows.push([e.country || "",
                         e.siteName || "",
+                        e.operatorName || "",
                         e.siteIntegration?.asp || "",
                         e.siteIntegration?.downloadStart || "",
                         e.siteIntegration?.integrateEnd || "",
@@ -1093,7 +1095,7 @@ function getAlarms(startDate, endDate, country, operators) {
                         e.diagnostic?.siteVisit?.rpiVersion || "",
                         e.diagnostic?.siteVisit?.appVersion || "",
                         e.resolutionTime || "",
-                        e.ftr || "",
+                        e.ftr || "N/A",
                         e.isRevisit
                         ],
                         );
@@ -1117,9 +1119,10 @@ function getAlarms(startDate, endDate, country, operators) {
                     const rows = [];
                     rows.push(['Country',
                         'Site Name',
+                        'Operator',
+                        'Integration Asp Company',
                         'Integration Start',
                         'Integration End',
-                        'Integration Asp Company',
                         'Integration Duration',
                         'Integration Field Engineer',
                         'Integration Android Version',
@@ -1151,9 +1154,10 @@ function getAlarms(startDate, endDate, country, operators) {
                     reportData.forEach(e => {
                         rows.push([e.country || "",
                         e.siteName || "",
+                        e.operatorName || "",
+                        e.siteIntegration?.asp || "",
                         e.siteIntegration?.downloadStart || "",
                         e.siteIntegration?.downloadEnd || "",
-                        e.siteIntegration?.asp || "",
                         e.siteIntegration?.integrationTime || "",
                         e.siteIntegration?.user || "",
                         e.siteIntegration?.androidVersion || "",
@@ -1164,7 +1168,7 @@ function getAlarms(startDate, endDate, country, operators) {
                         e.diagnostic?.siteVisit?.rpiVersion || "",
                         e.diagnostic?.siteVisit?.appVersion || "",
                         e.resolutionTime || "",
-                        e.ftr || "",
+                        e.ftr || "N/A",
                         e.isRevisit
                         ]);
                     });
@@ -1209,7 +1213,7 @@ function getAlarms(startDate, endDate, country, operators) {
                 "RSSI-LTE FDD": vpassedResult["rssi-lte EUtranCellFDD"] ? vpassedResult["rssi-lte EUtranCellFDD"] : 0,
                 "RSSI-LTE TDD": vpassedResult["rssi-lte EUtranCellTDD"] ? vpassedResult["rssi-lte EUtranCellTDD"] : 0,
                 "RSSI-NR": vpassedResult["rssi-nr"] ? vpassedResult["rssi-nr"] : 0,
-                "Field Alarm": alarmFTR ? alarmFTR : 0
+                "Field Alarm": parseInt(alarmresolved['alarm']) + parseInt(alarmfailed['alarm']) + parseInt(alarmpassed['alarm']) || 0
             }
             var failed_per_visit = {
                 "VSWR": vfailedResult["vswr"] ? vfailedResult["vswr"] : 0,
@@ -1248,7 +1252,9 @@ function getAlarms(startDate, endDate, country, operators) {
             const chart = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
-                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR", "Field Alarm"],
+                    "common": ["VSWR", "RSSI UMTS", "RSSI-LTE FDD", "RSSI-LTE TDD", "RSSI-NR"
+                        //, "Field Alarm"
+                    ],
                     "series": [
                         { "name": "Passed FTR", "values": Object.values(passed_per_visit) },
                         { "name": "Failed", "values": Object.values(failed_per_visit) },

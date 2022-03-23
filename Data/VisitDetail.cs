@@ -29,6 +29,8 @@ namespace Data
         public String AlarmClearTime { get; set; }
         [NotMapped]
         public DateTime? AlarmTime { get; set; }
+        [NotMapped]
+        public string OperatorName { get; set; }
 
     }
 }
