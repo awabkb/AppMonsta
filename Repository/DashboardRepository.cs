@@ -636,15 +636,32 @@ namespace IMK_web.Repository
         {
             List<SiteVisit> allVisits = null;
             List<IntegrationDetail> lmts = new List<IntegrationDetail>();
-
+            var startTime = Convert.ToDateTime(start).Date;
+            var endTime = Convert.ToDateTime(end).Date;
             var siteIntegrations = new List<IntegrationDetail>();
             //get diagnostics
-            var _siteIntegrations = _context.SiteIntegrations.Where(x => x.SiteName != null)
-                         .Where(x => x.DownloadStart != null)
-                         .OrderByDescending(x => x.DownloadStart).ToList();
+            var _siteIntegrations = _context.SiteIntegrations.AsNoTracking()
+                .Where(x => x.SiteName != null
+                && x.DownloadStart != null
+                && x.CountryName == countries
+                && x.DownloadStart != null)
+                // && (Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date))
+                .Select(item => new SiteIntegration
+                {
+                   
+                    SiteName = item.SiteName,
+                    CountryCode = item.CountryCode,
+                    CountryName = item.CountryName,
+                    DownloadStart = item.DownloadStart,
+                    DownloadEnd = item.DownloadEnd,
+                    Outcome = item.Outcome,
+                    AppVersion = item.AppVersion,
+                    UserId = item.UserId
+                })
+                 .OrderByDescending(x => x.DownloadStart).ToList();
 
             var integrations = _siteIntegrations
-            .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date)
+            .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= startTime && Convert.ToDateTime(x.DownloadStart).Date <= endTime)
             .GroupBy(x => new
             {
                 x.SiteName,
@@ -652,19 +669,26 @@ namespace IMK_web.Repository
                 start = x.DownloadStart != null ? Convert.ToDateTime(x.DownloadStart).Date : Convert.ToDateTime(x.IntegrateEnd).Date
 
             });
+            var usersIds = _siteIntegrations
+                            .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= startTime && Convert.ToDateTime(x.DownloadStart).Date <= endTime)
+                            .Select(item => item.UserId);
+            Dictionary<string, User> users = _context.Users.Where(user => usersIds.Contains(user.UserId))
+                .Select(item => new KeyValuePair<string, User>(item.UserId, item)).ToDictionary(k => k.Key, k => k.Value);
+
             List<IntegrationDetail> filteredIntegrations = null;
+
             foreach (var integration in integrations)
             {
+                users.TryGetValue(integration.FirstOrDefault().UserId, out User user);
 
-                User user = await this.GetUser(integration.FirstOrDefault().UserId);
-                Site site = await this.GetSite(integration.FirstOrDefault().SiteName, integration.FirstOrDefault().CountryName);
+                // Site site = await this.GetSite(integration.FirstOrDefault().SiteName, integration.FirstOrDefault().CountryName);
 
                 IntegrationDetail visit = new IntegrationDetail();
                 visit.SiteName = integration.FirstOrDefault().SiteName;
                 visit.Country = integration.FirstOrDefault().CountryName == null ? user.AspCompany.Country.Name : integration.FirstOrDefault().CountryName;
                 visit.User = user.Name;
-                visit.Asp = user.AspCompany.Name;
-                visit.Operator = site == null ? null : site.Operator.Name;
+                visit.Asp = user.AspCompany?.Name;
+                //visit.Operator = site == null ? null : site.Operator.Name;
                 visit.DownloadStart = integration.FirstOrDefault().DownloadStart.ToString();
                 visit.DownloadEnd = integration.Last().DownloadEnd?.ToString();
                 visit.IntegrateStart = integration.FirstOrDefault().IntegrateStart;
@@ -682,8 +706,8 @@ namespace IMK_web.Repository
                 return new JsonResult(null);
             else if (countries == "all")
             {
-                allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany)
-                .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                allVisits = await _context.SiteVisits.AsNoTracking().Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany)
+                .Where(x => x.StartTime.Date >= startTime && x.StartTime.Date <= endTime)
                 .ToListAsync();
                 filteredIntegrations = lmts;
 
@@ -693,8 +717,8 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
-                    .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                    allVisits = await _context.SiteVisits.AsNoTracking().Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Where(c => arrCountries.Contains(c.Site.Country))
+                    .Where(x => x.StartTime.Date >= startTime && x.StartTime.Date <= endTime)
                     .ToListAsync();
                     filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).ToList();
 
@@ -704,9 +728,9 @@ namespace IMK_web.Repository
                     string[] arrCountries = countries.Split(",");
                     string[] arrOps = operators.Split(",");
 
-                    allVisits = await _context.SiteVisits.Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
+                    allVisits = await _context.SiteVisits.AsNoTracking().Include(x => x.Logs.Where(y => y.Command.Equals("alarm") && !String.IsNullOrEmpty(y.Result))).Include("Site").Include("User").Include(x => x.User.AspCompany).Include(x => x.Site.Operator)
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
-                        .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date)
+                        .Where(x => x.StartTime.Date >= startTime && x.StartTime.Date <= endTime)
                         .ToListAsync();
                     filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).Where(c => arrOps.Contains(c.Operator)).ToList();
 
@@ -927,11 +951,6 @@ namespace IMK_web.Repository
 
                         foreach (var item in newAlarms) alarms.Add(item);
                     }
-
-
-
-
-
                 }
                 if (!clearedAlarms.Any() && !alarms.Any() && alarmsChecked)
                 {
@@ -984,9 +1003,13 @@ namespace IMK_web.Repository
                 Date = e.DownloadStart,
                 FTR = null
 
-            })); ;
-            // return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
-            return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
+            }));
+
+            //var test = JsonConvert.SerializeObject(uniqueVisits.OrderByDescending(x => x.Date).Take(1))
+
+
+            return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date).ToList());
+            //return new JsonResult(uniqueVisits.OrderByDescending(x => x.Date));
 
         }
 

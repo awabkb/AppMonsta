@@ -63,7 +63,7 @@ namespace IMK_web.Controllers
             {
                 if (tmp_user != null)
                 {
-                    return BadRequest("Email already in use");
+                    return BadRequest(new { Message = "Email already in use" });
                 }
                 else
                 {
