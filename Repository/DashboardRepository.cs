@@ -672,7 +672,7 @@ namespace IMK_web.Repository
             var usersIds = _siteIntegrations
                             .Where(x => Convert.ToDateTime(x.DownloadStart).Date >= startTime && Convert.ToDateTime(x.DownloadStart).Date <= endTime)
                             .Select(item => item.UserId);
-            Dictionary<string, User> users = _context.Users.Where(user => usersIds.Contains(user.UserId))
+            Dictionary<string, User> users = _context.Users.Where(user => usersIds.Contains(user.UserId)).Include(u => u.AspCompany)
                 .Select(item => new KeyValuePair<string, User>(item.UserId, item)).ToDictionary(k => k.Key, k => k.Value);
 
             List<IntegrationDetail> filteredIntegrations = null;
