@@ -194,6 +194,7 @@ $("#get-alarms-data-details").on("click", function () {
     document.getElementById("loading-details").style.visibility = 'visible';
 
     getAlarms(startDate, endDate, countriesFilter, operatorsFilter);
+    initMap(s, e, ma);
 
 });
 
@@ -2330,7 +2331,7 @@ function initMap(start, end, m_a) {
                 var isocode = getCountryName(obj["country"])
                 if (isocode != "Other") {
                     var data = []
-                    if (obj["percent"] > 20) {
+                    if (obj["percent"] >= 20) {
 
                         data["title"] = obj["country"]
                         data["id"] = isocode;
@@ -2344,7 +2345,7 @@ function initMap(start, end, m_a) {
                         data["customData"] = obj["users"] + " (" + obj["percent"] + "%)";
                         data["fill"] = "#FA842A"
                     }
-                    if (obj["percent"] < 10) {
+                    if (obj["percent"] <= 10) {
                         var data = [];
 
                         data["title"] = obj["country"]

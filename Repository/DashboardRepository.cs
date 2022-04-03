@@ -648,7 +648,7 @@ namespace IMK_web.Repository
                 // && (Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date))
                 .Select(item => new SiteIntegration
                 {
-                   
+
                     SiteName = item.SiteName,
                     CountryCode = item.CountryCode,
                     CountryName = item.CountryName,
@@ -1381,12 +1381,15 @@ namespace IMK_web.Repository
                                     foreach (var result in results)
                                     {
                                         String status = result.STATUS;
-                                        if (status.Equals("PASSED"))
-                                            passed = 1;
-                                        else if (status.Equals("FAILED"))
+                                        if (!String.IsNullOrEmpty(status))
                                         {
-                                            passed = 0;
-                                            break;
+                                            if (status.Equals("PASSED"))
+                                                passed = 1;
+                                            else if (status.Equals("FAILED"))
+                                            {
+                                                passed = 0;
+                                                break;
+                                            }
                                         }
                                     }
                                     if (passed == 1)
@@ -1438,15 +1441,20 @@ namespace IMK_web.Repository
                                 case "rssi-lte EUtranCellFDD":
                                     foreach (var result in results)
                                     {
-                                        double rssi;
-                                        bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                        if (isValue == true && rssi <= -110)
-                                            passed = 1;
-                                        else if (isValue == false || rssi > -110)
+                                        if (result.RSSI != null)
                                         {
-                                            passed = 0;
-                                            break;
+                                            double rssi;
+
+                                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                            if (isValue == true && rssi <= -110)
+                                                passed = 1;
+                                            else if (isValue == false || rssi > -110)
+                                            {
+                                                passed = 0;
+                                                break;
+                                            }
                                         }
+
                                     }
                                     if (passed == 1)
                                         if (pCommands.ContainsKey("fdd"))
@@ -1466,13 +1474,16 @@ namespace IMK_web.Repository
                                     foreach (var result in results)
                                     {
                                         double rssi;
-                                        bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                        if (isValue == true && rssi <= -110)
-                                            passed = 1;
-                                        else if (isValue == false || rssi > -110)
+                                        if (result.RSSI != null)
                                         {
-                                            passed = 0;
-                                            break;
+                                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                            if (isValue == true && rssi <= -110)
+                                                passed = 1;
+                                            else if (isValue == false || rssi > -110)
+                                            {
+                                                passed = 0;
+                                                break;
+                                            }
                                         }
                                     }
                                     if (passed == 1)
@@ -1492,14 +1503,17 @@ namespace IMK_web.Repository
                                 case "rssi-nr":
                                     foreach (var result in results)
                                     {
-                                        double rssi;
-                                        bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
-                                        if (isValue == true && rssi <= -110)
-                                            passed = 1;
-                                        else if (isValue == false || rssi > -110)
+                                        if (result.RSSI != null)
                                         {
-                                            passed = 0;
-                                            break;
+                                            double rssi;
+                                            bool isValue = double.TryParse((result.RSSI).ToString(), out rssi);
+                                            if (isValue == true && rssi <= -110)
+                                                passed = 1;
+                                            else if (isValue == false || rssi > -110)
+                                            {
+                                                passed = 0;
+                                                break;
+                                            }
                                         }
                                     }
                                     if (passed == 1)
