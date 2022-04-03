@@ -648,7 +648,6 @@ namespace IMK_web.Repository
                 // && (Convert.ToDateTime(x.DownloadStart).Date >= Convert.ToDateTime(start).Date && Convert.ToDateTime(x.DownloadStart).Date <= Convert.ToDateTime(end).Date))
                 .Select(item => new SiteIntegration
                 {
-
                     SiteName = item.SiteName,
                     CountryCode = item.CountryCode,
                     CountryName = item.CountryName,
@@ -656,7 +655,9 @@ namespace IMK_web.Repository
                     DownloadEnd = item.DownloadEnd,
                     Outcome = item.Outcome,
                     AppVersion = item.AppVersion,
-                    UserId = item.UserId
+                    UserId = item.UserId,
+                    IntegrateStart = item.IntegrateStart,
+                    IntegrateEnd = item.IntegrateEnd
                 })
                  .OrderByDescending(x => x.DownloadStart).ToList();
 
@@ -692,8 +693,8 @@ namespace IMK_web.Repository
                 visit.DownloadStart = integration.FirstOrDefault().DownloadStart.ToString();
                 visit.DownloadEnd = integration.Last().DownloadEnd?.ToString();
                 visit.IntegrateStart = integration.FirstOrDefault().IntegrateStart;
-                visit.IntegrateEnd = integration.Last().IntegrateEnd;
-                visit.Outcome = integration.Last().Outcome;
+                visit.IntegrateEnd = integration.LastOrDefault().IntegrateEnd;
+                visit.Outcome = integration.LastOrDefault().Outcome;
                 visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
                     "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
                 visit.AndroidVersion = integration.FirstOrDefault().AppVersion;
