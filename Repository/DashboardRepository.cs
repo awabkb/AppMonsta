@@ -690,10 +690,10 @@ namespace IMK_web.Repository
                 visit.User = user.Name;
                 visit.Asp = user.AspCompany?.Name;
                 //visit.Operator = site == null ? null : site.Operator.Name;
-                visit.DownloadStart = integration.FirstOrDefault().DownloadStart.ToString();
-                visit.DownloadEnd = integration.Last().DownloadEnd?.ToString();
-                visit.IntegrateStart = integration.FirstOrDefault().IntegrateStart;
-                visit.IntegrateEnd = integration.LastOrDefault().IntegrateEnd;
+                visit.DownloadStart = integration.LastOrDefault().DownloadStart.ToString();
+                visit.DownloadEnd = integration.FirstOrDefault().DownloadEnd?.ToString();
+                visit.IntegrateStart = integration.LastOrDefault().IntegrateStart;
+                visit.IntegrateEnd = integration.FirstOrDefault().IntegrateEnd;
                 visit.Outcome = integration.LastOrDefault().Outcome;
                 visit.IntegrationTime = String.IsNullOrEmpty(visit.DownloadStart) || String.IsNullOrEmpty(visit.IntegrateEnd) ?
                     "0 mins" : ((int)(Convert.ToDateTime(visit.IntegrateEnd) - Convert.ToDateTime(visit.DownloadStart)).TotalMinutes).ToString() + " mins";
