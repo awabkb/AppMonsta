@@ -591,7 +591,17 @@ namespace IMK_web.Controllers
                 else
                     op = "MOOV";
             }
-
+            if (country.Equals("Rwanda"))
+            {
+                if (Regex.IsMatch(sitename, "[1-9][a-zA-Z][0-9]{1,3}[_].*"))
+                {
+                    op = "MTN RW";
+                }
+                else
+                {
+                    op = "Airtel";
+                }
+            }
             return op;
 
         }
