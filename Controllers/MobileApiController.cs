@@ -451,7 +451,7 @@ namespace IMK_web.Controllers
             var aspCompany = await _appRepository.GetAspCompanyByCountry(userDto.AspCompany, userDto.Country);
             var aspManagers = await _appRepository.GetAspManagers(aspCompany.Country.Name);
 
-            var url = "https://localhost:5001/api/mobileapi/activate";
+            var url = "https://installationmaintenancekit.ericsson.net/api/mobileapi/activate";
 
             string body = @"<html>
                       <body>
