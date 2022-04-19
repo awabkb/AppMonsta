@@ -94,7 +94,7 @@ namespace IMK_web.Controllers
                     _appRepository.Add(user);
 
                     await _appRepository.SaveChanges();
-                    //await this.sendAccessRequest(userDto).ConfigureAwait(false);
+                    await sendAccessRequest(userDto).ConfigureAwait(false);
                     UserToReturn userToReturnDto = new UserToReturn();
                     userToReturnDto.AspCompany = user.AspCompany.Name;
                     userToReturnDto.Email = user.Email;
