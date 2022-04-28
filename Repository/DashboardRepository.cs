@@ -733,7 +733,7 @@ namespace IMK_web.Repository
                         .Where(c => arrCountries.Contains(c.Site.Country)).Where(c => arrOps.Contains(c.Site.Operator.Name))
                         .Where(x => x.StartTime.Date >= startTime && x.StartTime.Date <= endTime)
                         .ToListAsync();
-                    filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).Where(c => arrOps.Contains(c.Operator)).ToList();
+                    filteredIntegrations = lmts.Where(c => arrCountries.Contains(c.Country)).ToList();
 
                 }
             }
@@ -2647,7 +2647,13 @@ namespace IMK_web.Repository
         public async Task<ActionResult> GetRatings(string start, string end)
         {
             var ratings = await _context.Ratings.Include("User").Where(r => r.Date >= Convert.ToDateTime(start).Date && r.Date < Convert.ToDateTime(end)).ToListAsync();
-            ratings.ForEach(e =>
+            var grouped = ratings.GroupBy(x => new { x.UserId, x.Date });
+            var ratingResult = new List<Rating>();
+            grouped.ToList().ForEach(item =>
+            {
+                ratingResult.Add(item.FirstOrDefault());
+            });
+            ratingResult.ForEach(e =>
             {
                 var country = _IMKHelperservice.geCountryFromAzureMaps(e.Latitude, e.Longitude).Result;
                 if (country != null)
@@ -2655,7 +2661,7 @@ namespace IMK_web.Repository
                 else
                     e.Country = null;
             });
-            return new JsonResult(ratings.OrderByDescending(i => i.Date));
+            return new JsonResult(ratingResult.OrderByDescending(i => i.Date));
         }
 
     }

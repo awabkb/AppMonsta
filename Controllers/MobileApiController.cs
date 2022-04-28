@@ -383,6 +383,16 @@ namespace IMK_web.Controllers
         {
             // if(siteIntegration.SiteName == null)
             //     return BadRequest("Invalid data");
+            if (string.IsNullOrEmpty(siteIntegration.CountryCode) || string.IsNullOrEmpty(siteIntegration.CountryName))
+            {
+                if (siteIntegration.Latitude != null && siteIntegration.Longitude != null)
+                {
+                    var countryInfo = await geCountryFromAzureMaps(siteIntegration.Latitude.ToString(), siteIntegration.Longitude.ToString());
+                    siteIntegration.CountryName = countryInfo.CountryName;
+                    siteIntegration.CountryCode = countryInfo.CountryCode;
+                }
+
+            }
 
             _appRepository.Add(new SiteIntegration()
             {
@@ -428,17 +438,21 @@ namespace IMK_web.Controllers
         [HttpPost("rating")]
         public async Task<IActionResult> addUserRating(Rating userRating)
         {
-            _appRepository.Add(new Rating()
+            bool RatingExist = checkRatingExist(userRating);
+            if (!RatingExist)
             {
-                Rate = userRating.Rate,
-                Questions = userRating.Questions,
-                Comment = userRating.Comment,
-                UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
-                Date = userRating.Date,
-                Latitude = userRating.Latitude,
-                Longitude = userRating.Longitude
-            });
-            await _appRepository.SaveChanges();
+                _appRepository.Add(new Rating()
+                {
+                    Rate = userRating.Rate,
+                    Questions = userRating.Questions,
+                    Comment = userRating.Comment,
+                    UserId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault(),
+                    Date = userRating.Date,
+                    Latitude = userRating.Latitude,
+                    Longitude = userRating.Longitude
+                });
+                await _appRepository.SaveChanges();
+            }
             return Ok(userRating);
         }
         ////////////////////////// Send IMK User approval to admins ////////////////////////////
@@ -665,5 +679,14 @@ namespace IMK_web.Controllers
             return countryInfo;
         }
 
+        private bool checkRatingExist(Rating userRating)
+        {
+            var ratings = _appRepository.GetRatingsByUserAndDate(userRating);
+            if (ratings.Any())
+            {
+                return true;
+            }
+            else return false;
+        }
     }
 }

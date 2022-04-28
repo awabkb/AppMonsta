@@ -8,22 +8,22 @@ namespace IMK_web.Repository
     public interface IAppRepository
     {
 
-	    void Add<T>(T entity) where T: class;
-        void Update<T>(T entity) where T: class;
-        void Remove<T>(T entity) where T: class;
+        void Add<T>(T entity) where T : class;
+        void Update<T>(T entity) where T : class;
+        void Remove<T>(T entity) where T : class;
         Task<Site> GetSite(string sitename, string country);
         Task<User> GetUser(string userId);
         Task<Country> GetCountryByName(string country);
         Task<Country> GetCountry(string code);
-        Task<ImkVersion> GetImkVersion(double rpi,double app);
+        Task<ImkVersion> GetImkVersion(double rpi, double app);
         Task<bool> SaveChanges();
         Task<AspCompany> GetAspCompanyByCountry(string aspName, string country);
         Task<AspCompany> GetAspCompany(string aspName);
         Task<Country> GetOperatorByCountry(string country);
         Task<IEnumerable<Country>> GetCountries();
         Task<ImkVersion> GetLatestImkVersion();
-        Task<string []> GetAspManagers(string country);
-        Task<string []> GetAdmins();
+        Task<string[]> GetAspManagers(string country);
+        Task<string[]> GetAdmins();
         Task<IEnumerable<SiteVisit>> GetUserSiteVisits(string email);
         Task<User> GetUserByEmail(string email);
         Task<IEnumerable<User>> GetAllUsers();
@@ -32,10 +32,6 @@ namespace IMK_web.Repository
         Task<AspManager> GetApprover(int id);
         Task<IEnumerable<AspCompany>> GetAspCompanies();
         Task<IEnumerable<RatingQuestion>> GetRatingQuestions();
-
-
-
-
-
+        public List<Rating> GetRatingsByUserAndDate(Rating userRating);
     }
 }
