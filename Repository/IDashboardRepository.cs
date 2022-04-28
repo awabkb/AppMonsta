@@ -12,6 +12,7 @@ namespace IMK_web.Repository
         Task<IEnumerable<Country>> GetOperatorsByCountry(string countries);
         Task<ActionResult> GetSiteVisits(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteVisitDetailsNew(string start, string end, string countries, string operators);
+        // Task<ActionResult> GetReportData(string start, string end, string countries, string operators);
 
         Task<ActionResult> GetSitesByCountry(string start, string end, string countries, string operators);
         Task<ActionResult> GetSiteRevisits(string start, string end, string countries, string operators);

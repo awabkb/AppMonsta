@@ -68,7 +68,7 @@ namespace IMK_web.Repository
 
         public async Task<AspCompany> GetAspCompanyByCountry(string aspName, string country)
         {
-            return await _context.AspCompanies.Include(x =>x.Country).FirstOrDefaultAsync(x => x.Name.Equals(aspName) && x.Country.Name.Equals(country));
+            return await _context.AspCompanies.Include(x => x.Country).FirstOrDefaultAsync(x => x.Name.Equals(aspName) && x.Country.Name.Equals(country));
         }
 
         public async Task<AspCompany> GetAspCompany(string aspName)
@@ -91,12 +91,12 @@ namespace IMK_web.Repository
             return await _context.ImkVersions.OrderBy(x => x.DateOfRelease).LastAsync();
         }
 
-        public async Task<string []> GetAspManagers(string country)
+        public async Task<string[]> GetAspManagers(string country)
         {
-            return await _context.AspManagers.Where(x => x.Country.Equals(country)).Select(x =>x.Email).ToArrayAsync();
+            return await _context.AspManagers.Where(x => x.Country.Equals(country)).Select(x => x.Email).ToArrayAsync();
         }
 
-        public async Task<string []> GetAdmins()
+        public async Task<string[]> GetAdmins()
         {
             return await _context.AspManagers.Where(x => x.Role.Equals("Admin")).Select(x => x.Email).ToArrayAsync();
         }
@@ -147,12 +147,16 @@ namespace IMK_web.Repository
         public async Task<IEnumerable<AspCompany>> GetAspCompanies()
         {
             return await _context.AspCompanies.Include(x => x.Country).ToListAsync();
-        }     
+        }
 
-        public async Task<IEnumerable<RatingQuestion>> GetRatingQuestions() 
+        public async Task<IEnumerable<RatingQuestion>> GetRatingQuestions()
         {
             return await _context.RatingQuestions.ToListAsync();
-        }   
+        }
+        public List<Rating> GetRatingsByUserAndDate(Rating userRating)
+        {
+           return  _context.Ratings.Where(item => item.Date == userRating.Date && item.UserId == userRating.UserId).ToList();
+        }
 
     }
 }

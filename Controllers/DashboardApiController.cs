@@ -137,7 +137,13 @@ namespace IMK_web.Controllers
             var data = await _dashRepository.GetSiteVisitDetailsNew(start, end, countries, operators);
             return data;
         }
-
+        /*
+        [HttpGet("get_report_data")]
+        public async Task<ActionResult> GetReportData([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
+        {
+            var data = await _dashRepository.GetReportData(start, end, countries, operators);
+            return data;
+        }*/
         [HttpGet("pass-fail")]
         public async Task<ActionResult[]> getPassFailStatus([FromQuery] string start, [FromQuery] string end, [FromQuery] string countries, [FromQuery] string operators)
         {
