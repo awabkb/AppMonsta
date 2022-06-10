@@ -334,6 +334,7 @@ namespace IMK_web.Controllers
 
 
         ////////////////////////// Get User ////////////////////////////
+        [AllowAnonymous]
         [HttpGet("User")]
         public async Task<IActionResult> getUser()
         {
@@ -434,7 +435,7 @@ namespace IMK_web.Controllers
             var questions = await _appRepository.GetRatingQuestions();
             return Ok(questions);
         }
-
+        [AllowAnonymous]
         [HttpPost("rating")]
         public async Task<IActionResult> addUserRating(Rating userRating)
         {
@@ -614,6 +615,17 @@ namespace IMK_web.Controllers
                 else
                 {
                     op = "Airtel";
+                }
+            }
+            if (country.Equals("Niger"))
+            {
+                if (Regex.IsMatch(sitename, "[a-zA-Z]{3}[0-9]{4}[a-zA-Z]{1}"))
+                {
+                    op = "AIRTEL";
+                }
+                else
+                {
+                    op = "MOOV";
                 }
             }
             return op;
