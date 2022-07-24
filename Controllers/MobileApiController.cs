@@ -617,9 +617,16 @@ namespace IMK_web.Controllers
                     op = "Airtel";
                 }
             }
-            if (country.Equals("Niger"))
+            if (country.Equals("Ivory Coast"))
             {
                 if (Regex.IsMatch(sitename, "[a-zA-Z]{3}[0-9]{4}[a-zA-Z]{1}"))
+                {
+                    op = "MOOV";
+                }
+            }
+            if (country.Equals("Niger"))
+            {
+                if (Regex.IsMatch(sitename, "(W|L|M|G)[a-zA-Z]{2}[0-9]{3}"))
                 {
                     op = "AIRTEL";
                 }
