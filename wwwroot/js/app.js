@@ -334,6 +334,8 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         type: "GET",
         data: Data,
         success: function (res) {
+
+            console.log(res);
             const element = document.getElementById('unique-sites');
             element.innerHTML = '';
             var data = mapData(res)
@@ -345,7 +347,35 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 },
                 x: { unit: 'Sites' },
             });
+            let reportData = [];
 
+            Object.keys(res).forEach(item => {
+                let data = res[item];
+                console.log(data);
+                Object.keys(data).forEach(subItem => {
+                    let mappedItem = {
+                        country: subItem,
+                        numberOfSites: data[subItem],
+                        integrationDate: item,
+                    }
+                    reportData.push(mappedItem);
+                })
+            })
+            document.querySelector('#uniqueNodesDownload')?.addEventListener('click', (e) => {
+                console.log(reportData);
+                let rows = [];
+                rows.push(['Country',
+                    'Number Of Sites',
+                    'Integration Date',
+
+                ]);
+                reportData.forEach(item => {
+                    rows.push([item.country, item.numberOfSites, item.integrationDate]);
+                });
+
+                let today = new Date();
+                _exportToCsv("UniquePhysicalSites_report" + today.toISOString().slice(0, 16), rows);
+            })
             chart1.init();
         }
     });
@@ -1390,6 +1420,33 @@ function getAlarms(startDate, endDate, country, operators) {
                 },
                 x: { unit: 'Sites' },
             });
+            Object.keys(res).forEach(item => {
+                let data = res[item];
+                console.log(data);
+                Object.keys(data).forEach(subItem => {
+                    let mappedItem = {
+                        country: subItem,
+                        numberOfSites: data[subItem],
+                        integrationDate: item,
+                    }
+                    reportData.push(mappedItem);
+                })
+            })
+            document.querySelector('#uniqueNodesDownload')?.addEventListener('click', (e) => {
+                console.log(reportData);
+                let rows = [];
+                rows.push(['Country',
+                    'Number Of Sites',
+                    'Integration Date',
+
+                ]);
+                reportData.forEach(item => {
+                    rows.push([item.country, item.numberOfSites, item.integrationDate]);
+                });
+
+                let today = new Date();
+                _exportToCsv("UniquePhysicalSites_report" + today.toISOString().slice(0, 16), rows);
+            })
 
             chart1.init();
         }
