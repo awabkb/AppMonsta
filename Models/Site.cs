@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IMK_web.Models
 {
@@ -14,5 +15,7 @@ namespace IMK_web.Models
         public string Country { get; set; }
         public Operator Operator { get; set; }
         public IEnumerable<SiteVisit> SiteVisits { get; set; }
+        [NotMapped]
+        public string OperatorName { get; set; }
     }
 }
