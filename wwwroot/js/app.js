@@ -24,7 +24,12 @@ eds.NotificationLog.init();
 
 const multiPanelTile = new eds.MultiPanelTile(document.querySelector('.multi-panel-tile'));
 
-
+var groupBy = function (xs, key) {
+    return xs.reduce(function (rv, x) {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
+};
 
 ////////////// Graphs //////////////////
 
@@ -335,10 +340,21 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         data: Data,
         success: function (res) {
 
-            console.log(res);
+            console.log(res.visitsList);
+            let reportVisits = res.visitsList?.map(item => {
+                let mappedItem = {
+                    country: item.site?.country,
+                    operator: item.site?.operatorName,
+                    integrationDate: item.startTime?.slice(0, 10)
+
+                }
+                return mappedItem;
+            })
+            let reportDataNew = mapChartsReportData(reportVisits);
+
             const element = document.getElementById('unique-sites');
             element.innerHTML = '';
-            var data = mapData(res)
+            var data = mapData(res.visitDict)
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
@@ -347,30 +363,18 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 },
                 x: { unit: 'Sites' },
             });
-            let reportData = [];
 
-            Object.keys(res).forEach(item => {
-                let data = res[item];
-                console.log(data);
-                Object.keys(data).forEach(subItem => {
-                    let mappedItem = {
-                        country: subItem,
-                        numberOfSites: data[subItem],
-                        integrationDate: item,
-                    }
-                    reportData.push(mappedItem);
-                })
-            })
-            document.querySelector('#uniqueNodesDownload')?.addEventListener('click', (e) => {
-                console.log(reportData);
+
+            document.querySelector('#uniqueSitessDownload')?.addEventListener('click', (e) => {
                 let rows = [];
                 rows.push(['Country',
-                    'Number Of Sites',
+                    'Operator',
                     'Integration Date',
+                    'Number Of Sites'
 
                 ]);
-                reportData.forEach(item => {
-                    rows.push([item.country, item.numberOfSites, item.integrationDate]);
+                reportDataNew.forEach(item => {
+                    rows.push([item.country, item.operator, item.date, item.numberOfVists]);
                 });
 
                 let today = new Date();
@@ -385,9 +389,21 @@ function getData(startdate, enddate, countries, operators, marketArea) {
         type: "GET",
         data: Data,
         success: function (res) {
+            let reportVisits = res.visitsList?.map(item => {
+                let mappedItem = {
+                    country: item.site?.country,
+                    operator: item.site?.operatorName,
+                    integrationDate: item.startTime?.slice(0, 10)
+
+                }
+                return mappedItem;
+            })
+            let reportDataNew = mapChartsReportData(reportVisits);
             const element = document.getElementById('unique-nodes');
             element.innerHTML = '';
-            var data = mapData(res)
+            var data = mapData(res.visitDict)
+
+
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
@@ -396,7 +412,20 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 },
                 x: { unit: 'Nodes' },
             });
+            document.querySelector('#uniqueNodesDownload')?.addEventListener('click', (e) => {
+                let rows = [];
+                rows.push(['Country',
+                    'Operator',
+                    'Integration Date',
+                    'Number Of Sites'
+                ]);
+                reportDataNew.forEach(item => {
+                    rows.push([item.country, item.operator, item.date, item.numberOfVists]);
+                });
 
+                let today = new Date();
+                _exportToCsv("UniqueNodes_report" + today.toISOString().slice(0, 16), rows);
+            })
             chart1.init();
         }
     });
@@ -409,6 +438,21 @@ function getData(startdate, enddate, countries, operators, marketArea) {
             const element = document.getElementById('site-revisits');
             element.innerHTML = '';
             var data = mapData(res)
+
+            let reportData = [];
+            Object.keys(res).forEach(item => {
+                let data = res[item];
+                console.log(data);
+                Object.keys(data).forEach(subItem => {
+                    let mappedItem = {
+                        country: subItem,
+                        numberOfSites: data[subItem],
+                        integrationDate: item,
+                    }
+                    reportData.push(mappedItem);
+                })
+            })
+
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
@@ -417,7 +461,21 @@ function getData(startdate, enddate, countries, operators, marketArea) {
                 },
                 x: { unit: 'Revisits' },
             });
+            document.querySelector('#SitesRevisitsDownload')?.addEventListener('click', (e) => {
+                console.log(reportData);
+                let rows = [];
+                rows.push(['Country',
+                    'Number Of Sites',
+                    'Integration Date',
 
+                ]);
+                reportData.forEach(item => {
+                    rows.push([item.country, item.numberOfSites, item.integrationDate]);
+                });
+
+                let today = new Date();
+                _exportToCsv("SitesRevisits_report" + today.toISOString().slice(0, 16), rows);
+            })
             chart1.init();
         }
     });
@@ -1409,9 +1467,21 @@ function getAlarms(startDate, endDate, country, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            console.log(res.visitsList)
             const element = document.getElementById('unique-sites');
             element.innerHTML = '';
-            var data = mapData(res)
+            var data = mapData(res.visitDict)
+            console.log(res.visitsList);
+            let reportVisits = res.visitsList?.map(item => {
+                let mappedItem = {
+                    country: item.site?.country,
+                    operator: item.site?.operatorName,
+                    integrationDate: item.startTime?.slice(0, 10)
+
+                }
+                return mappedItem;
+            })
+            let reportDataNew = mapChartsReportData(reportVisits);
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
@@ -1420,28 +1490,16 @@ function getAlarms(startDate, endDate, country, operators) {
                 },
                 x: { unit: 'Sites' },
             });
-            Object.keys(res).forEach(item => {
-                let data = res[item];
-                console.log(data);
-                Object.keys(data).forEach(subItem => {
-                    let mappedItem = {
-                        country: subItem,
-                        numberOfSites: data[subItem],
-                        integrationDate: item,
-                    }
-                    reportData.push(mappedItem);
-                })
-            })
-            document.querySelector('#uniqueNodesDownload')?.addEventListener('click', (e) => {
+            document.querySelector('#uniqueSitessDownload')?.addEventListener('click', (e) => {
                 console.log(reportData);
                 let rows = [];
                 rows.push(['Country',
-                    'Number Of Sites',
+                    'Operator',
                     'Integration Date',
-
+                    'Number Of Sites',
                 ]);
-                reportData.forEach(item => {
-                    rows.push([item.country, item.numberOfSites, item.integrationDate]);
+                reportDataNew.forEach(item => {
+                    rows.push([item.country, item.operator, item.integrationDate, item.numberOfVists]);
                 });
 
                 let today = new Date();
@@ -1457,9 +1515,21 @@ function getAlarms(startDate, endDate, country, operators) {
         type: "GET",
         data: Data,
         success: function (res) {
+            let reportVisits = res.visitsList?.map(item => {
+                let mappedItem = {
+                    country: item.site?.country,
+                    operator: item.site?.operatorName,
+                    integrationDate: item.startTime?.slice(0, 10)
+
+                }
+                return mappedItem;
+            })
+            let reportDataNew = mapChartsReportData(reportVisits);
             const element = document.getElementById('unique-nodes');
             element.innerHTML = '';
-            var data = mapData(res)
+            var data = mapData(res.visitDict)
+
+
             const chart1 = new eds.HorizontalBarChartStacked({
                 element: element,
                 data: {
@@ -1468,7 +1538,20 @@ function getAlarms(startDate, endDate, country, operators) {
                 },
                 x: { unit: 'Nodes' },
             });
+            document.querySelector('#uniqueNodesDownload')?.addEventListener('click', (e) => {
+                let rows = [];
+                rows.push(['Country',
+                    'Operator',
+                    'Integration Date',
+                    'Number Of Sites'
+                ]);
+                reportDataNew.forEach(item => {
+                    rows.push([item.country, item.operator, item.date, item.numberOfVists]);
+                });
 
+                let today = new Date();
+                _exportToCsv("UniqueNodes_report" + today.toISOString().slice(0, 16), rows);
+            })
             chart1.init();
         }
     });
@@ -2907,7 +2990,47 @@ function initMap(start, end, m_a) {
     })
 }
 //initMap()
+function mapChartsReportData(visits) {
+    let dateGrouped = groupBy(visits, 'integrationDate');
+    let _doubleGrouped = [];
+    console.log(dateGrouped);
+    Object.keys(dateGrouped)?.forEach(item => {
+        let pushItem = {
+            date: item,
+            data: groupBy(dateGrouped[item], 'country')
+        }
+        _doubleGrouped.push(pushItem);
+    })
+    let _tripleGrouped = [];
+    _doubleGrouped?.forEach(item => {
+        Object.keys(item.data)?.forEach(country => {
+            let pushItem = {
+                date: item.date,
+                country: country,
+                operator: groupBy(item.data[country], 'operator')
+            }
+            _tripleGrouped.push(pushItem);
+        })
 
+    })
+    console.log(_tripleGrouped);
+    console.log(_doubleGrouped);
+    let finalReportData = [];
+    _tripleGrouped.forEach(item => {
+        Object.keys(item.operator)?.forEach(operator => {
+            if (item.operator[operator]) {
+                let pushItem = {
+                    date: item.date,
+                    country: item.country,
+                    operator: operator,
+                    numberOfVists: item.operator[operator].length
+                }
+                finalReportData.push(pushItem);
+            }
+        })
+    })
+    return finalReportData;
+}
 
 
 

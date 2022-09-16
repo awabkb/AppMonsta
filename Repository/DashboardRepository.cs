@@ -12,6 +12,8 @@ using Newtonsoft.Json;
 using System.Globalization;
 using MathNet.Numerics.Statistics;
 using IMK_web.Services;
+using System.Text.RegularExpressions;
+using IMK_web.Models.ReportModels;
 
 namespace IMK_web.Repository
 {
@@ -92,7 +94,7 @@ namespace IMK_web.Repository
 
             else if (countries == "all")
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site)
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Include(x => x.Site.Operator)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
             }
             else
@@ -100,7 +102,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country))
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime.Date).Include(x => x.Site).Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
                 }
                 else
@@ -114,29 +116,44 @@ namespace IMK_web.Repository
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
                 }
             }
+            visits.ForEach(item =>
+            {
+                if (item.Site.Operator == null || String.IsNullOrEmpty(item.Site.Operator.Name))
+                {
+                    var _operator = GetOperatorBySite(item.Site.Name, item.Site.Country);
 
+                    item.Site.OperatorName = _operator;
+                }
+                else
+                {
+                    item.Site.OperatorName = item.Site.Operator.Name;
+
+                }
+            });
             var res = visits.GroupBy(x => x.StartTime.Date);
+
             Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
             var date = "";
             foreach (var v in res)
             {
                 date = v.FirstOrDefault().StartTime.Date.ToString("yyyy-MM-dd");
-
                 Dictionary<string, int> data = v.GroupBy(x => new { x.Site.Country }).Select(y => new
                 {
-                    country = y.Key.Country,
+                    country = y.FirstOrDefault().Site.Country,
                     sites = y.Select(i => new
                     {
                         lat = (String.Format("{0:n4}", i.Site.Latitude)),
                         lon = (String.Format("{0:n4}", i.Site.Longitude))
-                    }).Distinct().Count()
+                    }).Distinct().Count(),
                 }).OrderBy(g => g.country).ToDictionary(g => g.country, g => g.sites);
 
                 cc.Add(date, data);
             }
 
-
-            return new JsonResult(cc);
+            var finalResult = new UniquesSitesOutputModel();
+            finalResult.VisitDict = cc;
+            finalResult.VisitsList = visits;
+            return new JsonResult(finalResult);
         }
 
         //get unique site visits by site id (grouped by country)
@@ -148,7 +165,7 @@ namespace IMK_web.Repository
 
             else if (countries == "all")
             {
-                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site)
+                visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Include(x => x.Site.Operator)
                 .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
             }
             else
@@ -156,7 +173,7 @@ namespace IMK_web.Repository
                 if (operators == null)
                 {
                     string[] arrCountries = countries.Split(",");
-                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Where(c => arrCountries.Contains(c.Site.Country))
+                    visits = await _context.SiteVisits.OrderBy(s => s.StartTime).Include(x => x.Site).Include(x => x.Site.Operator).Where(c => arrCountries.Contains(c.Site.Country))
                     .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
                 }
                 else
@@ -170,7 +187,20 @@ namespace IMK_web.Repository
                         .Where(x => x.StartTime.Date >= Convert.ToDateTime(start).Date && x.StartTime.Date <= Convert.ToDateTime(end).Date).ToListAsync();
                 }
             }
+            visits.ForEach(item =>
+            {
+                if (item.Site.Operator == null || String.IsNullOrEmpty(item.Site.Operator.Name))
+                {
+                    var _operator = GetOperatorBySite(item.Site.Name, item.Site.Country);
 
+                    item.Site.OperatorName = _operator;
+                }
+                else
+                {
+                    item.Site.OperatorName = item.Site.Operator.Name;
+
+                }
+            });
             var res = visits.GroupBy(x => x.StartTime.Date);
             Dictionary<string, Dictionary<string, int>> cc = new Dictionary<string, Dictionary<string, int>>();
             var date = "";
@@ -186,7 +216,10 @@ namespace IMK_web.Repository
                 cc.Add(date, data);
             }
 
-            return new JsonResult(cc);
+            var finalResult = new UniquesSitesOutputModel();
+            finalResult.VisitDict = cc;
+            finalResult.VisitsList = visits;
+            return new JsonResult(finalResult);
         }
 
 
@@ -2662,6 +2695,88 @@ namespace IMK_web.Repository
                     e.Country = null;
             });
             return new JsonResult(ratingResult.OrderByDescending(i => i.Date));
+        }
+        private String GetOperatorBySite(string sitename, string country)
+        {
+            string op = "";
+            if (country.Equals("Saudi Arabia"))
+            {
+                if (sitename.StartsWith("A") || sitename.StartsWith("E") || sitename.StartsWith("H") || sitename.StartsWith("T") || sitename.StartsWith("Z"))
+                    op = "Saudi Telecom Company (STC)";
+                else
+                    op = "Mobily";
+            }
+
+            if (country.Equals("Bahrain"))
+            {
+                if (sitename.StartsWith("0") || sitename.StartsWith("1") || sitename.StartsWith("2") || sitename.StartsWith("3") || sitename.StartsWith("4") || sitename.StartsWith("5") || sitename.StartsWith("6") || sitename.StartsWith("7") || sitename.StartsWith("8") || sitename.StartsWith("9"))
+                    op = "Zain";
+                else
+                    op = "Batelco";
+            }
+
+            if (country.Equals("Morocco"))
+            {
+                if (sitename.Contains("BB"))
+                    op = "INWI";
+                else
+                    op = "MarocTel";
+            }
+
+            if (country.Equals("Egypt"))
+            {
+                if (sitename.StartsWith("CAI") || sitename.StartsWith("DEL") || sitename.StartsWith("UCAI") || sitename.StartsWith("UDEL") || sitename.StartsWith("LCAI") || sitename.StartsWith("LDEL") || sitename.StartsWith("MCAI") || sitename.StartsWith("MDEL"))
+                    op = "Etisalat";
+                else
+                    op = "Vodafone";
+            }
+
+            if (country.Equals("Oman"))
+            {
+                if (Regex.IsMatch(sitename, "^B[0-9]{2}") || sitename.StartsWith("EN") || sitename.StartsWith("GN"))
+                    op = "Vodafone OM";
+                else
+                    op = "Omantel";
+            }
+
+            if (country.Equals("Benin"))
+            {
+                if (Regex.IsMatch(sitename, "^[a-zA-Z]{2}[0-9]{3}$") || Regex.IsMatch(sitename, "^[a-zA-Z]{3}[0-9]{3}$"))
+                    op = "MTN BJ";
+                else
+                    op = "MOOV";
+            }
+            if (country.Equals("Rwanda"))
+            {
+                if (Regex.IsMatch(sitename, "[1-9][a-zA-Z][0-9]{1,3}[_].*"))
+                {
+                    op = "MTN RW";
+                }
+                else
+                {
+                    op = "Airtel";
+                }
+            }
+            if (country.Equals("Ivory Coast"))
+            {
+                if (Regex.IsMatch(sitename, "[a-zA-Z]{3}[0-9]{4}[a-zA-Z]{1}"))
+                {
+                    op = "MOOV";
+                }
+            }
+            if (country.Equals("Niger"))
+            {
+                if (Regex.IsMatch(sitename, "(W|L|M|G)[a-zA-Z]{2}[0-9]{3}"))
+                {
+                    op = "AIRTEL";
+                }
+                else
+                {
+                    op = "MOOV";
+                }
+            }
+            return op;
+
         }
 
     }
