@@ -254,5 +254,13 @@ namespace IMK_web.Controllers
             var result = await _dashRepository.GetRatings(start, end);
             return result;
         }
+        [AllowAnonymous]
+        [HttpGet("getTarnsportNodes")]
+        public async Task<ActionResult> GetTransportNodes(string start, string end)
+        {
+            var result = await _dashRepository.GetTransportNodes(start, end);
+            return result;
+        }
+
     }
 }

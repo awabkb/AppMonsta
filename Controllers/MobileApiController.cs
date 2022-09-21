@@ -26,6 +26,10 @@ using System.Net.Http;
 
 using IMK_web.Models.ModelHelper;
 using Newtonsoft.Json.Linq;
+using RestSharp;
+using IMK_web.Services;
+using System.Net;
+using IMK_web.Models.EritopAspModels;
 
 namespace IMK_web.Controllers
 {
@@ -35,17 +39,29 @@ namespace IMK_web.Controllers
     public class MobileApiController : Controller
     {
         private readonly IAppRepository _appRepository;
+
         private static string _azureMapKey;
         private static HttpClient _client;
         private static string _azureMapURL;
 
-
+        private static RestClient _eritopAspClient;
+        public static string _imkToken;
+        private static DateTime _tokenExpire;
+        private static string _eritopSystemUserEmail;
+        private static string _eritopSystemUserPassword;
         public MobileApiController(IAppRepository appRepository, IOptions<AppSettings> appSettings)
         {
             _appRepository = appRepository;
+
             _azureMapKey = appSettings.Value.AzureMapsKey;
             _azureMapURL = appSettings.Value.AzureMapsURL;
             _client = new HttpClient();
+
+            _eritopAspClient = new RestClient("https://eritop-asppm.azurewebsites.net/api");
+            _eritopAspClient.AddDefaultHeader("Accept", "*/*");
+            _eritopAspClient.AddDefaultHeader("Content-Type", "application/json");
+            _eritopSystemUserEmail = appSettings?.Value.EritopAspSystemUserEmail;
+            _eritopSystemUserPassword = appSettings?.Value.EritopAspSystemUserPassword;
         }
 
 
@@ -707,5 +723,108 @@ namespace IMK_web.Controllers
             }
             else return false;
         }
+
+        [AllowAnonymous]
+        [HttpPost("configureTransportNode")]
+        public async Task<IActionResult> ConfigureTransportNode(TransportNodeDTO transportNode)
+        {
+            if (string.IsNullOrEmpty(transportNode.CountryName))
+            {
+                if (transportNode.Latitude != null && transportNode.Longitude != null)
+                {
+                    var countryInfo = await geCountryFromAzureMaps(transportNode.Latitude.ToString(), transportNode.Longitude.ToString());
+                    transportNode.CountryName = countryInfo.CountryName;
+                }
+
+            }
+            var node = new TransportNode()
+            {
+                Name = transportNode.Name,
+                UserId = transportNode.UserId,
+                CountryName = transportNode.CountryName,
+                ConfigurationDate = transportNode.ConfigurationDate,
+                Commands = transportNode.Commands,
+                Latitude = transportNode.Latitude,
+                Longitude = transportNode.Longitude,
+                Status = transportNode.Status,
+                Comments = transportNode.Comments,
+                MacAddress = transportNode.MacAddress
+            };
+            _appRepository.Add(node);
+            if (await _appRepository.SaveChanges())
+                return Ok(node.Id);
+            else
+                return BadRequest("Save Failed");
+        }
+
+        private static void InitToken()
+        {
+            var newRequest = new UserLoginRequestModel()
+            {
+                NameOrMail = _eritopSystemUserEmail,
+                Password = _eritopSystemUserPassword
+            };
+
+            var restRequest = new RestRequest("User/Authenticate", Method.POST);
+            restRequest.AddJsonBody(newRequest);
+            var result = ServiceHelper.GetResult<UserLoginResultModel>(_eritopAspClient, restRequest);
+
+            _imkToken = result.Token;
+            _tokenExpire = DateTime.Now.AddDays(1).AddHours(-1);
+        }
+        public string GetToken()
+        {
+            if (string.IsNullOrEmpty(_imkToken) || _tokenExpire <= DateTime.Now)
+            {
+                InitToken();
+            }
+            return _imkToken;
+        }
+        [AllowAnonymous]
+        [HttpPost("GetSitesFromEritop")]
+        public List<SitesWithWorkplansOutputModel> GetSitesWithWorkplansRequest(EritopAspSitesInputModel input)
+        {
+            if (string.IsNullOrEmpty(_imkToken) || _tokenExpire <= DateTime.Now)
+            {
+                InitToken();
+            }
+            var restRequest = new RestRequest("IMK/GetSitesWithWorkplans", Method.POST);
+            restRequest.AddHeader("Authorization", "Bearer " + _imkToken);
+            restRequest.AddJsonBody(input);
+            var response = _eritopAspClient.Execute<List<SitesWithWorkplansOutputModel>>(restRequest);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return response.Data;
+            }
+            return null;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("CreateUpdateEritopWorkplan")]
+        public ResultModel CreateUpdateEritopWorkplan(CreateWorkplanModel input)
+        {
+            var result = new ResultModel();
+            if (string.IsNullOrEmpty(_imkToken) || _tokenExpire <= DateTime.Now)
+            {
+                InitToken();
+            }
+            var userId = User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).SingleOrDefault();
+            User user = _appRepository.GetUser(userId).Result;
+            input.User = user;
+            if (user != null)
+            {
+                input.UserEmail = user.Email;
+                input.AspCompany = user.AspCompany;
+                input.AspCompanyId = user.AspCompany.AspId;
+                input.AspCompanyName = user.AspCompany.Name;
+            }
+            var restRequest = new RestRequest("IMK/CreateUpdateWorkplans", Method.POST);
+            restRequest.AddHeader("Authorization", "Bearer " + _imkToken);
+            restRequest.AddJsonBody(input);
+            var response = _eritopAspClient.Execute<ResultModel>(restRequest);
+            return response.Data;
+        }
+
+
     }
 }

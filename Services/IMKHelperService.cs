@@ -2,15 +2,13 @@
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 
 namespace IMK_web.Services
 {
-    public class IMKHelperService:IIMKHelperService
+    public class IMKHelperService : IIMKHelperService
     {
         private static string _azureMapKey;
         private static HttpClient _client;

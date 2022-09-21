@@ -2677,6 +2677,11 @@ namespace IMK_web.Repository
             }
             return new JsonResult(alarmTypes);
         }
+        public async Task<ActionResult> GetTransportNodes(string start, string end)
+        {
+            var nodes = await _context.TransportNodes.Include("User").Where(n => n.ConfigurationDate >= Convert.ToDateTime(start).Date && n.ConfigurationDate < Convert.ToDateTime(end)).ToListAsync();
+            return new JsonResult(nodes.OrderByDescending(i => i.ConfigurationDate));
+        }
         public async Task<ActionResult> GetRatings(string start, string end)
         {
             var ratings = await _context.Ratings.Include("User").Where(r => r.Date >= Convert.ToDateTime(start).Date && r.Date < Convert.ToDateTime(end)).ToListAsync();

@@ -9,5 +9,7 @@ namespace IMK_web.Models.ModelHelper
     {
         public string AzureMapsKey { get; set; }
         public string AzureMapsURL { get; set; }
+        public string EritopAspSystemUserEmail { get; set; }
+        public string EritopAspSystemUserPassword { get; set; }
     }
 }
