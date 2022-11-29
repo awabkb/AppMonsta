@@ -15,7 +15,7 @@ namespace IMK_web.Models
         [Key]
         public int VisitId { get; set; }
         public User User { get; set; }
-        public Site Site{get;set;}
+        public Site Site { get; set; }
         public IMK_Functions IMK_Functions { get; set; }
         // public DateTime VistedAt { get; set; }
         public IEnumerable<Log> Logs { get; set; }
@@ -25,7 +25,7 @@ namespace IMK_web.Models
         public double RPIVersion { get; set; }
         public string Brand { get; set; }
         public string Model { get; set; }
-       
+       // public AspCompany AspCompany { get; set; }
     }
-    
+
 }

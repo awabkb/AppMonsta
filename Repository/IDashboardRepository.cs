@@ -36,7 +36,7 @@ namespace IMK_web.Repository
         string GetAlarmType(string _alarm);
         string GetRole(string email);
         Task<ActionResult> GetRatings(string start, string end);
-
+        Task<ActionResult> GetTransportNodes(string start, string end);
 
 
 
