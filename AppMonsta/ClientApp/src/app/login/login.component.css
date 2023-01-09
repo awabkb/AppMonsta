@@ -1,0 +1,54 @@
+
+
+form {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 10px;
+  width: 400px;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+  form div {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 10px;
+  }
+
+  form label {
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  form input[type="text"],
+  form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  form button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0073e6;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+    form button[type="submit"][disabled] {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+  form div div {
+    color: red;
+    font-size: 12px;
+  }

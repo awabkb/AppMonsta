@@ -1,0 +1,32 @@
+<div class="filters">
+    <div>
+        <mat-button-toggle-group [(ngModel)]="selectedPlatform" value="selectedPlatform" (ngModelChange)="onChange($event)">
+            <mat-button-toggle value="android">Android</mat-button-toggle>
+            <mat-button-toggle value="itunes">Itunes</mat-button-toggle>
+        </mat-button-toggle-group>
+    </div>
+    
+    <mat-form-field appearance="fill">
+        <mat-label>Choose a date</mat-label>
+        <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" (ngModelChange)="onChange($event)">
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field>
+        <mat-label>Country</mat-label>
+        <mat-select [(value)]="selectedCountry" (selectionChange)="onChange($event)">
+            <mat-option *ngFor="let country of countries" [value]="country.key">{{ country.value }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+</div>
+
+
+<div class="card-container">
+  <mat-card class="example-card" *ngFor="let ranking of rankings" (click)="navigateToGenre(ranking.genre_id)">
+    <mat-card-content>
+      <img src="{{ranking.icon_url}}" alt="Placeholder image">
+      <p>Genre: {{ ranking.genre_id }}</p>
+    </mat-card-content>
+  </mat-card>
+</div>

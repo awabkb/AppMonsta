@@ -1,0 +1,13 @@
+<mat-card class="example-card" *ngFor="let app of apps">
+  <mat-card-header>
+    <mat-card-title>{{ app.app_name }}</mat-card-title>
+    <mat-card-subtitle>{{ app.publisher_name }}</mat-card-subtitle>
+  </mat-card-header>
+  <img mat-card-image [src]="app.icon_url || '../../assets/appicon.png'">
+  <mat-card-content>
+    <div class="rating">
+      <mat-icon class="star" *ngFor="let _ of [1, 2, 3, 4, 5]">star</mat-icon>
+      <mat-icon class="star filled" *ngFor="let _ of [0, 1, 2, 3, 4]" [style.width]="100+ '%'">star</mat-icon>
+    </div>
+  </mat-card-content>
+</mat-card>
