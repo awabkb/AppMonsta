@@ -1,5 +1,8 @@
-﻿namespace AppMonsta.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AppMonsta.Models
 {
+    [NotMapped]
     public class AppDetails
     {
         public string content_rating { get; set; }
