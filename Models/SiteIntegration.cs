@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -25,7 +26,12 @@ namespace IMK_web.Models
         public string AppVersion { get; set; }
         public string Error { get; set; }
         public int Progress { get; set; }
-        public byte[] AiLog { get; set; }
+        //public byte[] AiLog { get; set; }
         public string InitiatedAt { get; set; }
+        public DateTime DownloadStartDatetime {get;set;}
+        public DateTime DownloadEndDatetime {get;set;}
+        public DateTime IntegrateStartDatetime {get;set;}
+        public DateTime IntegrateEndDatetime {get;set;}
+
     }
 }

@@ -430,11 +430,15 @@ namespace IMK_web.Controllers
                 AppVersion = siteIntegration.AppVersion,
                 Error = siteIntegration.Error,
                 Progress = siteIntegration.Progress,
-                AiLog = siteIntegration.AiLog,
-                InitiatedAt = siteIntegration.InitiatedAt
+               // AiLog = siteIntegration.AiLog,
+                InitiatedAt = siteIntegration.InitiatedAt,
+                DownloadStartDatetime =   DateTime.Parse(siteIntegration.DownloadStart),
+                DownloadEndDatetime = DateTime.Parse( siteIntegration.DownloadEnd),
+                IntegrateStartDatetime=  DateTime.Parse(siteIntegration.IntegrateStart),
+                IntegrateEndDatetime =  DateTime.Parse(siteIntegration.IntegrateEnd)
             });
             await _appRepository.SaveChanges();
-            siteIntegration.AiLog = null;
+           // siteIntegration.AiLog = null;
             if (Double.Parse(siteIntegration.AppVersion) > 4.47)
             {
                 return Ok(siteIntegration.Id);

@@ -1,6 +1,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace IMK_web.Models
 {
@@ -9,6 +10,7 @@ namespace IMK_web.Models
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
+	    [JsonIgnore]
         public IEnumerable<Site> Sites { get; set; }
     }
 }
